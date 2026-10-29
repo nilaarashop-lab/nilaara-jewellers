@@ -586,6 +586,11 @@ select.status{border:1px solid var(--line);border-radius:999px;padding:7px 12px;
 .phone-row input{flex:1;letter-spacing:2px;font-size:17px}
 .otp-input{text-align:center;font-size:26px;letter-spacing:12px;font-weight:600;padding:14px}
 .otp-input::placeholder{color:var(--muted);letter-spacing:8px}
+.pw-field{position:relative}
+.pw-field input{padding-right:46px}
+.pw-toggle{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:34px;height:34px;display:grid;place-items:center;padding:0;border:0;border-radius:8px;background:none;color:var(--muted);cursor:pointer}
+.pw-toggle:hover{color:var(--maroon);background:rgba(199,164,92,.14)}
+.pw-toggle:focus-visible{outline:2px solid var(--gold);outline-offset:1px}
 .gbtn-wrap{display:flex;justify-content:center}
 .gbtn-wrap>div{max-width:100%}
 .auth-ok{color:var(--success,#2e7d32);font-size:14px}
