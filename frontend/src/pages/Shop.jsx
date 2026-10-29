@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { CATEGORIES, COLLECTIONS, PRODUCTS } from "../data/products";
 import { ProductCard, ProductGridSkeleton, ProductsUnavailable } from "../components/Layout";
-import { fetchProducts, hasAPI } from "../api/client";
+import { fetchProducts, hasAPI, matchesQuery } from "../api/client";
 import { useStore } from "../store/StoreContext";
 
 // Curated lists driven by the admin's Best Seller / New toggles.
@@ -87,7 +87,7 @@ export default function Shop() {
       list = curated.length ? curated : list.slice(0, 12);
     } else if (col) list = list.filter((p) => p.collection === col || (p.customTag && slugifyLabel(p.customTag) === col));
 
-    if (query) list = list.filter((p) => (p.name + p.plating + p.stones).toLowerCase().includes(query.toLowerCase()));
+    if (query) list = list.filter((p) => matchesQuery(p, query));
     if (maxPrice != null) list = list.filter((p) => p.price <= maxPrice);
     if (sort === "low") list.sort((a, b) => a.price - b.price);
     if (sort === "high") list.sort((a, b) => b.price - a.price);

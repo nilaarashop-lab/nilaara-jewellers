@@ -53,7 +53,6 @@ export function StoreProvider({ children }) {
   const [wishlist, setWishlist] = useState(() => load("nilaara-wish", []));
   const [coupon, setCoupon] = useState(() => load("nilaara-coupon", ""));
   const [cartOpen, setCartOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
   const [cartReady, setCartReady] = useState(!hasAPI);
   const [settings, setSettings] = useState(null); // public storefront settings
   const [promos, setPromos] = useState([]); // active promo codes (chips on bag/checkout)
@@ -296,7 +295,7 @@ export function StoreProvider({ children }) {
   }, [cart, coupon, settings, promos]);
 
   const value = {
-    cart, wishlist, coupon, setCoupon, cartOpen, setCartOpen, searchOpen, setSearchOpen,
+    cart, wishlist, coupon, setCoupon, cartOpen, setCartOpen,
     addToCart, updateQty, removeItem, clearCart, toggleWish, totals,
     cartReady, settings, promos,
     loginPrompt, requireLogin: gateForGuest, closeLoginPrompt,

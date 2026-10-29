@@ -95,9 +95,15 @@ router.get(
     if (cat) filter.category = String(cat);
     if (col) filter.collection = String(col);
     if (q) {
-      // Safe literal search (escaped) — no regex injection.
-      const escaped = String(q).replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-      filter.name = new RegExp(escaped, "i");
+      // Safe literal search (escaped) — no regex injection. Matches the same
+      // fields the storefront search looks at: name, plating, stones, tags.
+      const escaped = String(q).trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      if (escaped) {
+        const rx = new RegExp(escaped, "i");
+        filter.$and = [
+          { $or: [{ name: rx }, { plating: rx }, { stones: rx }, { collection: rx }, { category: rx }, { customTag: rx }, { tag: rx }, { badge: rx }] },
+        ];
+      }
     }
     const [items, total] = await Promise.all([
       Product.find(filter).sort({ createdAt: -1 }).skip((page - 1) * limit).limit(limit),

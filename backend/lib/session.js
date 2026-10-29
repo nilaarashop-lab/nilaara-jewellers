@@ -1,7 +1,7 @@
 /**
  * Cookie-based server sessions.
  * - Session token: 256-bit random value, stored ONLY as a SHA-256 hash.
- * - Cookie: httpOnly, SameSite=Lax, Secure in production, path=/.
+ * - Cookie: httpOnly, SameSite from COOKIE_SAMESITE, Secure in production, path=/.
  * - Server-side record allows expiry and revocation (logout / "log out everywhere").
  */
 const crypto = require("crypto");
@@ -27,14 +27,14 @@ function setSessionCookie(res, token) {
   res.cookie(COOKIE_NAME, token, {
     httpOnly: true,
     secure: env.COOKIE_SECURE,
-    sameSite: "lax",
+    sameSite: env.COOKIE_SAMESITE,
     path: "/",
     maxAge: env.SESSION_TTL_DAYS * 864e5,
   });
 }
 
 function clearSessionCookie(res) {
-  res.clearCookie(COOKIE_NAME, { httpOnly: true, secure: env.COOKIE_SECURE, sameSite: "lax", path: "/" });
+  res.clearCookie(COOKIE_NAME, { httpOnly: true, secure: env.COOKIE_SECURE, sameSite: env.COOKIE_SAMESITE, path: "/" });
 }
 
 async function destroySession(token) {

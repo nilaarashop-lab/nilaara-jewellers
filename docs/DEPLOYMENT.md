@@ -17,8 +17,9 @@ Production validation (`config/env.js`) **fails fast** — the server exits with
 | `MONGO_URI` | Atlas connection string (localhost is rejected) |
 | `STORAGE_DRIVER` | `cloudinary` (local disk is rejected) |
 | `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | from the Cloudinary dashboard |
-| `FRONTEND_URL` | the exact origin(s) of your React app, comma-separated — CORS allows only these, with credentials |
-| `COOKIE_SECURE` | `true` (forced in production; sessions are httpOnly + SameSite=Lax) |
+| `FRONTEND_URL` | the exact origin(s) of your React app, comma-separated — CORS allows only these, with credentials. Must be `https://` origins in production (trailing slashes are stripped) |
+| `COOKIE_SECURE` | `true` (forced in production; sessions are httpOnly) |
+| `COOKIE_SAMESITE` | `none` when the storefront and the API are on different sites (default in production, needs `COOKIE_SECURE=true`); `lax` when both share one registrable domain |
 
 Optional:
 
@@ -26,6 +27,7 @@ Optional:
 PUBLIC_BASE_URL=https://api.nilaara.com    # absolute API URL
 RAZORPAY_KEY_ID=…  RAZORPAY_KEY_SECRET=…  RAZORPAY_WEBHOOK_SECRET=…
 SESSION_TTL_DAYS=7  BCRYPT_ROUNDS=12  LOGIN_MAX_ATTEMPTS=5  LOGIN_WINDOW_MIN=15
+COOKIE_SAMESITE=lax                         # only when the storefront and API share a registrable domain
 MAX_UPLOAD_MB=5  MAX_UPLOAD_FILES=6
 ALLOWED_IMAGE_HOSTS=                        # empty in production: new images must come from uploads
 TRUST_PROXY=1                               # behind a reverse proxy / load balancer

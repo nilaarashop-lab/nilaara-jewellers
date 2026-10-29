@@ -86,11 +86,13 @@ h1,h2,h3,h4{color:var(--maroon)}
 }
 .logo-name{font-family:var(--serif);font-size:31px;letter-spacing:5px;font-weight:600;color:var(--maroon);transition:font-size .3s ease}
 .logo-sub{font-size:10px;letter-spacing:3.6px;text-transform:uppercase;color:var(--gold-2);margin-top:-4px}
+.search-wrap{position:relative;flex:1;max-width:520px;margin-left:auto;min-width:0}
+.search-wrap.m{display:none}
 .search{
-  flex:1;display:flex;align-items:center;gap:11px;
+  display:flex;align-items:center;gap:11px;width:100%;
   background:linear-gradient(180deg,#FFFDF9,#FBF5EA);
   border:1px solid var(--gold-line);border-radius:999px;
-  padding:11px 18px;max-width:520px;margin-left:auto;
+  padding:11px 18px;
   box-shadow:inset 0 1px 2px rgba(101,1,8,.04);
   transition:border-color .25s, box-shadow .25s, background .25s;
 }
@@ -100,9 +102,76 @@ h1,h2,h3,h4{color:var(--maroon)}
   box-shadow:0 0 0 3px rgba(199,164,92,.16), inset 0 1px 2px rgba(101,1,8,.04);
 }
 .search>span{color:var(--gold-2)}
-.search input{border:0;outline:0;flex:1;background:transparent;font-size:14px;letter-spacing:.2px;font-family:inherit;color:var(--ink)}
+.search input{border:0;outline:0;flex:1;min-width:0;background:transparent;font-size:14px;letter-spacing:.2px;font-family:inherit;color:var(--ink)}
 .search input::placeholder{color:var(--muted)}
-.search.m{display:none}
+.search-clear{
+  width:22px;height:22px;flex-shrink:0;border-radius:50%;border:0;cursor:pointer;
+  background:var(--bg-2);color:var(--ink-soft);font-size:10px;line-height:1;
+  display:grid;place-items:center;transition:background .2s,color .2s;
+}
+.search-clear:hover{background:var(--maroon);color:#FFF3D6}
+
+/* Live search results — ivory card, gold hairline, product rows */
+.search-panel{
+  position:absolute;top:calc(100% + 10px);left:0;right:0;z-index:70;
+  background:linear-gradient(180deg,#FFFDF9,#FBF6EC);
+  border:1px solid var(--gold-line);border-radius:18px;
+  box-shadow:0 26px 60px -24px rgba(74,1,6,.36), inset 0 1px 0 rgba(255,255,255,.7);
+  overflow:hidden;animation:sq-in .18s ease;
+}
+@keyframes sq-in{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+.sq-progress{
+  position:absolute;top:0;left:0;right:0;height:2px;z-index:2;
+  background:linear-gradient(90deg,transparent,var(--gold),transparent);
+  background-size:200% 100%;animation:sk 1s linear infinite;
+}
+.sq-label{display:block;padding:15px 16px 9px;font-size:10px;letter-spacing:2.4px;text-transform:uppercase;color:var(--gold-2)}
+.sq-chips{display:flex;flex-wrap:wrap;gap:7px;padding:0 16px 16px}
+.sq-chips button{
+  font-family:inherit;font-size:12.5px;letter-spacing:.3px;padding:7px 14px;border-radius:999px;
+  border:1px solid var(--gold-line);background:rgba(255,255,255,.72);color:var(--maroon);
+  cursor:pointer;transition:background .18s,border-color .18s,color .18s;
+}
+.sq-chips button:hover{background:var(--maroon);border-color:var(--maroon);color:#FFF3D6}
+.sq-hint{margin:0;padding:16px;font-size:13px;color:var(--muted)}
+.sq-list{max-height:min(58vh,382px);overflow-y:auto;padding:6px;scrollbar-width:thin;scrollbar-color:var(--gold-line) transparent}
+.sq-list::-webkit-scrollbar{width:8px}
+.sq-list::-webkit-scrollbar-thumb{background:var(--gold-line);border-radius:8px}
+.sq-item{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:12px;transition:background .15s ease}
+.sq-item:hover,.sq-item.on{background:var(--gold-soft)}
+.sq-thumb{width:46px;height:52px;border-radius:9px;object-fit:cover;border:1px solid var(--gold-line);background:var(--bg-2);flex-shrink:0}
+.sq-info{flex:1;display:flex;flex-direction:column;gap:3px;min-width:0}
+.sq-info b{
+  font-family:var(--serif);font-size:15.5px;font-weight:600;letter-spacing:.2px;color:var(--ink);
+  line-height:1.25;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.sq-info small{
+  font-size:10px;letter-spacing:1.6px;text-transform:uppercase;color:var(--gold-2);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+}
+.sq-price{font-family:var(--serif);font-size:15px;color:var(--maroon);white-space:nowrap;align-self:center}
+.sq-all{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;
+  padding:12px 16px;border:0;border-top:1px solid var(--gold-line);cursor:pointer;
+  background:var(--bg-2);color:var(--maroon);font-family:inherit;
+  font-size:11px;letter-spacing:1.4px;text-transform:uppercase;
+  white-space:nowrap;overflow:hidden;transition:background .18s,color .18s;
+}
+.sq-all span:first-child{overflow:hidden;text-overflow:ellipsis}
+.sq-all:hover{background:var(--maroon);color:#FFF3D6}
+.sq-state{padding:18px 16px;display:flex;flex-direction:column;gap:4px}
+.sq-state b{font-family:var(--serif);font-size:17px;font-weight:600;color:var(--maroon)}
+.sq-state span{font-size:13px;color:var(--ink-soft);line-height:1.55}
+.sq-state button{
+  align-self:flex-start;margin-top:8px;padding:8px 16px;border-radius:999px;cursor:pointer;
+  border:1px solid var(--maroon);background:transparent;color:var(--maroon);
+  font-family:inherit;font-size:11px;letter-spacing:1.2px;text-transform:uppercase;transition:.18s;
+}
+.sq-state button:hover{background:var(--maroon);color:#FFF3D6}
+.sq-skel{display:flex;align-items:center;gap:12px;padding:8px 10px}
+.sq-skel-thumb{width:46px;height:52px;border-radius:9px;flex-shrink:0}
+.sq-skel-lines{flex:1;display:flex;flex-direction:column;gap:7px}
+.sq-skel-lines .sk{display:block;height:10px;border-radius:6px}
 .hicons{display:flex;align-items:center;gap:8px;margin-left:auto}
 .hbtn{
   position:relative;width:42px;height:42px;border-radius:50%;
@@ -152,7 +221,7 @@ h1,h2,h3,h4{color:var(--maroon)}
   .header.scrolled .logo-mark{width:42px;height:42px}
   .header.scrolled .logo-name{font-size:28px}
 }
-.menu-btn{display:none}
+.menu-btn{display:none;flex:0 0 auto}
 
 /* mobile nav drawer */
 .mnav{
@@ -169,8 +238,14 @@ h1,h2,h3,h4{color:var(--maroon)}
 .mnav-links{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
 .mnav-links a{font-size:14.5px;padding:10px 0;border-bottom:1px solid var(--line);color:var(--ink);min-width:0}
 .mnav-links a:hover{color:var(--maroon)}
+.mnav-count{
+  display:inline-grid;place-items:center;min-width:19px;height:19px;padding:0 5px;margin-left:6px;
+  border-radius:999px;background:var(--maroon);color:#FFF3D6;font-size:10.5px;font-weight:600;
+  vertical-align:2px;
+}
 .mnav-foot{padding:14px 18px 18px;border-top:1px solid var(--line);background:var(--card)}
 .mnav-foot small{display:block;color:var(--ink-soft);font-size:12.5px}
+.mnav-admin,.mnav-logout{width:100%;justify-content:center;margin-top:8px}
 .mnav-auth{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .mnav-auth .btn{padding:11px 12px;font-size:11.5px;letter-spacing:1.2px;justify-content:center}
 
@@ -540,8 +615,10 @@ select.status{border:1px solid var(--line);border-radius:999px;padding:7px 12px;
 @media(max-width:1000px){
   .nav{display:none}
   .menu-btn{display:grid}
-  .hicons .search-hbtn{display:none}
-  .logo-sub{display:none} /* keeps the logo + account pills on one line on tablets */
+  /* Phones/tablets: the drawer carries every header action — wishlist, account,
+     auth pills and admin — so the top row reads [☰] NILAARA … [cart]. */
+  .hicons .wish-hbtn,.hicons .acct-hbtn,.hicons .auth-btns,.hicons .admin-hbtn{display:none}
+  .logo-sub{display:none} /* keeps the logo + cart on one line on tablets */
   .hero{grid-template-columns:1fr}
   .hero-main{flex-direction:column}
   .hero-copy{max-width:none;padding:40px 32px}
@@ -553,16 +630,13 @@ select.status{border:1px solid var(--line);border-radius:999px;padding:7px 12px;
   .festive,.pd,.shop-layout{grid-template-columns:minmax(0,1fr)}
   .cart-grid{grid-template-columns:1fr !important}
   .footer-grid{grid-template-columns:1fr 1fr}
-  .search{display:none}
-  .search.m{display:flex;max-width:none;margin:0 0 10px}
+  .search-wrap{display:none}
+  .search-wrap.m{display:block;max-width:none;margin:0 0 10px}
   .filters-bar{display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap}
   .filters{display:none;position:static}
   .filters.open{display:block}
   .store-grid{grid-template-columns:1fr}
   .stat-grid{grid-template-columns:1fr 1fr}
-  /* Admin control becomes an icon-only button on tablets/phones. */
-  .hbtn.admin-hbtn{width:42px;padding:0}
-  .admin-hbtn .admin-label{display:none}
 }
 @media(max-width:560px){
   .grid,.grid-3{grid-template-columns:1fr 1fr;gap:10px}
@@ -582,19 +656,13 @@ select.status{border:1px solid var(--line);border-radius:999px;padding:7px 12px;
   .news button{padding:9px 14px;font-size:11px}
   .copy{font-size:11px;padding:10px 0;gap:2px;flex-direction:column;line-height:1.55}
   .header-top{flex-wrap:nowrap;gap:8px}
-  .header{position:static}
+  .header{position:relative} /* not sticky on phones, but still above the page for the search panel */
   .logo{gap:9px}
   .logo-sub{display:none}
   .logo-name{font-size:24px;letter-spacing:2.5px}
   .logo-mark{width:36px;height:36px}
   .hicons{gap:6px}
   .hbtn{width:40px;height:40px;font-size:15px}
-  .hbtn.admin-hbtn{width:40px;height:40px;padding:0}
-  .hicons .wish-hbtn{display:none} /* wishlist stays in the mobile menu + account menu */
-  /* Compact auth pills: signup moves into the mobile drawer to keep the row on one line */
-  .hicons .auth-signup{display:none}
-  .hicons .auth-btn{height:40px;padding:0 13px;font-size:11.5px;gap:5px}
-  .hicons .auth-btn svg{width:15px;height:15px}
   .announce{font-size:10.5px;letter-spacing:1.1px;padding:9px 10px;white-space:nowrap}
   .announce .dot{margin:0 6px}
   .announce-full{display:none}
@@ -629,6 +697,12 @@ select.status{border:1px solid var(--line);border-radius:999px;padding:7px 12px;
   .unavailable{padding:38px 18px;border-radius:16px}
   .unavailable h3{font-size:23px}
   .unavailable p{font-size:13.5px}
+  .search-wrap.m{margin:0 0 8px}
+  .search-panel{top:calc(100% + 8px);border-radius:14px}
+  .sq-list{max-height:min(52vh,320px)}
+  .sq-thumb{width:42px;height:48px}
+  .sq-info b{font-size:15px}
+  .sq-skel-thumb{width:42px;height:48px}
   .form-row-2{grid-template-columns:1fr}
   .trust{gap:8px}
   .trust div{padding:10px 11px;font-size:11.5px;gap:8px;border-radius:12px}
@@ -652,8 +726,6 @@ select.status{border:1px solid var(--line);border-radius:999px;padding:7px 12px;
   .logo-mark{width:34px;height:34px}
   .hicons{gap:5px}
   .hbtn{width:38px;height:38px}
-  .hbtn.admin-hbtn{width:38px;height:38px}
-  .hicons .auth-btn{height:38px;padding:0 11px}
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -740,7 +812,7 @@ select.status{border:1px solid var(--line);border-radius:999px;padding:7px 12px;
 .acct-menu .acct-admin{color:var(--maroon);border-top:1px solid var(--line);margin-top:4px;padding-top:9px;border-radius:0 0 8px 8px}
 .acct-menu .acct-admin svg{color:var(--gold-2)}
 .mnav-acct{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:10px}
-.mnav-acct .btn{justify-content:center;gap:6px;padding:10px 6px;font-size:10.5px;letter-spacing:.8px}
+.mnav-acct .btn{justify-content:center;gap:6px;padding:10px 6px;font-size:10.5px;letter-spacing:.8px;white-space:nowrap}
 .mnav-acct .btn svg,.mnav-foot .btn svg{width:15px;height:15px}
 .mnav-foot .btn{display:inline-flex;align-items:center;justify-content:center;gap:7px}
 
@@ -873,6 +945,8 @@ select.status{border:1px solid var(--line);border-radius:999px;padding:7px 12px;
   .bento-card:hover{transform:none}
   .bento-card:hover img{transform:none}
   .sk{animation:none;background:#F4EBDE}
+  .search-panel{animation:none}
+  .sq-progress{animation:none;background:var(--gold)}
 }
 
 /* ════════════════════════════════════════════════════════════════════
@@ -912,7 +986,6 @@ select.status{border:1px solid var(--line);border-radius:999px;padding:7px 12px;
   .order-toggle{width:100%}
 }
 @media(max-width:560px){
-  .mnav-acct{grid-template-columns:1fr}
   .order-tab{padding:10px 16px;font-size:11.5px;letter-spacing:1px}
   .order-card{padding:15px 14px}
   .order-more{padding-left:0}

@@ -36,12 +36,16 @@ The API must be publicly reachable over HTTPS, and in its environment:
 | `STORAGE_DRIVER` | `imagekit` (or `cloudinary`) |
 | `FRONTEND_URL` | exact storefront origin(s), comma-separated, no trailing slash — e.g. `https://shop.your-domain.com,https://your-app.vercel.app` |
 | `COOKIE_SECURE` | `true` |
+| `COOKIE_SAMESITE` | leave unset (defaults to `none` in production — see below); set to `lax` only if the storefront and API share a registrable domain |
 
-**Cookie caveat.** Sessions are `HttpOnly` + `SameSite=Lax`. If the storefront is on
-`*.vercel.app` and the API on an unrelated domain, the browser treats them as cross-site and
-drops the session cookie — login appears to succeed and then bounces. Put both on the same
-registrable domain (`shop.example.com` + `api.example.com`), or change `sameSite` to `"none"`
-(with `COOKIE_SECURE=true`) in `backend/lib/session.js` and allow the exact origin in CORS.
+**Cookie caveat.** Sessions are `HttpOnly` and, in production, `SameSite=None; Secure` by
+default, because a `*.vercel.app` storefront calling an API on another domain is a **cross-site**
+request — a `Lax` cookie is simply not sent, so registration and login succeed on the server
+while the visitor stays logged out. `SameSite=None` fixes that in Chrome, Edge and Firefox, but
+Safari and any browser with third-party cookies blocked still refuse it. The durable fix is to
+serve both from one registrable domain (`shop.example.com` + `api.example.com`, or a rewrite in
+`vercel.json` proxying `/api/*` to the API); then set `COOKIE_SAMESITE=lax` and allow that one
+origin in `FRONTEND_URL`.
 
 ## Deploying an update
 
@@ -89,7 +93,8 @@ bundle still contains the previous `VITE_API_URL`.
 | Gold "Our collection is temporarily unavailable" panel | API unreachable, CORS/`FRONTEND_URL` mismatch, or `VITE_API_URL` wrong at build time |
 | Demo products on the live site | `VITE_API_URL` missing in the Vercel build — the app deliberately runs in demo mode only when no API is configured |
 | 404 after refresh / shared deep link | `frontend/vercel.json` missing, or the project's Root Directory isn't `frontend` |
-| Login works, then you're logged out | cross-site cookie (see the caveat above) or `FRONTEND_URL` origin mismatch |
+| Login works, then you're logged out | cross-site cookie (see the caveat above — `COOKIE_SAMESITE`/`COOKIE_SECURE`), or `FRONTEND_URL` origin mismatch |
+| Register succeeds but the form says the browser didn't keep the sign-in | the API's session cookie was rejected: add the deployed origin to `FRONTEND_URL`, keep `COOKIE_SECURE=true` + `COOKIE_SAMESITE=none`, and check the browser console/network panel for a blocked cookie |
 | Old version still served after a push | check the commit hash on the deployment; redeploy without build cache |
 
 See also [DEPLOYMENT.md](DEPLOYMENT.md) for the full production checklist.

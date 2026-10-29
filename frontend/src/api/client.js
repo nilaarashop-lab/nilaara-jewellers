@@ -25,12 +25,22 @@ export function setUnauthorizedHandler(fn) {
 }
 
 async function api(path, { method = "GET", body, formData, raw } = {}) {
-  const res = await fetch(API + path, {
-    method,
-    credentials: "include",
-    headers: formData ? undefined : body ? { "Content-Type": "application/json" } : undefined,
-    body: formData || (body ? JSON.stringify(body) : undefined),
-  });
+  let res;
+  try {
+    res = await fetch(API + path, {
+      method,
+      credentials: "include",
+      headers: formData ? undefined : body ? { "Content-Type": "application/json" } : undefined,
+      body: formData || (body ? JSON.stringify(body) : undefined),
+    });
+  } catch {
+    // fetch only rejects for transport failures (offline, DNS, CORS, mixed
+    // content) — "Failed to fetch" is useless to a shopper.
+    const err = new Error("We can't reach Nilaara's servers right now. Check your connection and try again.");
+    err.status = 0;
+    err.network = true;
+    throw err;
+  }
   let data = null;
   try {
     data = raw ? await res.text() : await res.json();
@@ -96,6 +106,34 @@ export async function fetchProducts() {
 export async function adminListProducts() {
   if (!API) return fetchProducts();
   return api("/api/products?admin=1&limit=200");
+}
+
+// Fields the storefront search matches — the backend applies the same set.
+const searchable = (p) =>
+  [p.name, p.plating, p.stones, p.collection, p.category, p.customTag, p.tag, p.badge]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+
+/**
+ * Case-insensitive substring match used by the header search and the shop page,
+ * so a suggestion always appears in the full results it links to.
+ */
+export function matchesQuery(p, q) {
+  const needle = String(q || "").trim().toLowerCase();
+  return !needle || searchable(p).includes(needle);
+}
+
+/**
+ * Live catalogue search. In API mode the server answers (same fields, literal
+ * match) and a failure throws — the header shows "unavailable" rather than
+ * inventing products. Demo mode filters the local catalogue.
+ */
+export async function searchProducts(q, limit = 6) {
+  const query = String(q || "").trim();
+  if (!query) return [];
+  if (!API) return (await fetchProducts()).filter((p) => matchesQuery(p, query)).slice(0, limit);
+  return api(`/api/products?limit=${Number(limit) || 6}&q=${encodeURIComponent(query)}`);
 }
 
 export async function fetchProduct(id) {

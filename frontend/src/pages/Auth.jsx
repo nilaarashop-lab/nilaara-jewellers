@@ -42,8 +42,11 @@ function useCountdown(sent) {
 
 /* ───────────────────────── Login ───────────────────────── */
 
+const SESSION_BLOCKED =
+  "We couldn't keep you signed in — this browser didn't store the session cookie. Please try again; if it keeps happening, message us on WhatsApp and we'll help.";
+
 export function Login() {
-  const { setUser } = useAuth();
+  const { startSession } = useAuth();
   const go = useAfterLogin();
   const [tab, setTab] = useState("otp"); // otp | email | password
   const [err, setErr] = useState("");
@@ -67,15 +70,17 @@ export function Login() {
   const [id, setId] = useState("");
   const [pw, setPw] = useState("");
 
-  const afterAuth = (user) => { setUser(user); go(user); };
+  const afterAuth = async (user) => {
+    if (await startSession(user)) go(user);
+    else setErr(SESSION_BLOCKED);
+  };
 
   const onGoogle = async (credential) => {
     setErr("");
     setBusy(true);
     try {
       const { user } = await authGoogle(credential);
-      setUser(user);
-      go(user);
+      await afterAuth(user);
     } catch (ex) {
       setErr(ex.message);
     } finally {
@@ -111,8 +116,7 @@ export function Login() {
     setBusy(true);
     try {
       const { user } = await otpVerify(phone, code);
-      setUser(user);
-      go(user);
+      await afterAuth(user);
     } catch (ex) {
       setErr(ex.message);
       if (ex.status === 429 && /request a new code/i.test(ex.message)) setStep("phone"); // locked — restart
@@ -164,7 +168,7 @@ export function Login() {
     setBusy(true);
     try {
       const { user } = await emailOtpVerify(email.trim(), eCode);
-      afterAuth(user);
+      await afterAuth(user);
     } catch (ex) {
       setErr(ex.message);
       if (ex.status === 429 && /request a new code/i.test(ex.message)) setEStep("email");
@@ -356,8 +360,7 @@ export function Login() {
                   setBusy(true);
                   try {
                     const { user } = await authLogin({ id: id.trim(), password: pw });
-                    setUser(user);
-                    go(user);
+                    await afterAuth(user);
                   } catch (ex) {
                     setErr(ex.message);
                   } finally {
@@ -382,7 +385,7 @@ export function Login() {
 /* ───────────────────────── Register ───────────────────────── */
 
 export function Register() {
-  const { setUser } = useAuth();
+  const { startSession } = useAuth();
   const go = useAfterLogin();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -390,13 +393,17 @@ export function Register() {
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
 
+  const afterAuth = async (user, blocked = SESSION_BLOCKED) => {
+    if (await startSession(user)) go(user);
+    else setErr(blocked);
+  };
+
   const onGoogle = async (credential) => {
     setErr("");
     setBusy(true);
     try {
       const { user } = await authGoogle(credential);
-      setUser(user);
-      go(user);
+      await afterAuth(user);
     } catch (ex) {
       setErr(ex.message);
     } finally {
@@ -410,8 +417,10 @@ export function Register() {
     setBusy(true);
     try {
       const { user } = await authRegister({ name: name.trim(), email: email.trim(), password: pw });
-      setUser(user);
-      go(user);
+      await afterAuth(
+        user,
+        "Your account was created, but this browser didn't keep the sign-in. Try logging in — if it keeps happening, message us on WhatsApp."
+      );
     } catch (ex) {
       setErr(ex.message);
     } finally {

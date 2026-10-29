@@ -161,9 +161,9 @@ Security properties (all covered by tests): the response only ever returns the *
 
 ## 4. Sessions & security model
 
-- **Session cookie** `nilaara_sid`: `httpOnly`, `SameSite=Lax`, `Secure` in production (forced — the app refuses to boot with `COOKIE_SECURE=false` in prod), `path=/`.
+- **Session cookie** `nilaara_sid`: `httpOnly`, `SameSite` from `COOKIE_SAMESITE` (`none` in production unless overridden, `lax` in development), `Secure` in production (forced — the app refuses to boot with `COOKIE_SECURE=false` in prod), `path=/`. `SameSite=None` is required whenever the storefront and the API are on different sites (e.g. `*.vercel.app` ↔ `api.example.com`); with `Lax` the browser withholds the cookie and sign-up/login leave the visitor logged out. Host both from one registrable domain (`shop.` + `api.example.com`) and set `COOKIE_SAMESITE=lax` to tighten it.
 - Token = 256-bit random value; server stores only its **SHA-256 hash** (`Session` collection, TTL-indexed). Rotation on **every** login (fixation defence); logout deletes the record server-side, so a stolen cookie dies immediately.
-- **CSRF**: layered — `SameSite=Lax` plus an Origin check (`backend/lib/csrf.js`) on every state-changing `/api` request: a browser Origin that isn't `FRONTEND_URL`/`PUBLIC_BASE_URL` gets `403`. Requests without an Origin header (curl, server-to-server) pass.
+- **CSRF**: layered — a `SameSite` cookie plus an Origin check (`backend/lib/csrf.js`) on every state-changing `/api` request: a browser Origin that isn't `FRONTEND_URL`/`PUBLIC_BASE_URL` gets `403`. Requests without an Origin header (curl, server-to-server) pass.
 - **Passwords**: bcrypt (`BCRYPT_ROUNDS=12`), timing-equalized unknown-user path, always generic `401 "Invalid credentials."`.
 - **Validation**: Zod schemas on every auth body; unknown fields stripped; phone normalized before use.
 - **Roles**: `customer` < `staff` < `admin`. Public endpoints can only create customers; Google/OTP hardcode `customer`. Admin routes are server-enforced (`requireRole`) — frontend hiding is cosmetic.
@@ -184,6 +184,7 @@ LOGIN_MAX_ATTEMPTS=5
 LOGIN_WINDOW_MIN=15
 REGISTER_PER_IP=10
 COOKIE_SECURE=true                # forced true in production
+COOKIE_SAMESITE=none              # none (different sites, e.g. Vercel ↔ api.example.com) | lax | strict
 
 # Google
 GOOGLE_CLIENT_ID=xxxxxxxx.apps.googleusercontent.com

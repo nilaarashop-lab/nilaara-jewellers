@@ -1,9 +1,9 @@
 import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { useStore } from "../store/StoreContext";
 import { useAuth } from "../store/AuthContext";
 import { formatINR } from "../data/products";
-import { hasAPI } from "../api/client";
+import { hasAPI, searchProducts } from "../api/client";
 
 /* ── Icon set (single stroke style, currentColor — inherits hover states) ── */
 const svgProps = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.7, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true, focusable: false };
@@ -222,11 +222,236 @@ export function AnnounceBar() {
   );
 }
 
+const SEARCH_MIN = 2;
+const SEARCH_TERMS = ["Jhumka", "Kundan", "Temple", "Necklace set", "Bangles"];
+
+/**
+ * Debounced catalogue lookup. Fires only while the panel is open and the query
+ * is at least two characters; a failed request surfaces as an error state.
+ */
+function useProductSearch(term, active) {
+  const [state, setState] = useState({ status: "idle", results: [] });
+  const [attempt, setAttempt] = useState(0);
+  const needle = term.trim();
+  useEffect(() => {
+    if (needle.length < SEARCH_MIN) {
+      setState({ status: "idle", results: [] });
+      return;
+    }
+    if (!active) return;
+    let alive = true;
+    setState((s) => ({ status: "loading", results: s.results }));
+    const timer = setTimeout(() => {
+      searchProducts(needle, 6)
+        .then((results) => alive && setState({ status: "ready", results }))
+        .catch(() => alive && setState({ status: "error", results: [] }));
+    }, 200);
+    return () => {
+      alive = false;
+      clearTimeout(timer);
+    };
+  }, [needle, active, attempt]);
+  return [state, () => setAttempt((n) => n + 1)];
+}
+
+/**
+ * Header search with live results. Desktop and mobile use the same component;
+ * results come from the server in API mode (and the local catalogue in demo
+ * mode), never from invented data when the backend is down.
+ */
+function SearchBox({ className = "", placeholder = "Search jewellery…" }) {
+  const uid = useId().replace(/:/g, "");
+  const nav = useNavigate();
+  const { pathname } = useLocation();
+  const [term, setTerm] = useState("");
+  const [open, setOpen] = useState(false);
+  const [active, setActive] = useState(-1);
+  const wrapRef = useRef(null);
+  const inputRef = useRef(null);
+  const [search, retry] = useProductSearch(term, open);
+  const { status, results } = search;
+  const needle = term.trim();
+
+  useEffect(() => {
+    setOpen(false);
+    setActive(-1);
+  }, [pathname]);
+  useEffect(() => setActive(-1), [needle]);
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e) => {
+      if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    document.addEventListener("touchstart", onDown);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("touchstart", onDown);
+    };
+  }, [open]);
+
+  const close = () => {
+    setOpen(false);
+    setActive(-1);
+  };
+  const go = (to) => {
+    close();
+    setTerm("");
+    inputRef.current?.blur();
+    nav(to);
+  };
+  const onKeyDown = (e) => {
+    if (e.key === "Escape") {
+      close();
+      inputRef.current?.blur();
+    } else if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setOpen(true);
+      if (results.length) setActive((i) => Math.min(i + 1, results.length - 1));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (results.length) setActive((i) => Math.max(i - 1, -1));
+    } else if (e.key === "Enter") {
+      if (active >= 0 && results[active]) {
+        e.preventDefault();
+        go(`/product/${results[active].id}`);
+      } else if (needle) {
+        e.preventDefault();
+        go(`/shop?q=${encodeURIComponent(needle)}`);
+      }
+    }
+  };
+
+  return (
+    <div className={`search-wrap ${className}`.trim()} ref={wrapRef}>
+      <form
+        className="search"
+        role="search"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (needle) go(`/shop?q=${encodeURIComponent(needle)}`);
+        }}
+      >
+        <span className="search-ico"><IconSearch /></span>
+        <input
+          ref={inputRef}
+          value={term}
+          placeholder={placeholder}
+          onChange={(e) => {
+            setTerm(e.target.value);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          onKeyDown={onKeyDown}
+          role="combobox"
+          aria-expanded={open}
+          aria-controls={`${uid}-panel`}
+          aria-autocomplete="list"
+          aria-activedescendant={active >= 0 ? `${uid}-opt-${active}` : undefined}
+          aria-label="Search products"
+          autoComplete="off"
+          spellCheck="false"
+        />
+        {term && (
+          <button
+            type="button"
+            className="search-clear"
+            aria-label="Clear search"
+            onClick={() => {
+              setTerm("");
+              setActive(-1);
+              inputRef.current?.focus();
+            }}
+          >✕</button>
+        )}
+      </form>
+      {open && (
+        <div className="search-panel" id={`${uid}-panel`}>
+          {status === "loading" && <span className="sq-progress" aria-hidden="true" />}
+          {!needle ? (
+            <>
+              <span className="sq-label">Popular searches</span>
+              <div className="sq-chips">
+                {SEARCH_TERMS.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    onClick={() => {
+                      setTerm(s);
+                      setOpen(true);
+                      inputRef.current?.focus();
+                    }}
+                  >{s}</button>
+                ))}
+              </div>
+            </>
+          ) : needle.length < SEARCH_MIN ? (
+            <p className="sq-hint">Keep typing to see matching pieces…</p>
+          ) : status === "error" ? (
+            <div className="sq-state" role="alert">
+              <b>Search is temporarily unavailable</b>
+              <span>We couldn’t reach the store just now — your bag and account are safe.</span>
+              <button type="button" onClick={retry}>Try again</button>
+            </div>
+          ) : status === "loading" && !results.length ? (
+            <div className="sq-list" aria-hidden="true">
+              {[0, 1, 2].map((i) => (
+                <div className="sq-skel" key={i}>
+                  <span className="sk sq-skel-thumb" />
+                  <span className="sq-skel-lines">
+                    <span className="sk" style={{ width: "68%" }} />
+                    <span className="sk" style={{ width: "40%" }} />
+                  </span>
+                </div>
+              ))}
+            </div>
+          ) : !results.length ? (
+            <div className="sq-state">
+              <b>No matches for “{needle}”</b>
+              <span>Try a shorter word — like “jhumka”, “kundan” or “set”.</span>
+            </div>
+          ) : (
+            <>
+              <div className="sq-list" role="listbox" aria-label="Product suggestions">
+                {results.map((p, i) => (
+                  <Link
+                    key={p.id}
+                    id={`${uid}-opt-${i}`}
+                    role="option"
+                    aria-selected={i === active}
+                    className={`sq-item ${i === active ? "on" : ""}`}
+                    to={`/product/${p.id}`}
+                    onMouseEnter={() => setActive(i)}
+                    onClick={() => {
+                      close();
+                      setTerm("");
+                    }}
+                  >
+                    <Img src={p.images?.[0]} alt="" className="sq-thumb" />
+                    <span className="sq-info">
+                      <b>{p.name}</b>
+                      <small>{String(p.category || p.plating || "").replace(/-/g, " ")}</small>
+                    </span>
+                    <span className="sq-price">{formatINR(p.price)}</span>
+                  </Link>
+                ))}
+              </div>
+              <button type="button" className="sq-all" onClick={() => go(`/shop?q=${encodeURIComponent(needle)}`)}>
+                <span>View all results for “{needle}”</span>
+                <span aria-hidden="true">→</span>
+              </button>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function Header() {
-  const { totals, setCartOpen, wishlist, setSearchOpen } = useStore();
+  const { totals, setCartOpen, wishlist } = useStore();
   const { user, logout } = useAuth();
   const isAdmin = ["admin", "staff"].includes(user?.role);
-  const [q, setQ] = useState("");
   const [menu, setMenu] = useState(false);
   const [mnav, setMnav] = useState(false);
   const [scrolled, setScrolled] = useState(false);
@@ -270,17 +495,13 @@ export function Header() {
       <header className={`header ${scrolled ? "scrolled" : ""}`}>
         <div className="container">
           <div className="header-top">
+            <button className="hbtn menu-btn" onClick={() => setMnav(true)} aria-label="Open menu" aria-expanded={mnav}><IconMenu /></button>
             <Link to="/" className="logo" aria-label="Nilaara Jewellers home">
               <img className="logo-mark" src="/nilaara-mark.png" alt="" />
               <span><span className="logo-name">NILAARA</span><br /><span className="logo-sub">Gold-Plated • Artificial Jewellery</span></span>
             </Link>
-            <form className="search" onSubmit={(e) => { e.preventDefault(); nav(`/shop?q=${encodeURIComponent(q)}`); }}>
-              <span className="search-ico"><IconSearch /></span>
-              <input placeholder="Search necklace sets, jhumkas, kundan, temple…" value={q} onChange={(e) => setQ(e.target.value)} onFocus={() => setSearchOpen(true)} />
-            </form>
+            <SearchBox placeholder="Search necklace sets, jhumkas, kundan, temple…" />
             <div className="hicons">
-              <button className="hbtn menu-btn" onClick={() => setMnav(true)} aria-label="Open menu" aria-expanded={mnav}><IconMenu /></button>
-              <button className="hbtn search-hbtn" onClick={() => setSearchOpen(true)} aria-label="Search products"><IconSearch /></button>
               <Link className="hbtn wish-hbtn" to="/wishlist" aria-label={wishlist.length > 0 ? `Wishlist, ${wishlist.length} saved` : "Wishlist"}>
                 <IconHeart />{wishlist.length > 0 && <span className="count">{wishlist.length}</span>}
               </Link>
@@ -339,9 +560,7 @@ export function Header() {
               </button>
             </div>
           </div>
-          <form className="search m" onSubmit={(e) => { e.preventDefault(); nav(`/shop?q=${encodeURIComponent(q)}`); }}>
-            <span className="search-ico"><IconSearch /></span><input placeholder="Search jewellery…" value={q} onChange={(e) => setQ(e.target.value)} />
-          </form>
+          <SearchBox className="m" placeholder="Search jewellery…" />
           <nav className="nav">
             <NavLink to="/shop?col=new">New Launches</NavLink>
             <NavLink to="/shop?col=best-sellers">Best Sellers</NavLink>
@@ -392,13 +611,14 @@ export function Header() {
               <div className="mnav-group">
                 <small>Explore</small>
                 <div className="mnav-links">
+                  <Link to="/wishlist" onClick={() => setMnav(false)}>
+                    Wishlist{wishlist.length > 0 && <span className="mnav-count">{wishlist.length}</span>}
+                  </Link>
                   {[
-                    ["Wishlist", "/wishlist"],
                     ["Track Order", "/track"],
                     ["Our Stores", "/stores"],
                     ["Our Craft", "/about"],
                     ["Contact Us", "/contact"],
-                    ...(isAdmin ? [["Admin Panel", "/admin"]] : []),
                   ].map(([label, to]) => (
                     <Link key={label} to={to} onClick={() => setMnav(false)}>{label}</Link>
                   ))}
@@ -411,17 +631,22 @@ export function Header() {
                   <small>Signed in as <b>{user.name}</b></small>
                   <div className="mnav-acct">
                     <Link className="btn btn-ghost" to="/account" onClick={() => setMnav(false)}><IconUser /> Profile</Link>
-                    <Link className="btn btn-ghost" to="/orders" onClick={() => setMnav(false)}><IconBox /> My Orders</Link>
+                    <Link className="btn btn-ghost" to="/orders" onClick={() => setMnav(false)}><IconBox /> Orders</Link>
                     <Link className="btn btn-ghost" to="/wishlist" onClick={() => setMnav(false)}><IconHeart /> Wishlist</Link>
                   </div>
-                  <button className="btn btn-ghost" style={{ width: "100%", justifyContent: "center", marginTop: 10 }} onClick={() => { logout(); setMnav(false); nav("/"); }}>
+                  {isAdmin && (
+                    <Link className="btn btn-gold mnav-admin" to="/admin" onClick={() => setMnav(false)}>
+                      <IconShield /> Admin Panel
+                    </Link>
+                  )}
+                  <button className="btn btn-ghost mnav-logout" onClick={() => { logout(); setMnav(false); nav("/"); }}>
                     <IconLogout /> Log out
                   </button>
                 </>
               ) : (
                 <div className="mnav-auth">
                   <Link className="btn btn-gold" to={loginHref} onClick={() => setMnav(false)}>Log in</Link>
-                  <Link className="btn btn-ghost" to="/register" onClick={() => setMnav(false)}>Sign up</Link>
+                  <Link className="btn btn-ghost" to={signupHref} onClick={() => setMnav(false)}>Sign up</Link>
                 </div>
               )}
             </div>

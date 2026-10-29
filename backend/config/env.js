@@ -25,7 +25,12 @@ const env = {
   PORT: Number(get("PORT", "5000")),
   // Dev convenience default; production MUST set an Atlas URI (validated below).
   MONGO_URI: get("MONGO_URI") || (isProd ? "" : "mongodb://127.0.0.1:27017/parinaya"),
-  FRONTEND_URL: get("FRONTEND_URL", "http://localhost:5173"),
+  // Origin list, trailing slashes stripped — CORS compares them literally.
+  FRONTEND_URL: get("FRONTEND_URL", "http://localhost:5173")
+    .split(",")
+    .map((s) => s.trim().replace(/\/+$/, ""))
+    .filter(Boolean)
+    .join(","),
   PUBLIC_BASE_URL: get("PUBLIC_BASE_URL"), // e.g. https://api.nilaara.com (used to build absolute upload URLs)
   TRUST_PROXY: Number(get("TRUST_PROXY", "1")),
 
@@ -53,6 +58,13 @@ const env = {
 
   // ── Sessions / auth ──
   COOKIE_SECURE: get("COOKIE_SECURE", isProd ? "true" : "false") === "true",
+  // Session-cookie SameSite policy: "lax" | "strict" | "none".
+  // Production defaults to "none" because the storefront (typically *.vercel.app)
+  // and this API usually sit on different sites; a Lax cookie is silently dropped
+  // on those cross-site fetches, so sign-up/login succeed server-side while the
+  // visitor stays logged out. Serve both from one registrable domain (shop. +
+  // api.example.com) and set COOKIE_SAMESITE=lax to tighten it again.
+  COOKIE_SAMESITE: (get("COOKIE_SAMESITE").toLowerCase() || (isProd ? "none" : "lax")),
   SESSION_TTL_DAYS: Number(get("SESSION_TTL_DAYS", "7")),
   BCRYPT_ROUNDS: Number(get("BCRYPT_ROUNDS", "12")),
   LOGIN_MAX_ATTEMPTS: Number(get("LOGIN_MAX_ATTEMPTS", "5")),
@@ -153,6 +165,19 @@ function validateEnv() {
   if (Boolean(env.RAZORPAY_KEY_ID) !== Boolean(env.RAZORPAY_KEY_SECRET))
     errors.push("RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET must be provided together.");
   if (isProd && env.COOKIE_SECURE === false) errors.push("COOKIE_SECURE=false is not permitted in production.");
+
+  // ── Session cookie / storefront origin ──
+  if (!["lax", "strict", "none"].includes(env.COOKIE_SAMESITE))
+    errors.push(`COOKIE_SAMESITE must be "lax", "strict" or "none" (got "${env.COOKIE_SAMESITE}").`);
+  if (env.COOKIE_SAMESITE === "none" && !env.COOKIE_SECURE)
+    errors.push('COOKIE_SAMESITE="none" requires COOKIE_SECURE=true — browsers drop a SameSite=None cookie that is not Secure.');
+  if (isProd) {
+    const fronts = env.FRONTEND_URL.split(",").filter(Boolean);
+    if (!fronts.length || fronts.some((o) => !/^https:\/\/[^/]+$/.test(o)))
+      errors.push(
+        "FRONTEND_URL must list the deployed storefront origin(s) as https:// origins, comma-separated — e.g. https://shop.example.com,https://your-app.vercel.app (localhost is not valid in production)."
+      );
+  }
 
   // ── Auth providers ──
   if (env.GOOGLE_CLIENT_ID && !/\.apps\.googleusercontent\.com$/.test(env.GOOGLE_CLIENT_ID))

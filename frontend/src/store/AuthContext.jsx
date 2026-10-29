@@ -59,5 +59,28 @@ export function AuthProvider({ children }) {
     }
   };
 
-  return <AuthCtx.Provider value={{ user, setUser, logout, checking }}>{children}</AuthCtx.Provider>;
+  /**
+   * Persists a just-authenticated user only if the browser actually kept the
+   * session cookie. When the storefront and the API sit on different sites the
+   * cookie can be dropped (SameSite / third-party cookie rules) — the account is
+   * created but the visitor is not signed in, which looks like a broken signup.
+   * Returns false so the caller can explain that instead of navigating away.
+   */
+  const startSession = async (nextUser) => {
+    if (!hasAPI) {
+      setUser(nextUser);
+      return true;
+    }
+    const confirmed = await authMe();
+    if (!confirmed) {
+      console.error(
+        "[auth] the session cookie was not accepted — check that FRONTEND_URL lists this origin and that the API sets a cookie the browser allows cross-site (COOKIE_SAMESITE=none, COOKIE_SECURE=true)."
+      );
+      return false;
+    }
+    setUser(confirmed);
+    return true;
+  };
+
+  return <AuthCtx.Provider value={{ user, setUser, startSession, logout, checking }}>{children}</AuthCtx.Provider>;
 }
