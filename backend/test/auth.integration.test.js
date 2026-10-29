@@ -123,6 +123,26 @@ test("login accepts a normalized phone number for password accounts", async () =
   assert.equal(login.status, 200);
 });
 
+test("consecutive email-only registrations both succeed (sparse phone index skips absent, not null)", async () => {
+  const User = mongoose.model("User");
+  await User.init(); // ensure the unique indexes exist before the writes — this is what production has
+
+  const first = await call("/api/auth/register", {
+    method: "POST",
+    body: { name: "First Email Only", email: `${uniq()}@example.com`, password: "secret123" },
+  });
+  assert.equal(first.status, 201);
+
+  const second = await call("/api/auth/register", {
+    method: "POST",
+    body: { name: "Second Email Only", email: `${uniq()}@example.com`, password: "secret123" },
+  });
+  assert.equal(second.status, 201, `second email-only signup must succeed, got ${JSON.stringify(second.data)}`);
+
+  const stored = await User.findById(second.data.user.id).lean();
+  assert.equal(stored.phone, undefined, "absent phone must be omitted, never stored as null");
+});
+
 test("logout destroys the session server-side and clears the cookie", async () => {
   const email = `${uniq()}@example.com`;
   const reg = await call("/api/auth/register", { method: "POST", body: { name: "Logout User", email, password: "secret123" } });

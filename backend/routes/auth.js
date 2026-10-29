@@ -191,7 +191,10 @@ router.post(
     if (!email && !phone) fail(400, "Email or phone is required.");
     const exists = await User.findOne({ $or: [email ? { email } : null, phone ? { phone } : null].filter(Boolean) });
     if (exists) fail(409, "An account with these details already exists — please log in.");
-    const user = await User.create({ name, email, phone, provider: "password", role: "customer" }); // role never taken from the request
+    // Omit absent fields rather than storing explicit nulls: the sparse unique
+    // indexes on email/phone do NOT skip null, so `phone: null` would let only
+    // one phone-less account exist. Role never comes from the request.
+    const user = await User.create({ name, email: email || undefined, phone: phone || undefined, provider: "password", role: "customer" });
     await user.setPassword(password);
     if (phone) user.phoneVerified = false; // a phone added at signup is NOT verified until an OTP confirms it
     await user.save();
