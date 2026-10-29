@@ -213,6 +213,34 @@ test("OTP verify: wrong code → 400 with attempts left; correct code → custom
   assert.match(replay.data.error, /No active verification/);
 });
 
+test("OTP signup stores the given name; a later sign-in never overwrites a chosen name", async () => {
+  const phone = "93" + String(Date.now()).slice(-8);
+
+  await call("/api/auth/otp/request", { method: "POST", body: { phone } });
+  const first = await call("/api/auth/otp/verify", { method: "POST", body: { phone, otp: mockOtp.getLastCode(phone), name: "Aarohi Sharma" } });
+  assert.equal(first.status, 200);
+  assert.equal(first.data.user.name, "Aarohi Sharma", "signup name is used for booking info");
+
+  await call("/api/auth/otp/request", { method: "POST", body: { phone } });
+  const second = await call("/api/auth/otp/verify", { method: "POST", body: { phone, otp: mockOtp.getLastCode(phone), name: "Someone Else" } });
+  assert.equal(second.status, 200);
+  assert.equal(second.data.user.name, "Aarohi Sharma");
+});
+
+test("OTP signup upgrades a placeholder name (the raw number) once a name is supplied", async () => {
+  const phone = "92" + String(Date.now()).slice(-8);
+
+  await call("/api/auth/otp/request", { method: "POST", body: { phone } });
+  const anon = await call("/api/auth/otp/verify", { method: "POST", body: { phone, otp: mockOtp.getLastCode(phone) } });
+  assert.equal(anon.status, 200);
+  assert.notEqual(anon.data.user.name, "Meera Nair");
+
+  await call("/api/auth/otp/request", { method: "POST", body: { phone } });
+  const named = await call("/api/auth/otp/verify", { method: "POST", body: { phone, otp: mockOtp.getLastCode(phone), name: "Meera Nair" } });
+  assert.equal(named.status, 200);
+  assert.equal(named.data.user.name, "Meera Nair");
+});
+
 test("OTP resend is throttled by the cooldown", async () => {
   const phone = "95" + String(Date.now()).slice(-8);
   const first = await call("/api/auth/otp/request", { method: "POST", body: { phone } });

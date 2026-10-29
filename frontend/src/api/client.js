@@ -459,28 +459,19 @@ export async function linkGoogle(credential) {
   return api("/api/auth/google/link", { method: "POST", body: { credential } });
 }
 
-/** Step 1 of mobile OTP login — the server texts the code; it is never returned. */
-export async function otpRequest(phone) {
-  if (!hasAPI) throw new Error("OTP login needs the backend (set VITE_API_URL).");
-  return api("/api/auth/otp/request", { method: "POST", body: { phone } });
-}
-
-/** Step 2 — verifies the code server-side and starts a session. */
-export async function otpVerify(phone, otp) {
-  if (!hasAPI) throw new Error("OTP login needs the backend (set VITE_API_URL).");
-  return api("/api/auth/otp/verify", { method: "POST", body: { phone, otp } });
-}
-
 /** Step 1 of EMAIL OTP login (Resend) — the server emails the code; never returned. */
 export async function emailOtpRequest(email) {
   if (!hasAPI) throw new Error("Email verification needs the backend (set VITE_API_URL).");
   return api("/api/auth/email/otp/request", { method: "POST", body: { email } });
 }
 
-/** Step 2 — verifies the emailed code server-side and starts a session. */
-export async function emailOtpVerify(email, otp) {
+/** Step 2 — verifies the emailed code server-side and starts a session. `name`/`password` are signup-only. */
+export async function emailOtpVerify(email, otp, name, password) {
   if (!hasAPI) throw new Error("Email verification needs the backend (set VITE_API_URL).");
-  return api("/api/auth/email/otp/verify", { method: "POST", body: { email, otp } });
+  return api("/api/auth/email/otp/verify", {
+    method: "POST",
+    body: { email, otp, ...(name ? { name } : {}), ...(password ? { password } : {}) },
+  });
 }
 
 /** Updates the signed-in customer's profile. */

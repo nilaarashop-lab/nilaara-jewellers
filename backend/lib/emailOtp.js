@@ -19,12 +19,12 @@ const ENDPOINT = "https://api.resend.com/emails";
 
 async function sendEmailOtp({ email, code, ttlSeconds }) {
   const minutes = Math.max(1, Math.round((ttlSeconds || env.OTP_TTL_SECONDS) / 60));
-  const subject = "Your Nilaara login code";
-  const text = `Your Nilaara Jewellers login code is ${code}. It is valid for ${minutes} minute(s). Do not share it with anyone — our team will never ask for it.`;
+  const subject = "Your Nilaara verification code";
+  const text = `Your Nilaara Jewellers verification code is ${code}. It is valid for ${minutes} minute(s). Do not share it with anyone — our team will never ask for it.`;
   const html = `<!doctype html><html><body style="font-family:Georgia,serif;color:#3a1010;background:#fdf9f2;padding:24px">
     <div style="max-width:420px;margin:auto;background:#fff;border:1px solid #e8dcc0;border-radius:12px;padding:28px">
       <p style="letter-spacing:3px;color:#8a1c1c;font-size:12px;margin:0 0 6px">NILAARA JEWELLERS</p>
-      <h2 style="margin:0 0 12px;color:#5c1212">Your login code</h2>
+      <h2 style="margin:0 0 12px;color:#5c1212">Your verification code</h2>
       <p style="font-size:26px;letter-spacing:10px;font-weight:700;color:#8a1c1c;margin:14px 0">${code}</p>
       <p style="font-size:13px;color:#6b6257">Valid for ${minutes} minute(s). Do not share this code with anyone — our team will never ask for it.</p>
     </div></body></html>`;

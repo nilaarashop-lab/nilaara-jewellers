@@ -1,11 +1,12 @@
 /**
- * MSG91 driver — recommended for India (DLT-compliant OTP API).
- * Uses the documented v5 REST API with Node's built-in fetch (no SDK needed).
- * Docs: https://docs.msg91.com/reference/otp-v2
+ * MSG91 driver — India OTP delivered over SMS only; MSG91's OTP API has no
+ * voice-call fallback. Docs: https://docs.msg91.com/otp/sendotp
  *
- * Requires: MSG91_AUTH_KEY, MSG91_TEMPLATE_ID (DLT-registered OTP template).
- * The DLT template already contains the {{otp}} variable, so we pass our
- * server-generated code explicitly.
+ * We generate, hash and verify the code on THIS server (lib/otp/core.js) and
+ * pass it to MSG91 purely for delivery, so login never depends on MSG91 state.
+ *
+ * Requires: MSG91_AUTH_KEY. MSG91_TEMPLATE_ID and MSG91_SENDER_ID are optional —
+ * with no DLT template MSG91 sends through its own default OTP template.
  */
 const env = require("../../../config/env");
 
@@ -18,7 +19,7 @@ async function sendOtp({ phone, code }) {
     body: JSON.stringify({
       mobile: `${env.MSG91_COUNTRY_CODE || "91"}${phone}`,
       otp: code,
-      template_id: env.MSG91_TEMPLATE_ID,
+      ...(env.MSG91_TEMPLATE_ID ? { template_id: env.MSG91_TEMPLATE_ID } : {}),
       ...(env.MSG91_SENDER_ID ? { sender: env.MSG91_SENDER_ID } : {}),
     }),
   }).catch((e) => {
@@ -33,10 +34,13 @@ async function sendOtp({ phone, code }) {
   }
   // MSG91 reports logical failures with HTTP 200 + type:"error".
   if (!res.ok || !data || data.type !== "success") {
-    const msg = (data && (data.message || data.error?.message)) || `HTTP ${res.status}`;
+    const msg = (data && (data.message || data.errors || data.error?.message)) || `HTTP ${res.status}`;
     throw new Error(`MSG91 send failed: ${msg}`);
   }
-  return { provider: "msg91", messageId: data.requestId || null };
+  // "success" means accepted, not delivered — log the request id as the trace.
+  const requestId = data.request_id || data.requestId || null;
+  if (requestId) console.info(`[otp] msg91 accepted request=${requestId} phone=${phone.slice(0, 2)}******${phone.slice(-2)}`);
+  return { provider: "msg91", messageId: requestId };
 }
 
 module.exports = { sendOtp };

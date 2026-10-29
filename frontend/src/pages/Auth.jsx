@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useAuth } from "../store/AuthContext";
-import { authLogin, authRegister, otpRequest, otpVerify, emailOtpRequest, emailOtpVerify, authGoogle, hasAPI, googleEnabled } from "../api/client";
+import { authLogin, emailOtpRequest, emailOtpVerify, authGoogle, hasAPI, googleEnabled } from "../api/client";
 import GoogleButton from "../components/GoogleButton";
 
 /** Only same-site paths are accepted as post-login redirects (no open redirects). */
 const safeNext = (next) => (next && next.startsWith("/") && !next.startsWith("//") ? next : "/");
-const validPhone = (p) => /^[6-9][0-9]{9}$/.test(p);
+const validEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test((v || "").trim());
 
 /** Goes to ?next=… after login; staff land in the admin panel. */
 function useAfterLogin() {
@@ -40,35 +40,34 @@ function useCountdown(sent) {
   return left;
 }
 
-/* ───────────────────────── Login ───────────────────────── */
-
 const SESSION_BLOCKED =
   "We couldn't keep you signed in — this browser didn't store the session cookie. Please try again; if it keeps happening, message us on WhatsApp and we'll help.";
+
+/** "Resend in 23s" / "Resend now" control for the verification step. */
+function ResendRow({ left, onResend, busy }) {
+  return (
+    <p className="auth-switch">
+      Didn't get it?{" "}
+      {left > 0 ? (
+        <span style={{ color: "var(--muted)" }}>Resend in {left}s</span>
+      ) : (
+        <button type="button" className="link" style={{ background: "none", border: 0, cursor: "pointer" }} onClick={onResend} disabled={busy}>
+          Resend code
+        </button>
+      )}
+    </p>
+  );
+}
+
+/* ───────────────────────── Login ───────────────────────── */
 
 export function Login() {
   const { startSession } = useAuth();
   const go = useAfterLogin();
-  const [tab, setTab] = useState("otp"); // otp | email | password
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
-
-  // Mobile OTP flow state
-  const [phone, setPhone] = useState("");
-  const [step, setStep] = useState("phone"); // phone | code
-  const [sent, setSent] = useState(null); // { phone, cooldown, expiresIn, maxAttempts }
-  const [code, setCode] = useState("");
-  const resendLeft = useCountdown(sent);
-
-  // Email OTP flow state (Resend)
-  const [email, setEmail] = useState("");
-  const [eStep, setEStep] = useState("email"); // email | code
-  const [eSent, setESent] = useState(null); // { email (masked), cooldown, expiresIn }
-  const [eCode, setECode] = useState("");
-  const eResendLeft = useCountdown(eSent);
-
-  // Password flow state
-  const [id, setId] = useState("");
-  const [pw, setPw] = useState("");
 
   const afterAuth = async (user) => {
     if (await startSession(user)) go(user);
@@ -88,104 +87,16 @@ export function Login() {
     }
   };
 
-  const sendOtp = async (e) => {
-    e?.preventDefault();
-    setErr("");
-    if (!validPhone(phone)) return setErr("Enter a valid 10-digit Indian mobile number.");
-    setBusy(true);
-    try {
-      const info = await otpRequest(phone);
-      // `info.phone` is the server's MASKED number (display only); the raw
-      // number stays in component state for the verify call.
-      setSent({ ...info, retrySec: info.cooldown || 30 });
-      setStep("code");
-      setCode("");
-    } catch (ex) {
-      // Cooldown responses carry retryAfterSec — keep the UI in sync with the server.
-      if (ex.body?.retryAfterSec) setSent({ phone, retrySec: ex.body.retryAfterSec });
-      setErr(ex.message);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const verifyOtp = async (e) => {
+  const onSubmit = async (e) => {
     e.preventDefault();
-    setErr("");
-    if (!/^[0-9]{4,10}$/.test(code)) return setErr("Enter the verification code from the SMS.");
-    setBusy(true);
-    try {
-      const { user } = await otpVerify(phone, code);
-      await afterAuth(user);
-    } catch (ex) {
-      setErr(ex.message);
-      if (ex.status === 429 && /request a new code/i.test(ex.message)) setStep("phone"); // locked — restart
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const resend = async () => {
-    setErr("");
-    setBusy(true);
-    try {
-      const info = await otpRequest(phone);
-      setSent({ ...info, retrySec: info.cooldown || 30 }); // info.phone = masked
-      setCode("");
-    } catch (ex) {
-      if (ex.body?.retryAfterSec) setSent((s) => ({ ...(s || { phone }), retrySec: ex.body.retryAfterSec }));
-      setErr(ex.message);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  // ── Email OTP (Resend) ──
-  const validEmail = (v) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(v.trim());
-
-  const sendEmailCode = async (e) => {
-    e?.preventDefault();
     setErr("");
     if (!validEmail(email)) return setErr("Enter a valid email address.");
+    if (!password) return setErr("Enter your password.");
     setBusy(true);
     try {
-      const info = await emailOtpRequest(email.trim());
-      setESent({ ...info, retrySec: info.cooldown || 30 }); // info.email = MASKED
-      setEStep("code");
-      setECode("");
-    } catch (ex) {
-      if (ex.body?.retryAfterSec) setESent({ email, retrySec: ex.body.retryAfterSec });
-      setErr(ex.message);
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const verifyEmailCode = async (e) => {
-    e.preventDefault();
-    setErr("");
-    if (!/^[0-9]{4,10}$/.test(eCode)) return setErr("Enter the verification code from the email.");
-    setBusy(true);
-    try {
-      const { user } = await emailOtpVerify(email.trim(), eCode);
+      const { user } = await authLogin({ id: email.trim().toLowerCase(), password });
       await afterAuth(user);
     } catch (ex) {
-      setErr(ex.message);
-      if (ex.status === 429 && /request a new code/i.test(ex.message)) setEStep("email");
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const resendEmailCode = async () => {
-    setErr("");
-    setBusy(true);
-    try {
-      const info = await emailOtpRequest(email.trim());
-      setESent({ ...info, retrySec: info.cooldown || 30 });
-      setECode("");
-    } catch (ex) {
-      if (ex.body?.retryAfterSec) setESent((s) => ({ ...(s || { email }), retrySec: ex.body.retryAfterSec }));
       setErr(ex.message);
     } finally {
       setBusy(false);
@@ -195,187 +106,31 @@ export function Login() {
   return (
     <main className="container">
       <div className="sec">
-        <form
-          className="form auth-card"
-          onSubmit={(e) => {
-            if (tab === "otp") (step === "phone" ? sendOtp : verifyOtp)(e);
-            else if (tab === "email") (eStep === "email" ? sendEmailCode : verifyEmailCode)(e);
-            else e.preventDefault();
-          }}
-        >
+        <form className="form auth-card" onSubmit={onSubmit}>
           <span className="eyebrow">Welcome back</span>
           <h1 className="serif">Log in to Nilaara</h1>
-          {!hasAPI && <p className="auth-note">Demo mode — backend not connected. Password login creates a local demo session; Google & OTP need the backend.</p>}
+          {!hasAPI && <p className="auth-note">Demo mode — backend not connected.</p>}
 
           {googleEnabled && (
             <>
               <div className="auth-or"><span>or continue with</span></div>
               <GoogleButton onCredential={onGoogle} />
-              <div className="auth-or"><span>or {tab === "otp" ? "use your mobile" : tab === "email" ? "use your email" : "use email & password"}</span></div>
+              <div className="auth-or"><span>or use your email</span></div>
             </>
           )}
 
-          <div className="method-tabs" role="tablist" aria-label="Sign-in method">
-            {[
-              ["otp", "☎ Mobile (OTP)"],
-              ["email", "✉ Email (OTP)"],
-              ["password", "🔑 Password"],
-            ].map(([k, l]) => (
-              <button key={k} type="button" role="tab" aria-selected={tab === k} className={`chip ${tab === k ? "on" : ""}`} style={{ padding: "10px 18px" }} onClick={() => { setTab(k); setErr(""); }}>
-                {l}
-              </button>
-            ))}
-          </div>
+          <label>Email address</label>
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@gmail.com" autoComplete="email" autoFocus required />
 
-          {tab === "otp" && step === "phone" && (
-            <>
-              <label>Mobile number</label>
-              <div className="phone-row">
-                <span className="cc">+91</span>
-                <input
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, ""))}
-                  placeholder="98765 43210"
-                  inputMode="numeric"
-                  maxLength={10}
-                  autoFocus
-                  required
-                />
-              </div>
-              <p className="auth-note">We'll text you a 6-digit code. New numbers create an account automatically.</p>
-              {err && <p className="auth-err">{err}</p>}
-              <button className="btn btn-gold" disabled={busy} style={{ width: "100%", justifyContent: "center", marginTop: 14 }}>
-                {busy ? "Sending…" : "Send OTP →"}
-              </button>
-            </>
-          )}
+          <label>Password</label>
+          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" autoComplete="current-password" required />
 
-          {tab === "otp" && step === "code" && (
-            <>
-              <p className="auth-note">
-                Code sent to <b>{sent?.phone}</b> — valid for {Math.round((sent?.expiresIn || 300) / 60)} min.
-                <button type="button" className="link" style={{ background: "none", border: 0, cursor: "pointer", marginLeft: 6 }} onClick={() => { setStep("phone"); setErr(""); }}>
-                  Change number
-                </button>
-              </p>
-              <label>Verification code</label>
-              <input
-                className="otp-input"
-                value={code}
-                onChange={(e) => setCode(e.target.value.replace(/[^0-9]/g, ""))}
-                placeholder="••••••"
-                inputMode="numeric"
-                maxLength={6}
-                autoFocus
-                required
-              />
-              {err && <p className="auth-err">{err}</p>}
-              <button className="btn btn-gold" disabled={busy} style={{ width: "100%", justifyContent: "center", marginTop: 14 }}>
-                {busy ? "Verifying…" : "Verify & Continue →"}
-              </button>
-              <p className="auth-switch">
-                Didn't get it?{" "}
-                {resendLeft > 0 ? (
-                  <span style={{ color: "var(--muted)" }}>Resend in {resendLeft}s</span>
-                ) : (
-                  <button type="button" className="link" style={{ background: "none", border: 0, cursor: "pointer" }} onClick={resend} disabled={busy}>
-                    Resend code
-                  </button>
-                )}
-              </p>
-            </>
-          )}
+          {err && <p className="auth-err">{err}</p>}
+          <button className="btn btn-gold" disabled={busy} style={{ width: "100%", justifyContent: "center", marginTop: 14 }}>
+            {busy ? "Logging in…" : "Log In →"}
+          </button>
 
-          {tab === "email" && eStep === "email" && (
-            <>
-              <label>Email address</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@gmail.com"
-                autoComplete="email"
-                autoFocus
-                required
-              />
-              <p className="auth-note">We'll email you a 6-digit code. New addresses create an account automatically.</p>
-              {err && <p className="auth-err">{err}</p>}
-              <button className="btn btn-gold" disabled={busy} style={{ width: "100%", justifyContent: "center", marginTop: 14 }}>
-                {busy ? "Sending…" : "Send Code →"}
-              </button>
-            </>
-          )}
-
-          {tab === "email" && eStep === "code" && (
-            <>
-              <p className="auth-note">
-                Code sent to <b>{eSent?.email}</b> — valid for {Math.round((eSent?.expiresIn || 300) / 60)} min.
-                <button type="button" className="link" style={{ background: "none", border: 0, cursor: "pointer", marginLeft: 6 }} onClick={() => { setEStep("email"); setErr(""); }}>
-                  Change address
-                </button>
-              </p>
-              <label>Verification code</label>
-              <input
-                className="otp-input"
-                value={eCode}
-                onChange={(e) => setECode(e.target.value.replace(/[^0-9]/g, ""))}
-                placeholder="••••••"
-                inputMode="numeric"
-                maxLength={6}
-                autoFocus
-                required
-              />
-              {err && <p className="auth-err">{err}</p>}
-              <button className="btn btn-gold" disabled={busy} style={{ width: "100%", justifyContent: "center", marginTop: 14 }}>
-                {busy ? "Verifying…" : "Verify & Continue →"}
-              </button>
-              <p className="auth-switch">
-                Didn't get it?{" "}
-                {eResendLeft > 0 ? (
-                  <span style={{ color: "var(--muted)" }}>Resend in {eResendLeft}s</span>
-                ) : (
-                  <button type="button" className="link" style={{ background: "none", border: 0, cursor: "pointer" }} onClick={resendEmailCode} disabled={busy}>
-                    Resend code
-                  </button>
-                )}
-              </p>
-              <p className="auth-note">Check your spam/promotions folder if it doesn't arrive within a minute.</p>
-            </>
-          )}
-
-          {tab === "password" && (
-            <>
-              <label>Email or mobile number</label>
-              <input value={id} onChange={(e) => setId(e.target.value)} placeholder="you@gmail.com / 9876543210" required />
-              <label>Password</label>
-              <input type="password" value={pw} onChange={(e) => setPw(e.target.value)} placeholder="••••••••" required />
-              {err && <p className="auth-err">{err}</p>}
-              <button
-                className="btn btn-gold"
-                disabled={busy}
-                style={{ width: "100%", justifyContent: "center", marginTop: 14 }}
-                onClick={async (e) => {
-                  e.preventDefault();
-                  setErr("");
-                  setBusy(true);
-                  try {
-                    const { user } = await authLogin({ id: id.trim(), password: pw });
-                    await afterAuth(user);
-                  } catch (ex) {
-                    setErr(ex.message);
-                  } finally {
-                    setBusy(false);
-                  }
-                }}
-              >
-                {busy ? "Logging in…" : "Log In →"}
-              </button>
-            </>
-          )}
-
-          <p className="auth-switch">
-            New to Nilaara? <Link to="/register" className="link">Create account</Link>
-          </p>
+          <p className="auth-switch">New to Nilaara? <Link to="/register" className="link">Create account</Link></p>
         </form>
       </div>
     </main>
@@ -389,76 +144,123 @@ export function Register() {
   const go = useAfterLogin();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
-  const [pw, setPw] = useState("");
+  const [password, setPassword] = useState("");
+  const [step, setStep] = useState("details"); // details | code
+  const [sent, setSent] = useState(null);
+  const [code, setCode] = useState("");
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
+  const resendLeft = useCountdown(sent);
 
-  const afterAuth = async (user, blocked = SESSION_BLOCKED) => {
+  const afterAuth = async (user) => {
     if (await startSession(user)) go(user);
-    else setErr(blocked);
+    else setErr(SESSION_BLOCKED);
   };
 
-  const onGoogle = async (credential) => {
+  const validateDetails = () => {
+    if (name.trim().length < 2) {
+      setErr("Please enter your full name — we print it on your booking slip.");
+      return false;
+    }
+    if (!validEmail(email)) {
+      setErr("Enter a valid email address.");
+      return false;
+    }
+    if (password.length < 6) {
+      setErr("Choose a password with at least 6 characters.");
+      return false;
+    }
+    return true;
+  };
+
+  const sendCode = async (e) => {
+    e?.preventDefault();
     setErr("");
+    if (!validateDetails()) return;
     setBusy(true);
     try {
-      const { user } = await authGoogle(credential);
+      const info = await emailOtpRequest(email.trim());
+      setSent({ ...info, retrySec: info.cooldown || 30 });
+      setStep("code");
+      setCode("");
+    } catch (ex) {
+      if (ex.body?.retryAfterSec) setSent((s) => ({ ...(s || { email: email.trim() }), retrySec: ex.body.retryAfterSec }));
+      setErr(ex.message);
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const verifyCode = async (e) => {
+    e.preventDefault();
+    setErr("");
+    if (!/^[0-9]{4,10}$/.test(code)) return setErr("Enter the verification code from the email.");
+    setBusy(true);
+    try {
+      const { user } = await emailOtpVerify(email.trim(), code, name.trim(), password);
       await afterAuth(user);
     } catch (ex) {
       setErr(ex.message);
+      if (ex.status === 429 && /request a new code/i.test(ex.message)) setStep("details");
     } finally {
       setBusy(false);
     }
   };
 
-  const submit = async (e) => {
-    e.preventDefault();
-    setErr("");
-    setBusy(true);
-    try {
-      const { user } = await authRegister({ name: name.trim(), email: email.trim(), password: pw });
-      await afterAuth(
-        user,
-        "Your account was created, but this browser didn't keep the sign-in. Try logging in — if it keeps happening, message us on WhatsApp."
-      );
-    } catch (ex) {
-      setErr(ex.message);
-    } finally {
-      setBusy(false);
-    }
-  };
+  const onSubmit = step === "details" ? sendCode : verifyCode;
 
   return (
     <main className="container">
       <div className="sec">
-        <form className="form auth-card" onSubmit={submit}>
+        <form className="form auth-card" onSubmit={onSubmit}>
           <span className="eyebrow">Join Nilaara</span>
           <h1 className="serif">Create account</h1>
 
-          {googleEnabled && (
+          <label>Full name</label>
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Aarohi Sharma"
+            autoComplete="name"
+            maxLength={120}
+            disabled={step === "code"}
+            required
+          />
+          <p className="auth-note">Used on your booking slip and order updates.</p>
+
+          {step === "details" ? (
             <>
-              <div className="auth-or"><span>or sign up with</span></div>
-              <GoogleButton onCredential={onGoogle} text="signup_with" />
-              <div className="auth-or"><span>or with your email</span></div>
+              <label>Email address</label>
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@gmail.com" autoComplete="email" required />
+
+              <label>Password</label>
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="At least 6 characters" autoComplete="new-password" minLength={6} required />
+              <p className="auth-note">We'll email a 6-digit code to confirm this address.</p>
+
+              {err && <p className="auth-err">{err}</p>}
+              <button className="btn btn-gold" type="submit" disabled={busy} style={{ width: "100%", justifyContent: "center", marginTop: 14 }}>
+                {busy ? "Sending code…" : "Send code →"}
+              </button>
+            </>
+          ) : (
+            <>
+              <p className="auth-note">
+                Code sent to <b>{sent?.email || email.trim()}</b>
+                <button type="button" className="link" style={{ background: "none", border: 0, cursor: "pointer", marginLeft: 6 }} onClick={() => { setStep("details"); setErr(""); }}>
+                  Change details
+                </button>
+              </p>
+              <label>Verification code</label>
+              <input className="otp-input" type="text" inputMode="numeric" maxLength={6} value={code} onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))} placeholder="••••••" autoComplete="one-time-code" autoFocus required />
+              {err && <p className="auth-err">{err}</p>}
+              <button className="btn btn-gold" type="submit" disabled={busy} style={{ width: "100%", justifyContent: "center", marginTop: 14 }}>
+                {busy ? "Verifying…" : "Verify & Create account →"}
+              </button>
+              <ResendRow left={resendLeft} onResend={sendCode} busy={busy} />
             </>
           )}
 
-          <label>Full name</label>
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Aarohi Sharma" required />
-          <label>Email</label>
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@gmail.com" required />
-          <label>Password</label>
-          <input type="password" value={pw} onChange={(e) => setPw(e.target.value)} placeholder="Min. 6 characters" minLength={6} required />
-          {err && <p className="auth-err">{err}</p>}
-          <button className="btn btn-gold" disabled={busy} style={{ width: "100%", justifyContent: "center", marginTop: 14 }}>
-            {busy ? "Creating…" : "Create Account →"}
-          </button>
-          <p className="auth-switch">
-            Prefer your mobile? <Link to="/login" className="link">Sign up with OTP — no password needed</Link>
-          </p>
-          <p className="auth-switch">
-            Already have an account? <Link to="/login" className="link">Log in</Link>
-          </p>
+          <p className="auth-switch">Already have an account? <Link to="/login" className="link">Log in</Link></p>
         </form>
       </div>
     </main>

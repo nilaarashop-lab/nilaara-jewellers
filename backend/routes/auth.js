@@ -1,11 +1,15 @@
 /**
  * Authentication routes.
  *
- * Sign-in methods (all produce the same server-side session cookie):
- *  1. Email/mobile + password  — POST /login
- *  2. Google Identity Services — POST /google      (ID token verified with google-auth-library)
- *  3. Mobile OTP (real SMS)    — POST /otp/request + /otp/verify (2Factor.in / MSG91 / Twilio)
- *  4. Email OTP (Resend)       — POST /email/otp/request + /email/otp/verify
+ * Customer sign-in (all produce the same server-side session cookie):
+ *  1. Email + password         — POST /login       ← the customer sign-in
+ *  2. Email OTP (Resend)       — POST /email/otp/request + /email/otp/verify —
+ *     registration only: name + email + password, then the emailed code. The
+ *     password is set when the account is created, never overwritten later.
+ *  3. Google Identity Services — POST /google      (ID token verified with google-auth-library)
+ *  4. Mobile OTP (real SMS)    — POST /otp/request + /otp/verify — kept for the
+ *     provider, but disabled whenever OTP_PROVIDER is unset; no customer data is
+ *     stored there beyond the phone already on the account.
  *
  * Security properties:
  *  - Sessions are httpOnly, SameSite=Lax, Secure-in-prod cookies backed by
@@ -116,11 +120,14 @@ const otpRequestSchema = z.object({ phone: z.string().min(5).max(20) });
 const otpVerifySchema = z.object({
   phone: z.string().min(5).max(20),
   otp: z.string().regex(/^[0-9]{4,10}$/, "Enter the digits from the SMS"),
+  name: z.string().min(2).max(120).optional(), // signup only — fills the booking name
 });
 const emailOtpRequestSchema = z.object({ email: z.string().email().max(160) });
 const emailOtpVerifySchema = z.object({
   email: z.string().email().max(160),
   otp: z.string().regex(/^[0-9]{4,10}$/, "Enter the digits from the email"),
+  name: z.string().min(2).max(120).optional(), // signup only — fills the booking name
+  password: z.string().min(6).max(200).optional(), // signup only — becomes the login password
 });
 const mePatchSchema = z
   .object({
@@ -295,7 +302,7 @@ router.post(
   otpReqPhoneLimiter,
   validate(otpRequestSchema),
   asyncHandler(async (req, res) => {
-    if (!env.otpEnabled()) fail(503, "OTP login is not available yet — please use email & password.");
+    if (!env.otpEnabled()) fail(503, "Mobile sign-in is turned off — please sign in with your email code.");
     const phone = normalizePhone(req.body.phone);
     if (!phone) fail(400, "Enter a valid 10-digit Indian mobile number.");
 
@@ -354,7 +361,7 @@ router.post(
   otpVerifyPhoneLimiter,
   validate(otpVerifySchema),
   asyncHandler(async (req, res) => {
-    if (!env.otpEnabled()) fail(503, "OTP login is not available yet — please use email & password.");
+    if (!env.otpEnabled()) fail(503, "Mobile sign-in is turned off — please sign in with your email code.");
     const phone = normalizePhone(req.body.phone);
     if (!phone) fail(400, "Enter a valid 10-digit Indian mobile number.");
 
@@ -384,15 +391,24 @@ router.post(
     await OtpChallenge.deleteOne({ _id: challenge._id });
 
     let user = await User.findOne({ phone });
+    const signupName = typeof req.body.name === "string" ? req.body.name.trim() : "";
     if (user) {
       assertActive(user);
+      let dirty = false;
       if (!user.phoneVerified) {
         user.phoneVerified = true; // OTP verification is authoritative for this number
-        await user.save();
+        dirty = true;
       }
+      // Fill the booking name only when the account still carries the signup
+      // placeholder — never silently overwrite a name the customer chose.
+      if (signupName && (!user.name || user.name === phone)) {
+        user.name = signupName;
+        dirty = true;
+      }
+      if (dirty) await user.save();
     } else {
       user = await User.create({
-        name: phone, // placeholder until the customer sets a name in their account
+        name: signupName || phone, // the phone number is a placeholder until a name is set
         phone,
         provider: "phone",
         role: "customer", // OTP sign-in can never create privileged accounts
@@ -414,7 +430,7 @@ router.post(
   emailOtpReqEmailLimiter,
   validate(emailOtpRequestSchema),
   asyncHandler(async (req, res) => {
-    if (!env.emailOtpEnabled()) fail(503, "Email verification is not available yet — please use your mobile or password.");
+    if (!env.emailOtpEnabled()) fail(503, "Email sign-in is temporarily unavailable — please try again in a moment.");
     const email = String(req.body.email).toLowerCase().trim();
 
     // Resend cooldown — reuse the existing challenge's sentAt.
@@ -472,7 +488,7 @@ router.post(
   emailOtpVerifyEmailLimiter,
   validate(emailOtpVerifySchema),
   asyncHandler(async (req, res) => {
-    if (!env.emailOtpEnabled()) fail(503, "Email verification is not available yet — please use your mobile or password.");
+    if (!env.emailOtpEnabled()) fail(503, "Email sign-in is temporarily unavailable — please try again in a moment.");
     const email = String(req.body.email).toLowerCase().trim();
 
     const challenge = await OtpChallenge.findOne({ email });
@@ -501,20 +517,37 @@ router.post(
     await OtpChallenge.deleteOne({ _id: challenge._id });
 
     let user = await User.findOne({ email });
+    const signupName = typeof req.body.name === "string" ? req.body.name.trim() : "";
+    // Proven inbox ownership makes this a safe moment to set a password; an
+    // existing password is never overwritten here (that would be a silent reset).
+    const signupPassword = typeof req.body.password === "string" ? req.body.password : "";
+    const placeholderName = email.split("@")[0];
     if (user) {
       assertActive(user);
+      let dirty = false;
       if (!user.emailVerified) {
         user.emailVerified = true; // receiving the code at this inbox is authoritative
-        await user.save();
+        dirty = true;
       }
+      if (signupName && (!user.name || user.name === placeholderName)) {
+        user.name = signupName;
+        dirty = true;
+      }
+      if (signupPassword && !user.passwordHash) {
+        await user.setPassword(signupPassword);
+        dirty = true;
+      }
+      if (dirty) await user.save();
     } else {
-      user = await User.create({
-        name: email.split("@")[0], // placeholder until the customer sets a name
+      user = new User({
+        name: signupName || placeholderName, // a placeholder until the customer sets a name
         email,
         provider: "email",
         role: "customer", // email OTP can never create privileged accounts
         emailVerified: true,
       });
+      if (signupPassword) await user.setPassword(signupPassword);
+      await user.save();
     }
     await startSession(req, res, user);
     await audit(req, "auth.login", { type: "user", id: String(user._id) }, { method: "email_otp" });

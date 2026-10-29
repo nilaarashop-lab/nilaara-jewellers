@@ -82,7 +82,7 @@ const env = {
   // Docs: https://2factor.in/docs/sms/#pre-generated-otp
   TWOFACOR_API_KEY: get("TWOFACOR_API_KEY"),
   // DLT-registered template name registered with the 2Factor.in account, or "auto".
-  TWOFACOR_TEMPLATE: get("TWOFACOR_TEMPLATE", "auto"),
+  TWOFACOR_TEMPLATE: get("TWOFACOR_TEMPLATE"), // approved SMS OTP template name — required (no "auto": it can fall back to voice)
   MSG91_AUTH_KEY: get("MSG91_AUTH_KEY"),
   MSG91_TEMPLATE_ID: get("MSG91_TEMPLATE_ID"), // DLT-registered transactional OTP template
   MSG91_SENDER_ID: get("MSG91_SENDER_ID"), // DLT-registered header (optional for the OTP API)
@@ -189,16 +189,20 @@ function validateEnv() {
     errors.push('OTP_PROVIDER="mock" is test-only and is not permitted in production.');
   if (env.OTP_PROVIDER === "twofactor" && !env.TWOFACOR_API_KEY)
     errors.push("TWOFACOR_API_KEY is required when OTP_PROVIDER=twofactor.");
+  if (env.OTP_PROVIDER === "twofactor" && (!env.TWOFACOR_TEMPLATE || env.TWOFACOR_TEMPLATE.toLowerCase() === "auto"))
+    errors.push('TWOFACOR_TEMPLATE must be your approved 2Factor SMS OTP template name — "auto"/empty can be delivered as a voice call.');
   if (env.OTP_PROVIDER === "msg91") {
     if (!env.MSG91_AUTH_KEY) errors.push("MSG91_AUTH_KEY is required when OTP_PROVIDER=msg91.");
-    if (!env.MSG91_TEMPLATE_ID) errors.push("MSG91_TEMPLATE_ID is required when OTP_PROVIDER=msg91 (DLT-registered OTP template).");
+    // MSG91_TEMPLATE_ID is optional: without it MSG91 sends through its own
+    // default OTP template (verified working on this account), which is the
+    // path available before DLT registration.
   }
   if (env.OTP_PROVIDER === "twilio") {
     if (!env.TWILIO_ACCOUNT_SID || !env.TWILIO_AUTH_TOKEN || !env.TWILIO_FROM_NUMBER)
       errors.push("TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN and TWILIO_FROM_NUMBER are required when OTP_PROVIDER=twilio.");
   }
-  if (env.OTP_PROVIDER && env.OTP_PROVIDER !== "mock" && !env.OTP_HASH_SECRET)
-    errors.push("OTP_HASH_SECRET is required when OTP login is enabled (set a long random string).");
+  if (((env.OTP_PROVIDER && env.OTP_PROVIDER !== "mock") || env.emailOtpEnabled()) && !env.OTP_HASH_SECRET)
+    errors.push("OTP_HASH_SECRET is required when OTP sign-in is enabled (set a long random string).");
   if (!(env.OTP_TTL_SECONDS >= 60 && env.OTP_TTL_SECONDS <= 900)) errors.push("OTP_TTL_SECONDS must be between 60 and 900.");
   if (!(env.OTP_MAX_ATTEMPTS >= 3 && env.OTP_MAX_ATTEMPTS <= 10)) errors.push("OTP_MAX_ATTEMPTS must be between 3 and 10.");
 

@@ -155,7 +155,7 @@ export default function Account() {
 
             {!privileged && user.phone && (
               <p className="auth-note">
-                Mobile <b>+91 {user.phone}</b> — verified {user.phoneVerified ? "✓ via SMS OTP" : "not verified yet (verify at next OTP login)"}
+                Mobile <b>+91 {user.phone}</b> — {user.phoneVerified ? "✓ verified" : "on file (not used for sign-in)"}
               </p>
             )}
 

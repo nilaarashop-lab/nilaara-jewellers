@@ -1,6 +1,6 @@
 # Customer Authentication — Nilaara Jewellers
 
-This guide covers the customer sign-in system: **Google Sign-In**, **mobile OTP (real SMS via 2Factor.in)**, **email OTP (Resend)**, **email + password**, the session/CSRF model, provider setup for India, environment variables, seed accounts, and testing.
+This guide covers the customer sign-in system: **email + password** (login) with **email OTP (Resend)** verifying a new registration, plus **Google Sign-In**, the **mobile OTP** code path (kept but disabled via `OTP_PROVIDER`), the session/CSRF model, provider setup for India, environment variables, seed accounts, and testing.
 
 > **Status honesty:** the automated suite (97 tests, including full HTTP integration tests against an in-memory MongoDB) covers password login, SMS-OTP request/verify/expiry/lockout/cooldown/rate limits, **email-OTP** request/verify/expiry/lockout/cooldown/linking, Google **token rejection**, CSRF, logout, protected routes, server-side carts, login-required checkout and customer/admin/order-ownership separation. Three things **cannot** be tested without real credentials and are therefore *not* claimed as verified: **delivery of a real SMS** (needs a paid 2Factor.in/MSG91/Twilio account), **delivery of a real email OTP** (needs a verified Resend domain), **acceptance of a real Google ID token** (needs a Google OAuth client + a signed-in Google account), and **live Razorpay payments** (needs live/test keys). All are wired through the providers' official APIs and fail loudly (400/502/503) rather than faking success.
 
@@ -10,13 +10,13 @@ This guide covers the customer sign-in system: **Google Sign-In**, **mobile OTP 
 
 | Method | Endpoint(s) | UI |
 |---|---|---|
-| Mobile OTP (default tab) | `POST /api/auth/otp/request` → `POST /api/auth/otp/verify` | Login page, “Mobile (OTP)” tab |
-| Email OTP (Resend) | `POST /api/auth/email/otp/request` → `POST /api/auth/email/otp/verify` | Login page, “Email (OTP)” tab |
-| Email + password | `POST /api/auth/login` | Login page, “Password” tab; Register page |
+| Email + password — **customer sign-in** | `POST /api/auth/login` | Login page; admin panel sign-in (`pages/Admin.jsx`) |
+| Email OTP (Resend) — **registration verification** | `POST /api/auth/email/otp/request` → `POST /api/auth/email/otp/verify` | Register page: name + email + password, then the emailed code |
+| Mobile OTP | `POST /api/auth/otp/request` → `POST /api/auth/otp/verify` | **Disabled** — routes answer `503` while `OTP_PROVIDER` is empty |
 | Google Identity Services | `POST /api/auth/google` | “Continue with Google” button (hidden unless configured) |
 | Link Google to a signed-in account | `POST /api/auth/google/link` | Account page → “Sign-in & security” |
 
-All methods produce the **same** server-side session (httpOnly cookie `nilaara_sid`). A phone number that signs in via OTP is automatically found (or created) as a **customer** — one account per phone/email/Google-subject, enforced by unique indexes.
+All methods produce the **same** server-side session (httpOnly cookie `nilaara_sid`). Registration verifies the inbox with a one-time code before the account is created; the `password` sent with that verification is bcrypt-hashed and becomes the login password (an existing password is never overwritten by this step). One account per email/Google-subject is enforced by unique indexes. Phone numbers already stored on accounts are preserved and are simply no longer used for sign-in.
 
 ### Post-login redirect
 
@@ -73,8 +73,8 @@ Each limiter instance has its own bucket namespace (a bug where two per-IP limit
    ```
    OTP_PROVIDER=msg91
    MSG91_AUTH_KEY=<Authkey from MSG91 dashboard>
-   MSG91_TEMPLATE_ID=<DLT template id>
-   MSG91_SENDER_ID=<DLT header>        # optional for the OTP API
+   MSG91_TEMPLATE_ID=<DLT template id>   # optional — omit to use MSG91's own default OTP template
+   MSG91_SENDER_ID=MSGIND                # optional — DLT header (MSGIND = MSG91's default)
    MSG91_COUNTRY_CODE=91
    OTP_HASH_SECRET=<openssl rand -hex 32>   # REQUIRED in production
    ```
@@ -105,12 +105,12 @@ Provider credentials live **only** in `backend/.env` (never in the frontend, nev
    ```
    OTP_PROVIDER=twofactor
    TWOFACOR_API_KEY=<key from the 2Factor dashboard>
-   TWOFACOR_TEMPLATE=auto            # "auto" = let 2Factor pick your registered OTP template
+   TWOFACOR_TEMPLATE=<approved SMS template name>   # required; "auto"/empty can be delivered as a voice call
    OTP_HASH_SECRET=<openssl rand -hex 32>   # REQUIRED in production
    ```
 5. Restart the backend. `POST /api/auth/otp/request` now texts real users.
 
-Integration detail: the server generates the code itself (CSPRNG), stores only its HMAC hash, then hands it to 2Factor's **pre-generated-OTP** endpoint for delivery. If the provider call fails, the challenge is deleted and the API answers `502` — the same honesty guarantees as every other provider.
+Integration detail: `TWOFACOR_TEMPLATE` must name an approved SMS template — 2Factor silently delivers unmatched/"auto" templates as **voice calls**, so the backend refuses to start without a template name. The server generates the code itself (CSPRNG), stores only its HMAC hash, then hands it to 2Factor's **pre-generated-OTP** endpoint for delivery. If the provider call fails, the challenge is deleted and the API answers `502` — the same honesty guarantees as every other provider.
 
 ### Email OTP via Resend
 
@@ -192,7 +192,7 @@ GOOGLE_CLIENT_ID=xxxxxxxx.apps.googleusercontent.com
 # Mobile OTP — pick ONE provider
 OTP_PROVIDER=twofactor            # twofactor (default) | msg91 | twilio | (empty = OTP off)
 TWOFACOR_API_KEY=                 # 2Factor.in API key
-TWOFACOR_TEMPLATE=auto            # registered OTP template ("auto" = provider picks)
+TWOFACOR_TEMPLATE=                # approved SMS OTP template name (required)
 # — or msg91 —
 MSG91_AUTH_KEY=
 MSG91_TEMPLATE_ID=
@@ -225,7 +225,7 @@ OTP_VERIFY_PER_IP=30
 # SEED_ADMIN_PASSWORD=Admin@123456
 ```
 
-Validation rules (`config/env.js`, fail-fast at boot): `twofactor` requires `TWOFACOR_API_KEY`; MSG91 requires auth key + template ID; Twilio requires SID/token/number; Resend requests fail with `502` (challenge deleted) until `RESEND_API_KEY` is set, and the request endpoint itself answers `503` when unset; `OTP_PROVIDER=mock` is refused in production; `GOOGLE_CLIENT_ID` must end in `.apps.googleusercontent.com`; `OTP_TTL_SECONDS` 60–900; `OTP_MAX_ATTEMPTS` 3–10; missing `OTP_HASH_SECRET` in prod fails startup.
+Validation rules (`config/env.js`, fail-fast at boot): `twofactor` requires `TWOFACOR_API_KEY`; MSG91 requires the auth key (template ID optional — without it MSG91 uses its own default OTP template); Twilio requires SID/token/number; Resend requests fail with `502` (challenge deleted) until `RESEND_API_KEY` is set, and the request endpoint itself answers `503` when unset; `OTP_PROVIDER=mock` is refused in production; `GOOGLE_CLIENT_ID` must end in `.apps.googleusercontent.com`; `OTP_TTL_SECONDS` 60–900; `OTP_MAX_ATTEMPTS` 3–10; missing `OTP_HASH_SECRET` in prod fails startup.
 
 ### Frontend (`frontend/.env`)
 

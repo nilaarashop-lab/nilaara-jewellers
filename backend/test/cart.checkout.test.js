@@ -377,6 +377,46 @@ test("email OTP: request never returns the code; wrong code → 400; correct →
   assert.equal(replay.status, 400);
 });
 
+test("email OTP signup stores the given name for booking info", async () => {
+  const email = `${uniq()}@example.com`;
+  await call("/api/auth/email/otp/request", { method: "POST", body: { email } });
+  const code = (sentEmails.filter((m) => m.to && m.to.includes(email)).pop().text.match(/code is ([0-9]{6})/) || [])[1];
+  const ok = await call("/api/auth/email/otp/verify", { method: "POST", body: { email, otp: code, name: "Aarohi Sharma" } });
+  assert.equal(ok.status, 200);
+  assert.equal(ok.data.user.name, "Aarohi Sharma");
+});
+
+test("email OTP signup sets the login password and never overwrites it", async () => {
+  const email = `${uniq()}@example.com`;
+  const lastCode = () => (sentEmails.filter((m) => m.to && m.to.includes(email)).pop().text.match(/code is ([0-9]{6})/) || [])[1];
+
+  await call("/api/auth/email/otp/request", { method: "POST", body: { email } });
+  const signup = await call("/api/auth/email/otp/verify", {
+    method: "POST",
+    body: { email, otp: lastCode(), name: "Meera Rao", password: "secret123" },
+  });
+  assert.equal(signup.status, 200);
+
+  const wrong = await call("/api/auth/login", { method: "POST", body: { id: email, password: "wrong-pass" } });
+  assert.equal(wrong.status, 401);
+  const ok = await call("/api/auth/login", { method: "POST", body: { id: email, password: "secret123" } });
+  assert.equal(ok.status, 200);
+  assert.equal(ok.data.user.email, email);
+
+  // Registering the same inbox again must not reset an existing password.
+  await mongoose.model("OtpChallenge").updateOne({ email }, { $set: { sentAt: new Date(Date.now() - 120000) } });
+  await call("/api/auth/email/otp/request", { method: "POST", body: { email } });
+  const again = await call("/api/auth/email/otp/verify", {
+    method: "POST",
+    body: { email, otp: lastCode(), password: "different123" },
+  });
+  assert.equal(again.status, 200);
+  const stillOld = await call("/api/auth/login", { method: "POST", body: { id: email, password: "secret123" } });
+  assert.equal(stillOld.status, 200);
+  const notNew = await call("/api/auth/login", { method: "POST", body: { id: email, password: "different123" } });
+  assert.equal(notNew.status, 401);
+});
+
 test("email OTP: resend cooldown, expiry and lockout are enforced", async () => {
   const email = `${uniq()}@example.com`;
   const first = await call("/api/auth/email/otp/request", { method: "POST", body: { email } });
