@@ -1,0 +1,34 @@
+{
+  "name": "nilaara-backend",
+  "version": "2.0.0",
+  "description": "Nilaara Jewellers backend — Express + MongoDB Atlas, Cloudinary images, session auth",
+  "type": "commonjs",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "seed": "node data/seedProducts.js",
+    "seed:accounts": "node scripts/seed-test-accounts.js",
+    "create-admin": "node scripts/create-admin.js",
+    "migrate-images": "node scripts/migrate-images.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cloudinary": "^2.11.0",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
+    "dotenv": "^16.6.1",
+    "express": "^4.22.3",
+    "google-auth-library": "^11.3.1",
+    "helmet": "^8.3.0",
+    "mongoose": "^8.24.7",
+    "multer": "^2.5.0",
+    "razorpay": "^2.9.8",
+    "twilio": "^6.2.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "mongodb-memory-server": "^11.3.0"
+  }
+}
