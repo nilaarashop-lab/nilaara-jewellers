@@ -2,7 +2,7 @@ import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useId, useRef, useState } from "react";
 import { useStore } from "../store/StoreContext";
 import { useAuth } from "../store/AuthContext";
-import { formatINR } from "../data/products";
+import { COLLECTIONS, formatINR } from "../data/products";
 import { hasAPI, searchProducts } from "../api/client";
 
 /* ── Icon set (single stroke style, currentColor — inherits hover states) ── */
@@ -590,21 +590,36 @@ export function Header() {
             </div>
             <div className="mnav-body">
               <div className="mnav-group">
-                <small>Shop by category</small>
+                <small>New &amp; trending</small>
                 <div className="mnav-links">
                   {[
                     ["New Launches", "/shop?col=new"],
                     ["Best Sellers", "/shop?col=best-sellers"],
+                  ].map(([label, to]) => (
+                    <Link key={label} to={to} onClick={() => setMnav(false)}>{label}</Link>
+                  ))}
+                </div>
+              </div>
+              <div className="mnav-group">
+                <small>Shop by category</small>
+                <div className="mnav-links">
+                  {[
                     ["Jewellery Sets", "/shop?cat=jewellery-sets"],
                     ["Necklaces", "/shop?cat=necklaces"],
                     ["Earrings", "/shop?cat=earrings"],
                     ["Jhumkas", "/shop?cat=jhumkas"],
                     ["Bangles", "/shop?cat=bangles"],
                     ["Rings", "/shop?cat=rings"],
-                    ["Kundan", "/shop?col=kundan"],
-                    ["Temple", "/shop?col=temple"],
                   ].map(([label, to]) => (
                     <Link key={label} to={to} onClick={() => setMnav(false)}>{label}</Link>
+                  ))}
+                </div>
+              </div>
+              <div className="mnav-group">
+                <small>Collections</small>
+                <div className="mnav-links one">
+                  {COLLECTIONS.map((c) => (
+                    <Link key={c.slug} to={`/shop?col=${c.slug}`} onClick={() => setMnav(false)}>{c.name}</Link>
                   ))}
                 </div>
               </div>

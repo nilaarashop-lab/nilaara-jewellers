@@ -71,6 +71,7 @@ VITE_API_URL=https://api.nilaara.com
 Host `dist/` on Vercel/Netlify/etc. Notes:
 
 - `VITE_API_URL` must be set at **build** time (Vite inlines it). Without it the app runs in demo mode — never deploy the storefront without it.
+- Production builds request `/api/*` from their own origin; on Vercel the rewrite in `frontend/vercel.json` proxies those requests to `VITE_API_URL`'s host. Keep the two in sync — the same-origin hop is what keeps the session cookie first-party for Safari/iOS. Other hosts (Netlify) need an equivalent proxy.
 - The API's `FRONTEND_URL` must exactly match the deployed origin (scheme + host, no trailing slash) or cookie-authenticated requests will be blocked by CORS.
 
 ## 4. Migrate existing images (one-time)

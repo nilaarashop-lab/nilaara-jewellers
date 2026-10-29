@@ -59,12 +59,12 @@ const env = {
   // ── Sessions / auth ──
   COOKIE_SECURE: get("COOKIE_SECURE", isProd ? "true" : "false") === "true",
   // Session-cookie SameSite policy: "lax" | "strict" | "none".
-  // Production defaults to "none" because the storefront (typically *.vercel.app)
-  // and this API usually sit on different sites; a Lax cookie is silently dropped
-  // on those cross-site fetches, so sign-up/login succeed server-side while the
-  // visitor stays logged out. Serve both from one registrable domain (shop. +
-  // api.example.com) and set COOKIE_SAMESITE=lax to tighten it again.
-  COOKIE_SAMESITE: (get("COOKIE_SAMESITE").toLowerCase() || (isProd ? "none" : "lax")),
+  // The storefront proxies /api/* through its own domain (frontend/vercel.json),
+  // so the session cookie is first-party and "lax" is the right policy. Safari and
+  // every iOS browser reject a cookie set by another site — including SameSite=None
+  // cookies — so a cross-site API only works on desktop browsers. Use "none" only
+  // when a client calls this API cross-site directly; it also needs COOKIE_SECURE.
+  COOKIE_SAMESITE: (get("COOKIE_SAMESITE").toLowerCase() || "lax"),
   SESSION_TTL_DAYS: Number(get("SESSION_TTL_DAYS", "7")),
   BCRYPT_ROUNDS: Number(get("BCRYPT_ROUNDS", "12")),
   LOGIN_MAX_ATTEMPTS: Number(get("LOGIN_MAX_ATTEMPTS", "5")),

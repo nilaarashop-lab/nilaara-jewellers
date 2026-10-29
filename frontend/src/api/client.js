@@ -10,11 +10,18 @@
  *
  * Auth is cookie-based (httpOnly session cookie set by the backend), so every
  * request sends `credentials: "include"`.
+ *
+ * Origins: a production build calls `/api/*` on its own origin — `vercel.json`
+ * proxies that path to the API. The session cookie is then first-party, which is
+ * the only kind Safari and iOS browsers accept; a cookie set by another site is
+ * dropped there even with SameSite=None. Locally (vite dev) the API is called
+ * directly via VITE_API_URL.
  */
 import { PRODUCTS } from "../data/products";
 
-const API = import.meta.env.VITE_API_URL?.replace(/\/$/, "") || "";
-export const hasAPI = Boolean(API);
+const CONFIGURED = import.meta.env.VITE_API_URL?.replace(/\/+$/, "") || "";
+const API = CONFIGURED && !import.meta.env.PROD ? CONFIGURED : "";
+export const hasAPI = Boolean(CONFIGURED);
 /** Google Identity Services is available only when the public client ID is set. */
 export const googleEnabled = Boolean(import.meta.env.VITE_GOOGLE_CLIENT_ID);
 
@@ -90,7 +97,7 @@ export const updateLocalOrder = (id, patch) => {
 // ── Products ──
 
 export async function fetchProducts() {
-  if (!API) {
+  if (!hasAPI) {
     const ov = readLS("nilaara-admin-products", null); // demo-mode admin edits
     if (!ov) return PRODUCTS;
     const map = new Map(PRODUCTS.map((p) => [p.id, p]));
@@ -104,7 +111,7 @@ export async function fetchProducts() {
 
 /** Admin table listing — includes drafts/archived (not just published). */
 export async function adminListProducts() {
-  if (!API) return fetchProducts();
+  if (!hasAPI) return fetchProducts();
   return api("/api/products?admin=1&limit=200");
 }
 
@@ -132,12 +139,12 @@ export function matchesQuery(p, q) {
 export async function searchProducts(q, limit = 6) {
   const query = String(q || "").trim();
   if (!query) return [];
-  if (!API) return (await fetchProducts()).filter((p) => matchesQuery(p, query)).slice(0, limit);
+  if (!hasAPI) return (await fetchProducts()).filter((p) => matchesQuery(p, query)).slice(0, limit);
   return api(`/api/products?limit=${Number(limit) || 6}&q=${encodeURIComponent(query)}`);
 }
 
 export async function fetchProduct(id) {
-  if (!API) return PRODUCTS.find((p) => p.id === id) || null;
+  if (!hasAPI) return PRODUCTS.find((p) => p.id === id) || null;
   return api(`/api/products/${encodeURIComponent(id)}`);
 }
 
@@ -147,13 +154,13 @@ export async function fetchProduct(id) {
 
 /** The signed-in customer's cart from MongoDB (demo mode: localStorage). */
 export async function fetchCart() {
-  if (!API) return readLS("nilaara-cart", []);
+  if (!hasAPI) return readLS("nilaara-cart", []);
   return (await api("/api/cart")).items || [];
 }
 
 /** Adds (or increments) an item. Throws a displayable error when unavailable/out of stock. */
 export async function cartAdd(id, qty = 1) {
-  if (!API) {
+  if (!hasAPI) {
     const cart = readLS("nilaara-cart", []);
     const found = cart.find((i) => i.id === id);
     if (found) found.qty += qty;
@@ -166,13 +173,13 @@ export async function cartAdd(id, qty = 1) {
 
 /** Merges a guest cart into the account cart right after login. */
 export async function cartMerge(items) {
-  if (!API) return readLS("nilaara-cart", []);
+  if (!hasAPI) return readLS("nilaara-cart", []);
   return (await api("/api/cart/merge", { method: "POST", body: { items } })).items || [];
 }
 
 /** Sets a quantity (0 removes). Rejects quantities above available stock. */
 export async function cartSetQty(id, qty) {
-  if (!API) {
+  if (!hasAPI) {
     const cart = readLS("nilaara-cart", []).map((i) => (i.id === id ? { ...i, qty } : i)).filter((i) => i.qty > 0);
     writeLS("nilaara-cart", cart);
     return cart;
@@ -181,7 +188,7 @@ export async function cartSetQty(id, qty) {
 }
 
 export async function cartRemove(id) {
-  if (!API) {
+  if (!hasAPI) {
     const cart = readLS("nilaara-cart", []).filter((i) => i.id !== id);
     writeLS("nilaara-cart", cart);
     return cart;
@@ -190,7 +197,7 @@ export async function cartRemove(id) {
 }
 
 export async function cartClear() {
-  if (!API) {
+  if (!hasAPI) {
     writeLS("nilaara-cart", []);
     return [];
   }
@@ -206,7 +213,7 @@ export async function cartClear() {
  * marquee lines and homepage hero/card/festive content for the home page.
  */
 export async function fetchSettings() {
-  if (!API) {
+  if (!hasAPI) {
     return { shipping: { freeOver: 999, fee: 79, methods: [] }, payments: { cod: true, razorpay: false } };
   }
   return api("/api/settings");
@@ -214,7 +221,7 @@ export async function fetchSettings() {
 
 /** Full editable settings document — admin/staff sessions only. */
 export async function adminFetchSettings() {
-  if (!API) throw new Error("Homepage editing needs the backend (set VITE_API_URL).");
+  if (!hasAPI) throw new Error("Homepage editing needs the backend (set VITE_API_URL).");
   return api("/api/settings/admin");
 }
 
@@ -224,7 +231,7 @@ export async function adminFetchSettings() {
  * or an approved host. Returns the updated PUBLIC settings shape.
  */
 export async function adminSaveSettings(patch) {
-  if (!API) throw new Error("Homepage editing needs the backend (set VITE_API_URL).");
+  if (!hasAPI) throw new Error("Homepage editing needs the backend (set VITE_API_URL).");
   return api("/api/settings", { method: "PATCH", body: patch });
 }
 
@@ -232,30 +239,30 @@ export async function adminSaveSettings(patch) {
 
 /** Active promo codes shown on the storefront (bag/checkout chips). */
 export async function fetchActivePromos() {
-  if (!API) return [];
+  if (!hasAPI) return [];
   return api("/api/promos/active");
 }
 
 /** Admin list incl. usage counters. */
 export async function adminListPromos() {
-  if (!API) return [];
+  if (!hasAPI) return [];
   return api("/api/promos");
 }
 
 /** Creates a promo code (409 → already exists). */
 export async function adminCreatePromo(body) {
-  if (!API) throw new Error("Promo codes need the backend (set VITE_API_URL).");
+  if (!hasAPI) throw new Error("Promo codes need the backend (set VITE_API_URL).");
   return api("/api/promos", { method: "POST", body });
 }
 
 /** Edits percent/minimum/active/maxUses (the code itself is immutable). */
 export async function adminUpdatePromo(code, patch) {
-  if (!API) throw new Error("Promo codes need the backend (set VITE_API_URL).");
+  if (!hasAPI) throw new Error("Promo codes need the backend (set VITE_API_URL).");
   return api(`/api/promos/${encodeURIComponent(code)}`, { method: "PATCH", body: patch });
 }
 
 export async function adminDeletePromo(code) {
-  if (!API) throw new Error("Promo codes need the backend (set VITE_API_URL).");
+  if (!hasAPI) throw new Error("Promo codes need the backend (set VITE_API_URL).");
   return api(`/api/promos/${encodeURIComponent(code)}`, { method: "DELETE" });
 }
 
@@ -280,7 +287,7 @@ export const clearPendingIntent = () => {
  * returned order contains the authoritative totals.
  */
 export async function createOrder(payload) {
-  if (!API) {
+  if (!hasAPI) {
     await new Promise((r) => setTimeout(r, 600));
     const order = { id: "NIL" + Date.now().toString().slice(-8), ...payload, mode: "COD-stub", createdAt: new Date().toISOString() };
     saveLocalOrder(order);
@@ -296,12 +303,12 @@ export async function createOrder(payload) {
  * Returns null in demo mode, where the browser has no pricing engine to ask.
  */
 export async function previewOrder({ items, coupon, shippingMethod }) {
-  if (!API) return null;
+  if (!hasAPI) return null;
   return api("/api/orders/preview", { method: "POST", body: { items, coupon, shippingMethod } });
 }
 
 export async function fetchOrder(id, phone) {
-  if (!API) return getLocalOrders().find((o) => String(o.id) === String(id)) || null;
+  if (!hasAPI) return getLocalOrders().find((o) => String(o.id) === String(id)) || null;
   return api(`/api/orders/${encodeURIComponent(id)}${phone ? `?phone=${encodeURIComponent(phone)}` : ""}`);
 }
 
@@ -314,7 +321,7 @@ export async function fetchOrder(id, phone) {
 export async function adminUploadImages(files) {
   const list = [...files].filter((f) => f.type.startsWith("image/")).slice(0, 6);
   if (!list.length) throw new Error("Choose an image file (JPG/PNG/WebP).");
-  if (!API) {
+  if (!hasAPI) {
     // Demo mode only: compress into inline data-URLs so the demo persists without a server.
     return Promise.all(list.map((f) => fileToResizedDataURL(f).then((url) => ({ url, publicId: "", alt: "" }))));
   }
@@ -348,12 +355,12 @@ function fileToResizedDataURL(file, maxDim = 1200, quality = 0.82) {
 }
 
 export async function adminListOrders() {
-  if (!API) return getLocalOrders();
+  if (!hasAPI) return getLocalOrders();
   return api("/api/orders?limit=200");
 }
 
 export async function adminUpdateOrderStatus(id, status, note) {
-  if (!API) {
+  if (!hasAPI) {
     updateLocalOrder(id, { status });
     return { ok: true };
   }
@@ -363,7 +370,7 @@ export async function adminUpdateOrderStatus(id, status, note) {
 }
 
 export async function adminSaveProduct(p) {
-  if (!API) {
+  if (!hasAPI) {
     const ov = readLS("nilaara-admin-products", { upsert: [], remove: [] });
     ov.upsert = [p, ...ov.upsert.filter((x) => x.id !== p.id)];
     ov.remove = ov.remove.filter((id) => id !== p.id);
@@ -388,7 +395,7 @@ export async function adminSaveProduct(p) {
 }
 
 export async function adminDeleteProduct(id) {
-  if (!API) {
+  if (!hasAPI) {
     const ov = readLS("nilaara-admin-products", { upsert: [], remove: [] });
     ov.upsert = ov.upsert.filter((x) => x.id !== id);
     if (PRODUCTS.some((p) => p.id === id)) ov.remove.push(id);
@@ -399,7 +406,7 @@ export async function adminDeleteProduct(id) {
 }
 
 export async function adminStats() {
-  if (!API) {
+  if (!hasAPI) {
     const orders = getLocalOrders();
     const revenue = orders.filter((o) => o.status !== "cancelled").reduce((s, o) => s + (o.totals?.total || 0), 0);
     const byStatus = orders.reduce((m, o) => ((m[o.status || "placed"] = (m[o.status || "placed"] || 0) + 1), m), {});
@@ -411,7 +418,7 @@ export async function adminStats() {
 // ── Auth (cookie sessions; no tokens or passwords in browser storage) ──
 
 export async function authLogin({ id, password }) {
-  if (!API) {
+  if (!hasAPI) {
     await new Promise((r) => setTimeout(r, 400));
     return { user: { id: "demo-" + Date.now(), name: "Demo User", email: id, role: "customer", provider: "demo" } };
   }
@@ -419,7 +426,7 @@ export async function authLogin({ id, password }) {
 }
 
 export async function authRegister(payload) {
-  if (!API) {
+  if (!hasAPI) {
     await new Promise((r) => setTimeout(r, 400));
     return { user: { id: "demo-" + Date.now(), name: payload.name, email: payload.email || null, phone: payload.phone || null, role: "customer", provider: "demo" } };
   }
@@ -427,12 +434,12 @@ export async function authRegister(payload) {
 }
 
 export async function authLogout() {
-  if (!API) return { ok: true };
+  if (!hasAPI) return { ok: true };
   return api("/api/auth/logout", { method: "POST" });
 }
 
 export async function authMe() {
-  if (!API) return null;
+  if (!hasAPI) return null;
   try {
     return (await api("/api/auth/me")).user;
   } catch {
@@ -442,43 +449,43 @@ export async function authMe() {
 
 /** Google Identity Services: exchanges the ID token for a Nilaara session. */
 export async function authGoogle(credential) {
-  if (!API) throw new Error("Google sign-in needs the backend (set VITE_API_URL).");
+  if (!hasAPI) throw new Error("Google sign-in needs the backend (set VITE_API_URL).");
   return api("/api/auth/google", { method: "POST", body: { credential } });
 }
 
 /** Links Google to the account of the CURRENT session (from the account page). */
 export async function linkGoogle(credential) {
-  if (!API) throw new Error("Google linking needs the backend (set VITE_API_URL).");
+  if (!hasAPI) throw new Error("Google linking needs the backend (set VITE_API_URL).");
   return api("/api/auth/google/link", { method: "POST", body: { credential } });
 }
 
 /** Step 1 of mobile OTP login — the server texts the code; it is never returned. */
 export async function otpRequest(phone) {
-  if (!API) throw new Error("OTP login needs the backend (set VITE_API_URL).");
+  if (!hasAPI) throw new Error("OTP login needs the backend (set VITE_API_URL).");
   return api("/api/auth/otp/request", { method: "POST", body: { phone } });
 }
 
 /** Step 2 — verifies the code server-side and starts a session. */
 export async function otpVerify(phone, otp) {
-  if (!API) throw new Error("OTP login needs the backend (set VITE_API_URL).");
+  if (!hasAPI) throw new Error("OTP login needs the backend (set VITE_API_URL).");
   return api("/api/auth/otp/verify", { method: "POST", body: { phone, otp } });
 }
 
 /** Step 1 of EMAIL OTP login (Resend) — the server emails the code; never returned. */
 export async function emailOtpRequest(email) {
-  if (!API) throw new Error("Email verification needs the backend (set VITE_API_URL).");
+  if (!hasAPI) throw new Error("Email verification needs the backend (set VITE_API_URL).");
   return api("/api/auth/email/otp/request", { method: "POST", body: { email } });
 }
 
 /** Step 2 — verifies the emailed code server-side and starts a session. */
 export async function emailOtpVerify(email, otp) {
-  if (!API) throw new Error("Email verification needs the backend (set VITE_API_URL).");
+  if (!hasAPI) throw new Error("Email verification needs the backend (set VITE_API_URL).");
   return api("/api/auth/email/otp/verify", { method: "POST", body: { email, otp } });
 }
 
 /** Updates the signed-in customer's profile. */
 export async function updateMe(patch) {
-  if (!API) throw new Error("Profiles need the backend (set VITE_API_URL).");
+  if (!hasAPI) throw new Error("Profiles need the backend (set VITE_API_URL).");
   return api("/api/auth/me", { method: "PATCH", body: patch });
 }
 
@@ -487,7 +494,7 @@ export async function updateMe(patch) {
  * @param {"live"|"old"|""} view  live = placed/packed/shipped, old = finished/cancelled
  */
 export async function fetchMyOrders(view = "") {
-  if (!API) {
+  if (!hasAPI) {
     const LIVE = ["placed", "packed", "shipped"];
     const list = getLocalOrders();
     if (view === "live") return list.filter((o) => LIVE.includes(o.status || "placed"));
@@ -504,7 +511,7 @@ export async function fetchMyOrders(view = "") {
  * The amount is the SERVER-computed total — never a browser value.
  */
 export async function createRazorpayOrder(orderNumber) {
-  if (!API) throw new Error("Online payments need the backend (set VITE_API_URL).");
+  if (!hasAPI) throw new Error("Online payments need the backend (set VITE_API_URL).");
   return api(`/api/payments/${encodeURIComponent(orderNumber)}/order`, { method: "POST" });
 }
 
@@ -513,7 +520,7 @@ export async function createRazorpayOrder(orderNumber) {
  * The order only becomes "paid" if the HMAC signature validates.
  */
 export async function verifyRazorpayPayment(orderNumber, payload) {
-  if (!API) throw new Error("Online payments need the backend (set VITE_API_URL).");
+  if (!hasAPI) throw new Error("Online payments need the backend (set VITE_API_URL).");
   return api(`/api/payments/${encodeURIComponent(orderNumber)}/verify`, { method: "POST", body: payload });
 }
 

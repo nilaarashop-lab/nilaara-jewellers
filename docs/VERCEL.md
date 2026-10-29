@@ -23,7 +23,21 @@ ImageKit uploads, long-lived MongoDB connection).
    catalogue, no login); pointed at `http://localhost:5000` every product page shows the
    "temporarily unavailable" panel, because the visitor's browser cannot reach your machine.
    `frontend/.env` is git-ignored and is never uploaded — the dashboard value is the one that
-   ships.
+   ships. It must be the same origin as the `/api/*` rewrite destination in
+   [frontend/vercel.json](../frontend/vercel.json) (that file is where the browser actually
+   sends API traffic — see below).
+
+## How the browser reaches the API
+
+The deployed storefront never calls the API host directly. `frontend/vercel.json` proxies
+`/api/*` to the API, and production builds talk to `/api` on their own origin
+([client.js](../frontend/src/api/client.js)). That keeps the session cookie **first-party**,
+which is what Safari and every iOS browser require — they reject a cookie set by another site
+even when it is marked `SameSite=None; Secure`. Chrome, Edge and Firefox were fine with the
+cross-site cookie; iPhones were not.
+
+If the API moves, update the rewrite `destination` in `frontend/vercel.json` and redeploy.
+Do not point `VITE_API_URL` at the API host and expect cookies to work on iOS again.
 
 ## Backend prerequisites
 
@@ -36,16 +50,10 @@ The API must be publicly reachable over HTTPS, and in its environment:
 | `STORAGE_DRIVER` | `imagekit` (or `cloudinary`) |
 | `FRONTEND_URL` | exact storefront origin(s), comma-separated, no trailing slash — e.g. `https://shop.your-domain.com,https://your-app.vercel.app` |
 | `COOKIE_SECURE` | `true` |
-| `COOKIE_SAMESITE` | leave unset (defaults to `none` in production — see below); set to `lax` only if the storefront and API share a registrable domain |
+| `COOKIE_SAMESITE` | leave unset (defaults to `lax`); only a client calling the API cross-site directly needs `none` |
 
-**Cookie caveat.** Sessions are `HttpOnly` and, in production, `SameSite=None; Secure` by
-default, because a `*.vercel.app` storefront calling an API on another domain is a **cross-site**
-request — a `Lax` cookie is simply not sent, so registration and login succeed on the server
-while the visitor stays logged out. `SameSite=None` fixes that in Chrome, Edge and Firefox, but
-Safari and any browser with third-party cookies blocked still refuse it. The durable fix is to
-serve both from one registrable domain (`shop.example.com` + `api.example.com`, or a rewrite in
-`vercel.json` proxying `/api/*` to the API); then set `COOKIE_SAMESITE=lax` and allow that one
-origin in `FRONTEND_URL`.
+`COOKIE_SAMESITE=none` left over from an older cross-site deployment must be removed — it makes
+Safari discard the session cookie even though the request is now same-origin.
 
 ## Deploying an update
 
@@ -82,6 +90,7 @@ bundle still contains the previous `VITE_API_URL`.
 - [ ] `/shop` lists the real database catalogue (not the demo products, not the retry panel)
 - [ ] `/admin` loads for an admin account; the Admin pill is in the navbar
 - [ ] Login survives a refresh (no cookie dropped)
+- [ ] Login from an iPhone (Safari **and** Chrome for iOS) survives a refresh — the iOS cookie check
 - [ ] Hard refresh on a product URL does not 404
 - [ ] Image uploads in the admin return an ImageKit URL
 - [ ] An order can be placed end to end (COD)
@@ -93,8 +102,8 @@ bundle still contains the previous `VITE_API_URL`.
 | Gold "Our collection is temporarily unavailable" panel | API unreachable, CORS/`FRONTEND_URL` mismatch, or `VITE_API_URL` wrong at build time |
 | Demo products on the live site | `VITE_API_URL` missing in the Vercel build — the app deliberately runs in demo mode only when no API is configured |
 | 404 after refresh / shared deep link | `frontend/vercel.json` missing, or the project's Root Directory isn't `frontend` |
-| Login works, then you're logged out | cross-site cookie (see the caveat above — `COOKIE_SAMESITE`/`COOKIE_SECURE`), or `FRONTEND_URL` origin mismatch |
-| Register succeeds but the form says the browser didn't keep the sign-in | the API's session cookie was rejected: add the deployed origin to `FRONTEND_URL`, keep `COOKIE_SECURE=true` + `COOKIE_SAMESITE=none`, and check the browser console/network panel for a blocked cookie |
+| Login works, then you're logged out | cookie rejected: `COOKIE_SECURE` must be `true`, `COOKIE_SAMESITE` must be `lax` (not `none`), and `FRONTEND_URL` must list the exact storefront origin |
+| Register succeeds but the form says the browser didn't keep the sign-in | the `Set-Cookie` never landed. On an iPhone this is the cross-site cookie: check that `/api/*` is served by the rewrite in `frontend/vercel.json`, not by the API host directly, and that the deployed build is the one from after that change |
 | Old version still served after a push | check the commit hash on the deployment; redeploy without build cache |
 
 See also [DEPLOYMENT.md](DEPLOYMENT.md) for the full production checklist.
