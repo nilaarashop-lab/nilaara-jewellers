@@ -1,9 +1,9 @@
 import { Link } from "react-router-dom";
-import { useEffect, useMemo, useRef, useState } from "react";
-import { CATEGORIES, COLLECTIONS, PRODUCTS, HERO_IMG, SIDE_IMGS, FESTIVE_IMG, formatINR } from "../data/products";
-import { ProductCard, Img } from "../components/Layout";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { CATEGORIES, PRODUCTS, HERO_IMG, SIDE_IMGS, FESTIVE_IMG } from "../data/products";
+import { ProductCard, ProductGridSkeleton, ProductsUnavailable, Img } from "../components/Layout";
 import { useStore } from "../store/StoreContext";
-import { fetchProducts } from "../api/client";
+import { fetchProducts, hasAPI } from "../api/client";
 
 /** True when the visitor prefers reduced motion (autoplay/parallax off). */
 const prefersReducedMotion = () =>
@@ -95,11 +95,11 @@ function Hero({ slides }) {
           </h1>
           <p>{s.text || DEFAULT_SLIDE.text}</p>
           <div className="cta-row">
-            <Link to="/shop" className="btn btn-gold">Shop Bestsellers →</Link>
+            <Link to="/shop?col=best-sellers" className="btn btn-gold">Shop Bestsellers →</Link>
             <Link to="/shop?col=temple" className="btn btn-ghost">Explore Temple</Link>
           </div>
           <div className="hero-trust">
-            <span>★ 4.6 (48k reviews)</span><span>•</span><span>7-day exchange</span><span>•</span><span>COD</span>
+            <span>18K–24K gold plated</span><span>•</span><span>7-day exchange</span><span>•</span><span>COD</span>
           </div>
           {total > 1 && (
             <div className="hero-dots" role="tablist" aria-label="Choose hero slide">
@@ -130,10 +130,16 @@ function Hero({ slides }) {
 }
 
 export default function Home() {
-  const { addToCart, settings } = useStore();
-  const [items, setItems] = useState(PRODUCTS);
-  useEffect(() => { fetchProducts().then(setItems).catch(() => {}); }, []);
-  const best = [...items].sort((a, b) => b.reviews - a.reviews).slice(0, 8);
+  const { settings } = useStore();
+  const [items, setItems] = useState(() => (hasAPI ? [] : PRODUCTS));
+  const [status, setStatus] = useState(hasAPI ? "loading" : "ready");
+  const load = useCallback(() => {
+    setStatus(hasAPI ? "loading" : "ready");
+    fetchProducts().then((list) => { setItems(list); setStatus("ready"); }).catch(() => setStatus("error"));
+  }, []);
+  useEffect(() => { load(); }, [load]);
+  // Admin-flagged Best Sellers lead; the rest stay in catalogue order.
+  const best = [...items].sort((a, b) => Number(Boolean(b.bestseller)) - Number(Boolean(a.bestseller))).slice(0, 8);
 
   // Admin-configured content, falling back to the built-in defaults.
   const slides = useMemo(() => {
@@ -149,10 +155,9 @@ export default function Home() {
   const festive = settings?.home?.festive || null;
   const festiveImg = festive?.url || FESTIVE_IMG;
 
-  // Admin can override the "Shop by Category" / "Handpicked" tile images
-  // (keyed by catalogue slug); built-in images are the fallback.
+  // Admin can override the "Shop by Category" tile images (keyed by catalogue
+  // slug); the built-in images are the fallback.
   const catTiles = useMemo(() => new Map((settings?.home?.categoryTiles || []).map((t) => [t.slug, t])), [settings]);
-  const colTiles = useMemo(() => new Map((settings?.home?.collectionTiles || []).map((t) => [t.slug, t])), [settings]);
 
   return (
     <main className="container">
@@ -165,7 +170,7 @@ export default function Home() {
       </div>
 
       <section className="sec">
-        <div className="sec-head"><div><h2>Shop by Category</h2><p>Demi-fine & ethnic — 1,300+ styles</p></div><Link to="/shop" className="link">View all</Link></div>
+        <div className="sec-head"><div><h2>Shop by Category</h2><p>Demi-fine & ethnic — gold-plated</p></div><Link to="/shop" className="link">View all</Link></div>
         <div className="circles">
           {CATEGORIES.map((ct) => (
             <Link key={ct.slug} to={`/shop?cat=${ct.slug}`} className="circle">
@@ -195,17 +200,10 @@ export default function Home() {
       </Reveal>
 
       <section className="sec">
-        <div className="sec-head"><div><h2>Handpicked for you</h2><p>Kundan • Temple • Oxidised • Gold-plated</p></div></div>
-        <div className="hand">
-          {COLLECTIONS.map((col) => (
-            <Link key={col.slug} to={`/shop?col=${col.slug}`}><img src={colTiles.get(col.slug)?.url || col.img} alt={colTiles.get(col.slug)?.alt || col.name} loading="lazy" /><span>{col.name}</span></Link>
-          ))}
-        </div>
-      </section>
-
-      <section className="sec">
-        <div className="sec-head"><div><h2>Our Best Sellers</h2><p>Loved by 2,00,000+ customers</p></div><Link to="/shop?sort=popular" className="link">View all</Link></div>
-        <div className="grid">{best.map((p) => <ProductCard key={p.id} p={p} />)}</div>
+        <div className="sec-head"><div><h2>Our Best Sellers</h2><p>Most-loved picks, ready to ship</p></div><Link to="/shop?col=best-sellers" className="link">View all</Link></div>
+        {status === "loading" ? <ProductGridSkeleton count={4} />
+          : status === "error" ? <ProductsUnavailable onRetry={load} />
+          : <div className="grid">{best.map((p) => <ProductCard key={p.id} p={p} />)}</div>}
       </section>
 
       {festive && (
@@ -222,18 +220,12 @@ export default function Home() {
         </Reveal>
       )}
 
-      <section className="sec two">
-        <div className="quote">
-          <small className="eyebrow">48,000+ verified reviews</small>
-          <p>“My Nilaara kundan set looked straight out of a bridal shoot. Nobody believed it wasn’t real gold. Lightweight, no itching, packaging felt premium.”</p>
-          <b>— Ananya S., Bengaluru • Verified buyer</b>
-          <div style={{ marginTop: 12 }}>{best[0] && <button className="btn btn-ghost" onClick={() => addToCart(best[0])}>Shop the look • {formatINR(best[0].price)}</button>}</div>
-        </div>
-        <div>
+      {items.length > 0 && (
+        <section className="sec">
           <div className="sec-head"><h2 style={{ fontSize: 30 }}>@nilaara.jewellers</h2><span className="link">Follow</span></div>
           <div className="insta">{[...items].slice(0, 4).map((p) => <Img key={p.id} src={p.images?.[0]} alt={p.name} />)}</div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <section className="sec">
         <div className="festive">

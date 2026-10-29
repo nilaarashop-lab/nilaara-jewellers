@@ -337,7 +337,6 @@ export async function adminSaveProduct(p) {
     price: +p.price,
     mrp: p.mrp === "" || p.mrp == null ? undefined : +p.mrp,
     stock: p.stock === "" || p.stock == null ? undefined : +p.stock,
-    rating: +p.rating,
     images: (p.images || []).map((i) => (typeof i === "string" ? { url: i, publicId: "", alt: "" } : i)),
   };
   if (p._id) return api(`/api/products/${encodeURIComponent(p.id || p._id)}`, { method: "PUT", body: body });

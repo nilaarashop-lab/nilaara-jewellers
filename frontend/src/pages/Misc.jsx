@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Link, useNavigate, useSearchParams } from "react-router-dom";
 import { useStore } from "../store/StoreContext";
 import { useAuth } from "../store/AuthContext";
 import { PRODUCTS, formatINR } from "../data/products";
 import { STORES } from "../data/stores";
-import { ProductCard, Img, PromoInput } from "../components/Layout";
+import { ProductCard, ProductGridSkeleton, ProductsUnavailable, Img, PromoInput } from "../components/Layout";
 import { fetchOrder, fetchProducts, hasAPI } from "../api/client";
 
 export function Cart() {
@@ -139,14 +139,21 @@ export function Success() {
 
 export function Wishlist() {
   const { wishlist } = useStore();
-  const [items, setItems] = useState(PRODUCTS);
-  useEffect(() => { fetchProducts().then(setItems).catch(() => {}); }, []);
+  const [items, setItems] = useState(() => (hasAPI ? [] : PRODUCTS));
+  const [status, setStatus] = useState(hasAPI ? "loading" : "ready");
+  const load = useCallback(() => {
+    setStatus(hasAPI ? "loading" : "ready");
+    fetchProducts().then((list) => { setItems(list); setStatus("ready"); }).catch(() => setStatus("error"));
+  }, []);
+  useEffect(() => { load(); }, [load]);
   const list = items.filter((p) => wishlist.includes(p.id));
   return (
     <main className="container"><div className="breadcrumb">Home / Wishlist</div>
       <div className="sec-head"><h2>Wishlist ({list.length})</h2></div>
-      {list.length === 0 ? <div className="empty">Nothing saved yet.<br /><br /><Link to="/shop" className="btn btn-gold">Discover jewellery</Link></div> :
-        <div className="grid">{list.map((p) => <ProductCard key={p.id} p={p} />)}</div>}
+      {status === "error" ? <ProductsUnavailable onRetry={load} />
+        : status === "loading" ? <ProductGridSkeleton count={4} />
+        : list.length === 0 ? <div className="empty">Nothing saved yet.<br /><br /><Link to="/shop" className="btn btn-gold">Discover jewellery</Link></div>
+        : <div className="grid">{list.map((p) => <ProductCard key={p.id} p={p} />)}</div>}
     </main>
   );
 }

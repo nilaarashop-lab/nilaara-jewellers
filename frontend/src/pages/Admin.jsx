@@ -33,9 +33,11 @@ const emptyProduct = () => ({
   price: 799,
   mrp: 1499,
   stock: 10,
-  rating: 4.3,
   badge: "New",
   tag: "",
+  customTag: "",
+  bestseller: false,
+  newArrival: true,
   description: "",
   status: "published",
   images: [], // [{url, publicId, alt}]
@@ -123,6 +125,11 @@ export default function Admin() {
   const [flash, setFlash] = useState("");
   const [saving, setSaving] = useState(false);
   const [urlDraft, setUrlDraft] = useState("");
+  // Labels already used by other products, offered as suggestions.
+  const labelOptions = useMemo(
+    () => [...new Set(products.map((p) => (p.customTag || "").trim()).filter(Boolean))],
+    [products]
+  );
 
   const load = async () => {
     setLoading(true);
@@ -290,23 +297,27 @@ export default function Admin() {
           </div>
           <OrdersTable orders={orders.slice(0, 5)} onStatus={setOrderStatus} />
           <div className="sec-head" style={{ marginTop: 26 }}>
-            <h2 style={{ fontSize: 30 }}>Top rated products</h2>
+            <h2 style={{ fontSize: 30 }}>Needs restocking</h2>
             <button className="link" style={{ background: "none", border: 0, cursor: "pointer" }} onClick={() => setTab("products")}>Manage all</button>
           </div>
           <div className="admin-table-wrap">
             <table className="admin-table">
               <thead>
-                <tr><th>Product</th><th>Price</th><th>Rating</th><th>Reviews</th></tr>
+                <tr><th>Product</th><th>Category</th><th>Stock</th><th>Status</th></tr>
               </thead>
               <tbody>
-                {[...products].sort((a, b) => (b.rating || 0) - (a.rating || 0)).slice(0, 5).map((p) => (
-                  <tr key={p.id || p._id}>
-                    <td><b>{p.name}</b><br /><small>{p.category} • {p.plating}</small></td>
-                    <td>{formatINR(p.price)}</td>
-                    <td>★ {p.rating}</td>
-                    <td>{p.reviews}</td>
-                  </tr>
-                ))}
+                {[...products]
+                  .filter((p) => p.trackInventory !== false && p.stock != null)
+                  .sort((a, b) => a.stock - b.stock)
+                  .slice(0, 5)
+                  .map((p) => (
+                    <tr key={p.id || p._id}>
+                      <td><b>{p.name}</b><br /><small>{p.collection} • {p.plating}</small></td>
+                      <td>{p.category}</td>
+                      <td>{p.stock <= 5 ? `⚠ ${p.stock}` : p.stock}</td>
+                      <td>{p.status || "published"}</td>
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
@@ -328,7 +339,7 @@ export default function Admin() {
                 {filteredProducts.map((p) => (
                   <tr key={p.id || p._id}>
                     <td><Img src={p.images?.[0]} alt="" style={{ width: 44, height: 44, objectFit: "cover", borderRadius: 8 }} /></td>
-                    <td><b>{p.name}</b><br /><small>{p.collection} • ★{p.rating} ({p.reviews})</small></td>
+                    <td><b>{p.name}</b><br /><small>{p.collection}</small></td>
                     <td>{p.category}</td>
                     <td>{formatINR(p.price)} <s>{formatINR(p.mrp || p.price)}</s></td>
                     <td>{p.trackInventory === false || p.stock == null ? "—" : p.stock <= 5 ? `⚠ ${p.stock}` : p.stock}</td>
@@ -414,9 +425,8 @@ export default function Admin() {
               <div><label>MRP ₹</label><input type="number" min="0" value={form.mrp} onChange={(e) => setForm({ ...form, mrp: e.target.value })} /></div>
               <div><label>Stock</label><input type="number" min="0" value={form.stock} onChange={(e) => setForm({ ...form, stock: e.target.value })} /></div>
             </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-              <div><label>Rating</label><input type="number" step="0.1" min="0" max="5" value={form.rating} onChange={(e) => setForm({ ...form, rating: e.target.value })} /></div>
-              <div><label>Badge</label><input value={form.badge} onChange={(e) => setForm({ ...form, badge: e.target.value })} /></div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+              <div><label>Badge</label><input value={form.badge} maxLength={40} placeholder="e.g. New, Bestseller" onChange={(e) => setForm({ ...form, badge: e.target.value })} /></div>
               <div>
                 <label>Status</label>
                 <select value={form.status || "draft"} onChange={(e) => setForm({ ...form, status: e.target.value })}>
@@ -431,6 +441,41 @@ export default function Admin() {
               <span className="track"><span className="knob" /></span>
               <span className="t">B1G1 Free — show buy-one-get-one badge on this product</span>
             </label>
+            <label className="b1g1-toggle">
+              <input type="checkbox" checked={Boolean(form.bestseller)} onChange={(e) => setForm({ ...form, bestseller: e.target.checked })} />
+              <span className="track"><span className="knob" /></span>
+              <span className="t">Best Seller — listed under Best Sellers and ranked first on the home page</span>
+            </label>
+            <label className="b1g1-toggle">
+              <input type="checkbox" checked={Boolean(form.newArrival)} onChange={(e) => setForm({ ...form, newArrival: e.target.checked })} />
+              <span className="track"><span className="knob" /></span>
+              <span className="t">New — listed under New Launches</span>
+            </label>
+
+            {/* Admin-named merchandising label — like the flags above, but you choose the name. */}
+            <div className="custom-tag-field">
+              <label htmlFor="customTag">Custom label — name it yourself (optional)</label>
+              <div className="custom-tag-row">
+                <input
+                  id="customTag"
+                  list="custom-tag-options"
+                  maxLength={40}
+                  placeholder="e.g. Festive Edit, Rakhi Special, Under ₹499"
+                  value={form.customTag || ""}
+                  onChange={(e) => setForm({ ...form, customTag: e.target.value })}
+                />
+                {form.customTag ? (
+                  <button type="button" className="mini-btn" onClick={() => setForm({ ...form, customTag: "" })}>Clear</button>
+                ) : null}
+              </div>
+              <datalist id="custom-tag-options">
+                {labelOptions.map((l) => <option key={l} value={l} />)}
+              </datalist>
+              <small className="custom-tag-hint">
+                Shows as a gold badge on the product card and gets its own filter in the shop
+                {form.customTag ? ` — customers can browse “${form.customTag.trim()}”.` : "."}
+              </small>
+            </div>
 
             <label>Photos — from your phone / PC (up to 6, stored on ImageKit)</label>
             <div className="photo-grid">
@@ -998,36 +1043,6 @@ function HomepageEditor() {
                   })}
                 />
                 <small>{ct.name}</small>
-              </div>
-            );
-          })}
-        </div>
-      </section>
-
-      {/* ── Handpicked tile images ── */}
-      <section className="form hp-section">
-        <div className="hp-head">
-          <h3 className="serif" style={{ margin: 0, fontSize: 22 }}>“Handpicked for you” pictures</h3>
-        </div>
-        <p className="co-note">One picture per collection tile. Leave empty to keep the built-in image.</p>
-        <div className="hp-tiles">
-          {COLLECTIONS.map((col) => {
-            const img = (doc.home.collectionTiles || []).find((t) => t.slug === col.slug)?.image;
-            return (
-              <div key={col.slug} className="hp-tile">
-                <ImageSlot
-                  label={col.name}
-                  image={img || { url: "", publicId: "", alt: "" }}
-                  busy={imgBusy}
-                  onBusy={setImgBusy}
-                  onError={setImgErr}
-                  onChange={(image) => set(() => {
-                    const tiles = [...(doc.home.collectionTiles || [])].filter((t) => t.slug !== col.slug);
-                    if (image.url) tiles.push({ slug: col.slug, image });
-                    setDoc({ ...doc, home: { ...doc.home, collectionTiles: tiles } });
-                  })}
-                />
-                <small>{col.name}</small>
               </div>
             );
           })}

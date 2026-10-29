@@ -61,6 +61,9 @@ const productSchema = new mongoose.Schema(
     newArrival: { type: Boolean, default: false },
     badge: { type: String, default: "" },
     tag: { type: String, default: "" },
+    // Admin-named merchandising label (e.g. "Festive Edit"): shown as a badge
+    // on cards and becomes its own filter in the shop.
+    customTag: { type: String, default: "" },
     rating: { type: Number, default: 0, min: 0, max: 5 },
     reviews: { type: Number, default: 0, min: 0 },
 
@@ -101,6 +104,7 @@ productSchema.methods.toPublic = function toPublic() {
     reviews: this.reviews,
     badge: this.badge,
     tag: this.tag,
+    customTag: this.customTag,
     featured: this.featured,
     bestseller: this.bestseller,
     newArrival: this.newArrival,

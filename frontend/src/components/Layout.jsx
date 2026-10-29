@@ -16,6 +16,7 @@ export const IconUser = () => (<svg {...svgProps}><path d="M20 21v-2a4 4 0 0 0-4
 export const IconUserPlus = () => (<svg {...svgProps}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /><path d="M19 8v6M22 11h-6" /></svg>);
 export const IconMenu = () => (<svg {...svgProps}><path d="M4 7h16M4 12h16M4 17h16" /></svg>);
 export const IconBox = () => (<svg {...svgProps}><path d="M4 8.5 12 4l8 4.5v7L12 20l-8-4.5v-7Z" /><path d="m4 8.5 8 4.5 8-4.5M12 13v7" /></svg>);
+export const IconShield = () => (<svg {...svgProps}><path d="M12 3l7 3v6c0 4.2-2.9 7.6-7 9-4.1-1.4-7-4.8-7-9V6l7-3Z" /><path d="m9.2 12.2 2 2 3.6-3.7" /></svg>);
 export const IconLogout = () => (<svg {...svgProps}><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3" /><path d="M10 17l-5-5 5-5M5 12h10" /></svg>);
 
 /** Two-letter avatar initials for the signed-in customer. */
@@ -43,12 +44,6 @@ export function Img({ src, alt = "", ...rest }) {
   );
 }
 
-export function Stars({ rating, reviews }) {
-  return (
-    <div className="stars">{"★".repeat(Math.round(rating))}{"☆".repeat(5 - Math.round(rating))} <small>{rating} ({reviews?.toLocaleString("en-IN")})</small></div>
-  );
-}
-
 export function ProductCard({ p }) {
   const { addToCart, wishlist, toggleWish, settings } = useStore();
   const off = Math.round((1 - p.price / p.mrp) * 100);
@@ -64,22 +59,60 @@ export function ProductCard({ p }) {
     <div className={`card ${soldOut ? "soldout" : ""}`}>
       <Link to={`/product/${p.id}`} className="card-media">
         <Img src={p.images?.[0]} alt={p.name} />
-        <div className="badge">{soldOut ? <i className="o">Sold out</i> : <>{p.tag ? <i className="g">{p.tag}</i> : null}<i>{off}% off</i></>}</div>
+        <div className="badge">{soldOut ? <i className="o">Sold out</i> : <>{p.customTag ? <i className="g">{p.customTag}</i> : null}{p.tag ? <i className="g">{p.tag}</i> : null}{p.badge ? <i>{p.badge}</i> : null}</>}</div>
       </Link>
       <button className={`wish ${wishlist.includes(p.id) ? "on" : ""}`} onClick={() => toggleWish(p.id)} aria-label="wishlist">
         {wishlist.includes(p.id) ? "♥" : "♡"}
       </button>
       <div className="card-body">
-        <Stars rating={p.rating} reviews={p.reviews} />
-        <Link to={`/product/${p.id}`}><h3>{p.name}</h3></Link>
         <div className="plating">{p.plating}</div>
+        <Link to={`/product/${p.id}`} className="card-title"><h3>{p.name}</h3></Link>
         <div className="pr"><b>{formatINR(p.price)}</b><s>{formatINR(p.mrp)}</s><em>{off}% off</em></div>
         {flat25Live && <div className="off25">With code FLAT25 • {formatINR(Math.round(p.price * 0.75))}</div>}
-        <div className={`stock ${soldOut ? "out" : low ? "low" : "in"}`}>
-          {soldOut ? "Out of stock" : low ? `Only ${p.stock} left!` : "In stock"}
+        {!soldOut && low && <div className="stock low">Only {p.stock} left</div>}
+        <div className="card-actions">
+          <button className="add" disabled={soldOut} onClick={() => addToCart(p)}>{soldOut ? "Sold Out" : "Add to Bag"}</button>
         </div>
-        <button className="add" disabled={soldOut} onClick={() => addToCart(p)}>{soldOut ? "Out of Stock" : "Add to Cart"}</button>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Placeholder grid while the catalogue loads. Shown only in API mode — the
+ * built-in demo catalogue is used synchronously when no backend is configured.
+ */
+export function ProductGridSkeleton({ count = 4, className = "" }) {
+  return (
+    <div className={`grid ${className}`.trim()} aria-hidden="true">
+      {Array.from({ length: count }, (_, i) => (
+        <div className="sk-card" key={i}>
+          <div className="sk sk-media" />
+          <div className="sk-body">
+            <span className="sk sk-eyebrow" />
+            <span className="sk sk-title" />
+            <span className="sk sk-title short" />
+            <span className="sk sk-price" />
+            <span className="sk sk-btn" />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/**
+ * Shown instead of products when the backend is configured but unreachable.
+ * Deliberately never falls back to the demo catalogue: showing invented
+ * prices and stock on a live store is worse than showing nothing.
+ */
+export function ProductsUnavailable({ onRetry }) {
+  return (
+    <div className="unavailable" role="alert" aria-live="polite">
+      <span className="eyebrow">Connection interrupted</span>
+      <h3 className="serif">Our collection is temporarily unavailable</h3>
+      <p>We couldn’t load the latest pieces just now. Your bag and account are safe — please try again in a moment.</p>
+      {onRetry && <button type="button" className="btn btn-gold" onClick={onRetry}>Try again</button>}
     </div>
   );
 }
@@ -192,13 +225,22 @@ export function AnnounceBar() {
 export function Header() {
   const { totals, setCartOpen, wishlist, setSearchOpen } = useStore();
   const { user, logout } = useAuth();
+  const isAdmin = ["admin", "staff"].includes(user?.role);
   const [q, setQ] = useState("");
   const [menu, setMenu] = useState(false);
   const [mnav, setMnav] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
   const menuRef = useRef(null);
   const nav = useNavigate();
   const { pathname, search } = useLocation();
   const nextParam = pathname + search;
+  // Header compacts and lifts (shadow) once the page scrolls — a quiet luxury cue.
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
   // Login links remember where the visitor was headed (?next=… is validated server-side/redirect-side).
   const loginHref = (pathname === "/login" || pathname === "/register") ? "/login" : `/login?next=${encodeURIComponent(nextParam)}`;
   const signupHref = (pathname === "/login" || pathname === "/register") ? "/register" : `/register?next=${encodeURIComponent(nextParam)}`;
@@ -225,7 +267,7 @@ export function Header() {
   return (
     <>
       <AnnounceBar />
-      <header className="header">
+      <header className={`header ${scrolled ? "scrolled" : ""}`}>
         <div className="container">
           <div className="header-top">
             <Link to="/" className="logo" aria-label="Nilaara Jewellers home">
@@ -263,6 +305,7 @@ export function Header() {
                       <Link role="menuitem" to="/account" onClick={() => setMenu(false)}><IconUser /> Profile</Link>
                       <Link role="menuitem" to="/orders" onClick={() => setMenu(false)}><IconBox /> My Orders</Link>
                       <Link role="menuitem" to="/wishlist" onClick={() => setMenu(false)}><IconHeart /> Wishlist</Link>
+                      {isAdmin && <Link role="menuitem" className="acct-admin" to="/admin" onClick={() => setMenu(false)}><IconShield /> Admin Panel</Link>}
                       <button role="menuitem" onClick={() => { setMenu(false); logout(); nav("/"); }}><IconLogout /> Log out</button>
                     </span>
                   )}
@@ -282,6 +325,11 @@ export function Header() {
                   </Link>
                 </span>
               )}
+              {isAdmin && (
+                <Link className="hbtn admin-hbtn" to="/admin" aria-label="Admin panel" title="Admin panel">
+                  <IconShield /><span className="admin-label">Admin</span>
+                </Link>
+              )}
               <button
                 className="hbtn cart-hbtn"
                 onClick={() => setCartOpen(true)}
@@ -296,7 +344,7 @@ export function Header() {
           </form>
           <nav className="nav">
             <NavLink to="/shop?col=new">New Launches</NavLink>
-            <NavLink to="/shop?sort=popular">Best Sellers</NavLink>
+            <NavLink to="/shop?col=best-sellers">Best Sellers</NavLink>
             <NavLink to="/shop?cat=jewellery-sets">Jewellery Sets</NavLink>
             <NavLink to="/shop?cat=necklaces">Necklaces</NavLink>
             <NavLink to="/shop?cat=earrings">Earrings</NavLink>
@@ -327,7 +375,7 @@ export function Header() {
                 <div className="mnav-links">
                   {[
                     ["New Launches", "/shop?col=new"],
-                    ["Best Sellers", "/shop?sort=popular"],
+                    ["Best Sellers", "/shop?col=best-sellers"],
                     ["Jewellery Sets", "/shop?cat=jewellery-sets"],
                     ["Necklaces", "/shop?cat=necklaces"],
                     ["Earrings", "/shop?cat=earrings"],
@@ -350,6 +398,7 @@ export function Header() {
                     ["Our Stores", "/stores"],
                     ["Our Craft", "/about"],
                     ["Contact Us", "/contact"],
+                    ...(isAdmin ? [["Admin Panel", "/admin"]] : []),
                   ].map(([label, to]) => (
                     <Link key={label} to={to} onClick={() => setMnav(false)}>{label}</Link>
                   ))}
@@ -456,7 +505,7 @@ export function Footer() {
           </div>
           <div>
             <h4>Care</h4>
-            <p><Link to="/track">Track Your Order</Link><br /><Link to="/stores">Our 2 Stores + Directions</Link><br /><Link to="/about">Shipping Policy</Link><br /><Link to="/about">Return & Exchange</Link><br /><Link to="/about">Jewellery Care</Link><br /><Link to="/contact">Contact Us</Link><br /><Link to="/admin">Admin Panel</Link></p>
+            <p><Link to="/track">Track Your Order</Link><br /><Link to="/stores">Our 2 Stores + Directions</Link><br /><Link to="/about">Shipping Policy</Link><br /><Link to="/about">Return & Exchange</Link><br /><Link to="/about">Jewellery Care</Link><br /><Link to="/contact">Contact Us</Link></p>
           </div>
           <div>
             <h4>Shop</h4>
