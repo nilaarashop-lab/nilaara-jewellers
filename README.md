@@ -185,3 +185,4 @@ The script backs up every product document first, is safe to re-run (already-mig
 - [docs/AUTH.md](docs/AUTH.md) — customer authentication (2Factor.in SMS OTP, Resend email OTP, Google, sessions, seed accounts, provider setup)
 - [docs/CLOUDINARY.md](docs/CLOUDINARY.md) — image storage, credentials, migration
 - [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) — production deployment checklist
+- [docs/VERCEL.md](docs/VERCEL.md) — deploying and updating the storefront on Vercel
