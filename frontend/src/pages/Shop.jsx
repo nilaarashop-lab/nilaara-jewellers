@@ -14,14 +14,17 @@ export default function Shop() {
   const sort = params.get("sort") || "featured";
   const q = params.get("q") || "";
   const [query, setQuery] = useState(q);
-  const [maxPrice, setMaxPrice] = useState(1500);
+  // Price cap grows with the catalogue (capped slider hid pricier pieces);
+  // null means "no cap" — the slider sits at its maximum.
+  const priceCap = Math.max(500, Math.ceil(Math.max(...items.map((p) => p.price), 0) / 50) * 50);
+  const [maxPrice, setMaxPrice] = useState(null);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
   const sortRef = useRef(null);
   // Left-panel filter drafts — applied only when the user clicks Apply.
   const [draftCat, setDraftCat] = useState(cat);
   const [draftCol, setDraftCol] = useState(col);
-  const [draftPrice, setDraftPrice] = useState(1500);
+  const [draftPrice, setDraftPrice] = useState(null);
 
   useEffect(() => { fetchProducts().then(setItems); }, []);
   useEffect(() => setQuery(q), [q]);
@@ -46,7 +49,7 @@ export default function Shop() {
   ];
   const sortLabel = SORT_OPTIONS.find(([v]) => v === sort)?.[1] || "Featured";
 
-  const activeFilterCount = (cat ? 1 : 0) + (col ? 1 : 0) + (maxPrice < 1500 ? 1 : 0) + (query ? 1 : 0);
+  const activeFilterCount = (cat ? 1 : 0) + (col ? 1 : 0) + (maxPrice != null ? 1 : 0) + (query ? 1 : 0);
 
   const filtered = useMemo(() => {
     let list = [...items];
@@ -54,7 +57,7 @@ export default function Shop() {
     if (col === "new") list = list.filter((p) => ["New", "Trending"].includes(p.badge));
     else if (col) list = list.filter((p) => p.collection === col);
     if (query) list = list.filter((p) => (p.name + p.plating + p.stones).toLowerCase().includes(query.toLowerCase()));
-    list = list.filter((p) => p.price <= maxPrice);
+    if (maxPrice != null) list = list.filter((p) => p.price <= maxPrice);
     if (sort === "low") list.sort((a, b) => a.price - b.price);
     if (sort === "high") list.sort((a, b) => b.price - a.price);
     if (sort === "rating") list.sort((a, b) => b.rating - a.rating);
@@ -105,8 +108,8 @@ export default function Shop() {
           <div><button className={`chip ${!draftCol ? "on" : ""}`} onClick={() => setDraftCol("")}>All</button>
             {COLLECTIONS.map((c) => <button key={c.slug} className={`chip ${draftCol === c.slug ? "on" : ""}`} onClick={() => setDraftCol(c.slug)}>{c.name}</button>)}
           </div>
-          <h4>Max price: ₹{draftPrice}</h4>
-          <input type="range" min={500} max={1500} step={50} value={draftPrice} onChange={(e) => setDraftPrice(+e.target.value)} style={{ width: "100%", accentColor: "var(--gold)" }} />
+          <h4>Max price: ₹{draftPrice ?? priceCap}</h4>
+          <input type="range" min={500} max={priceCap} step={50} value={draftPrice ?? priceCap} onChange={(e) => setDraftPrice(+e.target.value)} style={{ width: "100%", accentColor: "var(--gold)" }} />
           <h4>Offers</h4>
           <p style={{ fontSize: 13.5, color: "var(--ink-soft)" }}>
             {settings?.coupons?.b1g1?.enabled && <>✦ B1G1 Free on tagged pieces<br /></>}
