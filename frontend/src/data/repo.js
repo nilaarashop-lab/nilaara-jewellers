@@ -10,6 +10,21 @@ export const BRANCH = "main";
 export const RAW_ROOT = `https://raw.githubusercontent.com/${REPO}/${BRANCH}`;
 
 /**
+ * Same-browser tabs use this localStorage key as a tiny "content changed"
+ * signal. Admin saves bump it; open storefront tabs refresh immediately.
+ */
+export const CONTENT_EVENT = "nilaara-content-updated";
+
+export function notifyContentUpdated() {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(CONTENT_EVENT, String(Date.now()));
+  } catch {
+    /* storage can be unavailable in private mode */
+  }
+}
+
+/**
  * Resolve an admin-uploaded `/uploads/...` path to the committed file.
  * Existing ImageKit and other absolute URLs pass through unchanged.
  */

@@ -9,7 +9,7 @@
  * `frontend/public/uploads`.
  */
 
-import { BRANCH, REPO, mediaUrl } from "../data/repo.js";
+import { BRANCH, REPO, mediaUrl, notifyContentUpdated } from "../data/repo.js";
 
 export { BRANCH, REPO };
 export const PRODUCTS_PATH = "frontend/src/content/products.json";
@@ -207,6 +207,8 @@ async function saveFile(path, text, message, sha, token = getToken()) {
     body,
     token,
   });
+  // Let any storefront tab on this device pick up the save right away.
+  notifyContentUpdated();
   return { sha: data?.content?.sha || "", commit: data?.commit?.sha || "" };
 }
 

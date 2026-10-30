@@ -32,6 +32,9 @@ export default function Product() {
     );
   }
   const related = items.filter((x) => x.id !== p.id && (x.category === p.category || x.collection === p.collection)).slice(0, 4);
+  // Live updates can replace the photo list while this page is open; keep the
+  // selected index inside the new range.
+  const imageIndex = Math.min(imgI, Math.max((p.images?.length || 1) - 1, 0));
   const off = discountPercent(p.price, p.mrp);
   const soldOut = p.inStock === false || (p.inStock === undefined && p.trackInventory !== false && typeof p.stock === "number" && p.stock <= 0);
   const low = !soldOut && p.trackInventory !== false && typeof p.stock === "number" && p.stock <= (p.lowStockThreshold ?? 5);
@@ -41,8 +44,8 @@ export default function Product() {
       <div className="breadcrumb"><Link to="/">Home</Link> / <Link to="/shop">Shop</Link> / {p.name}</div>
       <div className="pd">
         <div className="pd-media">
-          <Img src={p.images?.[imgI]} alt={p.name} />
-          <div className="thumbs">{(p.images || []).map((s, i) => <Img key={i} src={s} alt="" className={i === imgI ? "on" : ""} onClick={() => setImgI(i)} />)}</div>
+          <Img src={p.images?.[imageIndex]} alt={p.name} />
+          <div className="thumbs">{(p.images || []).map((s, i) => <Img key={i} src={s} alt="" className={i === imageIndex ? "on" : ""} onClick={() => setImgI(i)} />)}</div>
         </div>
         <div className="pd-info">
           <span className="badge" style={{ position: "static" }}>{soldOut ? <i className="o">Sold out</i> : <>{p.customTag ? <i className="g">{p.customTag}</i> : null}{p.tag ? <i className="g">{p.tag}</i> : null}<i>{p.badge}</i></>}</span>

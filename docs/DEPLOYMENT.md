@@ -80,9 +80,10 @@ Remove someone's repository access to remove admin access.
 4. Save.
 
 Each save is a commit on `main`. The storefront fetches the latest committed
-JSON from GitHub on page load, so the change is visible on the next refresh —
-no rebuild wait. Vercel also rebuilds in the background to refresh the bundled
-offline fallback.
+JSON from GitHub on page load, polls it while open, and refreshes immediately
+after a save in another tab on the same device. The page updates in place — no
+reload or rebuild wait. Vercel also rebuilds in the background to refresh the
+bundled offline fallback.
 
 New uploads go to `frontend/public/uploads/` and are read from the repository
 immediately. Existing ImageKit URLs remain valid and can be kept. Photos are

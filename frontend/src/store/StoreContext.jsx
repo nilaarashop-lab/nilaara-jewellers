@@ -3,6 +3,7 @@ import { useLocation } from "react-router-dom";
 import { PRODUCTS, normalizeProducts } from "../data/products";
 import { SITE_SETTINGS, normalizeSettings } from "../data/settings";
 import { loadLiveContent } from "../data/liveContent";
+import { CONTENT_EVENT } from "../data/repo";
 
 const StoreCtx = createContext(null);
 export const useStore = () => useContext(StoreCtx);
@@ -39,35 +40,60 @@ export function StoreProvider({ children }) {
   const [contentStatus, setContentStatus] = useState("loading");
   const lastRefresh = useRef(0);
   const busy = useRef(false);
+  const queued = useRef(false);
   const previousPath = useRef(location.pathname);
+  // Polling should not churn React state (or restart header search) when the
+  // JSON has not actually changed.
+  const productsKey = useRef(JSON.stringify(PRODUCTS));
+  const settingsKey = useRef(JSON.stringify(SITE_SETTINGS));
 
   useEffect(() => save("nilaara-wish", wishlist), [wishlist]);
 
   const refreshContent = useCallback(async () => {
-    if (busy.current) return;
+    if (busy.current) {
+      // A save landed while a fetch was in flight — run once more when it ends.
+      queued.current = true;
+      return;
+    }
     busy.current = true;
     try {
-      const live = await loadLiveContent();
-      if (live.products) setProducts(normalizeProducts(live.products.products));
-      if (live.settings) setSettings(normalizeSettings(live.settings));
-      setContentStatus(live.products || live.settings ? "live" : "fallback");
+      do {
+        queued.current = false;
+        lastRefresh.current = Date.now();
+        const live = await loadLiveContent();
+        if (live.products) {
+          const next = normalizeProducts(live.products.products);
+          const key = JSON.stringify(next);
+          if (key !== productsKey.current) {
+            productsKey.current = key;
+            setProducts(next);
+          }
+        }
+        if (live.settings) {
+          const next = normalizeSettings(live.settings);
+          const key = JSON.stringify(next);
+          if (key !== settingsKey.current) {
+            settingsKey.current = key;
+            setSettings(next);
+          }
+        }
+        setContentStatus(live.products || live.settings ? "live" : "fallback");
+      } while (queued.current);
     } finally {
       busy.current = false;
     }
   }, []);
 
   useEffect(() => {
-    lastRefresh.current = Date.now();
     refreshContent();
   }, [refreshContent]);
 
   // A long-lived tab should not keep showing yesterday's catalogue. Refetch
-  // when the visitor returns to the tab, but not more than once every 15s.
+  // when the visitor returns to the tab, but not more than once every 10s.
   useEffect(() => {
     const onVisible = () => {
       if (document.visibilityState !== "visible") return;
-      if (Date.now() - lastRefresh.current < 15000) return;
-      lastRefresh.current = Date.now();
+      if (Date.now() - lastRefresh.current < 10000) return;
       refreshContent();
     };
 
@@ -79,16 +105,35 @@ export function StoreProvider({ children }) {
     };
   }, [refreshContent]);
 
+  // Keep an open storefront tab current even while it stays focused (for
+  // example, a preview window beside the admin). React swaps the content in
+  // place — no page reload.
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      if (document.visibilityState !== "visible") return;
+      if (window.location.pathname.startsWith("/admin")) return;
+      refreshContent();
+    }, 10000);
+    return () => window.clearInterval(timer);
+  }, [refreshContent]);
+
+  // Saves in another tab on this device bump a localStorage key, so the
+  // storefront can update immediately instead of waiting for the next poll.
+  useEffect(() => {
+    const onContentUpdated = (event) => {
+      if (event.key === CONTENT_EVENT) refreshContent();
+    };
+    window.addEventListener("storage", onContentUpdated);
+    return () => window.removeEventListener("storage", onContentUpdated);
+  }, [refreshContent]);
+
   // Staff often save in /admin and then click straight through to the shop in
   // the same tab. Refresh on the way out so that tab does not show old content.
   useEffect(() => {
     const wasAdmin = previousPath.current.startsWith("/admin");
     const isAdmin = location.pathname.startsWith("/admin");
     previousPath.current = location.pathname;
-    if (wasAdmin && !isAdmin) {
-      lastRefresh.current = Date.now();
-      refreshContent();
-    }
+    if (wasAdmin && !isAdmin) refreshContent();
   }, [location.pathname, refreshContent]);
 
   const toggleWish = (id) => setWishlist((w) => (w.includes(id) ? w.filter((x) => x !== id) : [...w, id]));

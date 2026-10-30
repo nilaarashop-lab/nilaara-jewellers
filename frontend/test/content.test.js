@@ -1,6 +1,11 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
-import { RAW_ROOT, mediaUrl } from "../src/data/repo.js";
+import {
+  CONTENT_EVENT,
+  RAW_ROOT,
+  mediaUrl,
+  notifyContentUpdated,
+} from "../src/data/repo.js";
 import { loadLiveContent } from "../src/data/liveContent.js";
 
 const originalFetch = globalThis.fetch;
@@ -22,6 +27,19 @@ test("admin uploads resolve to the committed raw file", () => {
   );
   assert.equal(mediaUrl("https://ik.imagekit.io/x/y.jpg"), "https://ik.imagekit.io/x/y.jpg");
   assert.equal(mediaUrl(""), "");
+});
+
+test("a content save signals other open tabs", () => {
+  const writes = [];
+  globalThis.window = { localStorage: { setItem: (key, value) => writes.push([key, value]) } };
+  try {
+    notifyContentUpdated();
+  } finally {
+    delete globalThis.window;
+  }
+  assert.equal(writes.length, 1);
+  assert.equal(writes[0][0], CONTENT_EVENT);
+  assert.match(writes[0][1], /^\d+$/);
 });
 
 test("live content reads both JSON files with cache bypass", async () => {

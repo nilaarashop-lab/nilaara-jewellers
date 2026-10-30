@@ -28,9 +28,10 @@ No environment variables are needed for the storefront.
 Staff edit these through the React admin at `/admin` on the deployed site. The
 admin reads and writes the JSON files through GitHub's Contents API, so every
 save is a commit on `main`. The storefront fetches the latest committed JSON on
-page load (with the bundled copy as a fallback), so edits appear on the next
-refresh without waiting for a rebuild. GitHub OAuth is handled by `api/auth.js`
-and `api/callback.js` on Vercel.
+page load (with the bundled copy as a fallback), then refreshes it in place
+every 10 seconds and immediately after a save in another tab on the same device.
+No page reload or Vercel rebuild is needed. GitHub OAuth is handled by
+`api/auth.js` and `api/callback.js` on Vercel.
 
 ## Admin
 

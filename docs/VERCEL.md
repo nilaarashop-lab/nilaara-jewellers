@@ -34,9 +34,10 @@ separate static admin page.
 ## Publishing content
 
 Every admin save creates a commit on `main` through GitHub's Contents API. The
-storefront fetches the latest committed JSON from GitHub on page load, so the
-change appears on the next refresh without waiting for a build. The connected
-Vercel project still rebuilds automatically to refresh the bundled fallback.
+storefront fetches the latest committed JSON from GitHub on page load and keeps
+it fresh while open, so the page updates in place without a reload or build
+wait. The connected Vercel project still rebuilds automatically to refresh the
+bundled fallback.
 
 The content files are:
 

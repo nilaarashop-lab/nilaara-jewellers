@@ -11,8 +11,9 @@ The site is **fully static**:
   build-time copy as an offline fallback. There is no content API, database, or
   server to start, sleep, or keep alive.
 - Staff edit content through a custom React admin at **`/admin`**. Publishing
-  commits to `main`; the change appears on the next storefront page load, without
-  waiting for a Vercel rebuild.
+  commits to `main`; open storefront tabs pick the change up automatically —
+  instantly on the same device, or within about 10 seconds elsewhere — without a
+  page reload or a Vercel rebuild.
 
 ## How ordering works
 
@@ -72,8 +73,8 @@ or edit the JSON files directly.
 2. Sign in with the GitHub account that has write access to
    `nilaarashop-lab/nilaara-jewellers`.
 3. Edit **Products** or **Homepage**.
-4. Save. The admin commits to `main`; the storefront picks up the new JSON on the
-   next page load. Vercel also rebuilds the bundled fallback automatically.
+4. Save. The admin commits to `main`; open storefront pages update in place
+   automatically. Vercel also rebuilds the bundled fallback in the background.
 
 New image uploads are committed to `frontend/public/uploads/` and read from the
 repository immediately. Existing ImageKit URLs can stay as they are. Photos are
