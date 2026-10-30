@@ -207,9 +207,10 @@ async function saveFile(path, text, message, sha, token = getToken()) {
     body,
     token,
   });
+  const result = { sha: data?.content?.sha || "", commit: data?.commit?.sha || "" };
   // Let any storefront tab on this device pick up the save right away.
-  notifyContentUpdated();
-  return { sha: data?.content?.sha || "", commit: data?.commit?.sha || "" };
+  notifyContentUpdated(result.commit);
+  return result;
 }
 
 export async function loadCatalogue(token = getToken()) {

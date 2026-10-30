@@ -1,15 +1,14 @@
-import { RAW_ROOT } from "./repo.js";
+import { commitRawRoot } from "./repo.js";
 
-const PRODUCTS_URL = `${RAW_ROOT}/frontend/src/content/products.json`;
-const SETTINGS_URL = `${RAW_ROOT}/frontend/src/content/settings.json`;
+const BUILD_ROOT = "/content";
 const TIMEOUT_MS = 6000;
 
 async function fetchJson(url) {
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
-    // A fresh query string bypasses GitHub's five-minute raw cache, so a save
-    // is visible on the very next fetch (page load or background poll).
+    // A fresh query string keeps the browser and Vercel edge from reusing an
+    // older snapshot of the deployed content.
     const res = await fetch(`${url}?v=${Date.now()}`, {
       cache: "no-store",
       headers: { Accept: "application/json" },
@@ -22,15 +21,10 @@ async function fetchJson(url) {
   }
 }
 
-/**
- * Read the latest catalogue and homepage settings from the repository.
- * Each file is independent: a failure in one leaves the bundled fallback for
- * that file while the other can still update.
- */
-export async function loadLiveContent() {
+async function loadPair(productsUrl, settingsUrl) {
   const [products, settings] = await Promise.allSettled([
-    fetchJson(PRODUCTS_URL),
-    fetchJson(SETTINGS_URL),
+    fetchJson(productsUrl),
+    fetchJson(settingsUrl),
   ]);
 
   return {
@@ -43,4 +37,23 @@ export async function loadLiveContent() {
         ? settings.value
         : null,
   };
+}
+
+/**
+ * The snapshot Vercel built from the latest commit. This is the normal source
+ * for page loads and background polls, and it never suffers from GitHub's
+ * five-minute raw branch cache.
+ */
+export function loadBuildContent() {
+  return loadPair(`${BUILD_ROOT}/products.json`, `${BUILD_ROOT}/settings.json`);
+}
+
+/**
+ * Content at an exact commit. Used after an admin save so the new product is
+ * visible immediately, before Vercel finishes rebuilding.
+ */
+export function loadCommitContent(commit) {
+  if (!commit) return Promise.resolve({ products: null, settings: null });
+  const root = `${commitRawRoot(commit)}/frontend/src/content`;
+  return loadPair(`${root}/products.json`, `${root}/settings.json`);
 }

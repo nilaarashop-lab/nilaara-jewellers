@@ -6,7 +6,7 @@ import {
   mediaUrl,
   notifyContentUpdated,
 } from "../src/data/repo.js";
-import { loadLiveContent } from "../src/data/liveContent.js";
+import { loadBuildContent, loadCommitContent } from "../src/data/liveContent.js";
 
 const originalFetch = globalThis.fetch;
 
@@ -29,48 +29,79 @@ test("admin uploads resolve to the committed raw file", () => {
   assert.equal(mediaUrl(""), "");
 });
 
-test("a content save signals other open tabs", () => {
+test("a content save stores the commit for other tabs", () => {
   const writes = [];
-  globalThis.window = { localStorage: { setItem: (key, value) => writes.push([key, value]) } };
+  globalThis.window = {
+    localStorage: { setItem: (key, value) => writes.push([key, value]) },
+    dispatchEvent: () => {},
+  };
   try {
-    notifyContentUpdated();
+    notifyContentUpdated("abc123");
   } finally {
     delete globalThis.window;
   }
   assert.equal(writes.length, 1);
   assert.equal(writes[0][0], CONTENT_EVENT);
-  assert.match(writes[0][1], /^\d+$/);
+  const detail = JSON.parse(writes[0][1]);
+  assert.equal(detail.commit, "abc123");
+  assert.match(String(detail.at), /^\d+$/);
 });
 
-test("live content reads both JSON files with cache bypass", async () => {
+test("the deployed snapshot is fetched from /content with cache bypass", async () => {
   const calls = [];
   globalThis.fetch = async (url, options) => {
     calls.push({ url, options });
     if (String(url).includes("products.json")) {
-      return jsonResponse({ products: [{ id: "nl-001", name: "Kundan", status: "published" }] });
+      return jsonResponse({
+        _commit: "build-sha",
+        products: [{ id: "nl-001", name: "Kundan", status: "published" }],
+      });
     }
     return jsonResponse({ announcement: { active: true, text: "Hello" } });
   };
 
-  const live = await loadLiveContent();
+  const live = await loadBuildContent();
 
+  assert.equal(live.products._commit, "build-sha");
   assert.equal(live.products.products[0].id, "nl-001");
   assert.equal(live.settings.announcement.text, "Hello");
   assert.equal(calls.length, 2);
   for (const call of calls) {
-    assert.match(call.url, /^https:\/\/raw\.githubusercontent\.com\//);
-    assert.match(call.url, /\?v=\d+$/);
+    assert.match(call.url, /^\/content\/.+\.json\?v=\d+$/);
     assert.equal(call.options.cache, "no-store");
   }
 });
 
-test("a failed request leaves that file on the bundled fallback", async () => {
+test("an exact commit is used for instant admin updates", async () => {
+  const calls = [];
+  globalThis.fetch = async (url, options) => {
+    calls.push({ url, options });
+    if (String(url).includes("products.json")) {
+      return jsonResponse({ products: [{ id: "nl-002", name: "Test3", status: "published" }] });
+    }
+    return jsonResponse({ announcement: { active: false } });
+  };
+
+  const live = await loadCommitContent("896e647");
+
+  assert.equal(live.products.products[0].id, "nl-002");
+  assert.equal(calls.length, 2);
+  for (const call of calls) {
+    assert.match(
+      call.url,
+      /^https:\/\/raw\.githubusercontent\.com\/nilaarashop-lab\/nilaara-jewellers\/896e647\/frontend\/src\/content\//
+    );
+    assert.match(call.url, /\?v=\d+$/);
+  }
+});
+
+test("a failed snapshot request leaves that file on the bundled fallback", async () => {
   globalThis.fetch = async (url) => {
     if (String(url).includes("products.json")) throw new Error("offline");
     return jsonResponse({ announcement: { active: false } });
   };
 
-  const live = await loadLiveContent();
+  const live = await loadBuildContent();
 
   assert.equal(live.products, null);
   assert.deepEqual(live.settings, { announcement: { active: false } });
