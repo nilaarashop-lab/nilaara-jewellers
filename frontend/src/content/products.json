@@ -68,7 +68,7 @@
     {
       "id": "par-tribal-necklace-set",
       "slug": "tribal-magic-green-red-necklace-set",
-      "name": "Tribal Magic Green & Red Necklace Set",
+      "name": "test3",
       "category": "necklaces",
       "collection": "oxidised",
       "plating": "Antique Gold Oxidised",
@@ -89,8 +89,7 @@
       "bestseller": false,
       "newArrival": false,
       "images": [
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jij4-e8deca99b0d6_q5DK3yLjL.jpg",
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jjpx-ab6de39154aa_Jiw1fpMLfN.jpg"
+        "/uploads/1793345683765-zt8s-15.webp"
       ],
       "desc": "Oxidised tribal set.",
       "stock": 35,
