@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 
-// Scroll to top on every route / query change
+// Scroll to top when the page changes. Query-only changes are filter/search
+// updates (typing in the shop search box, sort, category) — jumping to the top
+// on every keystroke would be jarring, so those are left alone.
 export function ScrollToTopOnNavigate() {
-  const { pathname, search } = useLocation();
+  const { pathname } = useLocation();
   useEffect(() => {
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-  }, [pathname, search]);
+  }, [pathname]);
   return null;
 }
 

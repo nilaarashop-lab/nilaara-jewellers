@@ -1,7 +1,7 @@
 import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useId, useRef, useState } from "react";
 import { useStore } from "../store/StoreContext";
-import { COLLECTIONS, formatINR } from "../data/products";
+import { COLLECTIONS, discountPercent, formatINR } from "../data/products";
 import { whatsappChatLink, productEnquiryLink, WHATSAPP_DISPLAY } from "../config";
 import { searchProducts } from "../api/client";
 
@@ -39,7 +39,7 @@ export function Img({ src, alt = "", ...rest }) {
 
 export function ProductCard({ p }) {
   const { wishlist, toggleWish } = useStore();
-  const off = Math.round((1 - p.price / p.mrp) * 100);
+  const off = discountPercent(p.price, p.mrp);
   // Sold out only when inventory is tracked and none is left. `inStock` comes
   // from the API; static/demo products without it are treated as available.
   const soldOut = p.inStock === false || (p.inStock === undefined && p.trackInventory !== false && typeof p.stock === "number" && p.stock <= 0);
@@ -56,7 +56,7 @@ export function ProductCard({ p }) {
       <div className="card-body">
         <div className="plating">{p.plating}</div>
         <Link to={`/product/${p.id}`} className="card-title"><h3>{p.name}</h3></Link>
-        <div className="pr"><b>{formatINR(p.price)}</b><s>{formatINR(p.mrp)}</s><em>{off}% off</em></div>
+        <div className="pr"><b>{formatINR(p.price)}</b>{off > 0 && <><s>{formatINR(p.mrp)}</s><em>{off}% off</em></>}</div>
         {!soldOut && low && <div className="stock low">Only {p.stock} left</div>}
         <div className="card-actions">
           {soldOut ? (
@@ -565,7 +565,7 @@ export function Footer() {
           </div>
           <div>
             <h4>Order on WhatsApp</h4>
-            <p>Pick any piece, tap Buy Now and send us the product ID with a screenshot. We'll confirm availability and book it in chat.</p>
+            <p>Pick any piece, tap Buy Now and its name and product ID are filled into WhatsApp for you. We'll confirm availability and book it in chat.</p>
             <a className="btn btn-gold news-cta" href={whatsappChatLink()} target="_blank" rel="noreferrer" style={{ marginTop: 4 }}>
               <IconWhatsApp /> Chat with our team
             </a>

@@ -11,10 +11,6 @@ import {
   adminUploadImages,
   adminFetchSettings,
   adminSaveSettings,
-  adminListPromos,
-  adminCreatePromo,
-  adminUpdatePromo,
-  adminDeletePromo,
   authLogin,
   hasAPI,
 } from "../api/client";
@@ -223,7 +219,7 @@ export default function Admin() {
     setSaving(true);
     setUploadErr("");
     try {
-      await adminSaveProduct({ ...form, images, id: form.id || current?.id, _id: current?._id });
+      await adminSaveProduct({ ...form, images, id: form.id || current?.id, _id: current?._id }, current?.id);
       setFlash("Product saved ✓");
       setEditing(null);
       await load();
@@ -266,7 +262,6 @@ export default function Admin() {
           ["products", `Products (${products.length})`],
           ["orders", `Orders (${orders.length})`],
           ["homepage", "Homepage"],
-          ["promos", "Promos"],
         ].map(([k, l]) => (
           <button key={k} className={`chip ${tab === k ? "on" : ""}`} style={{ padding: "10px 18px" }} onClick={() => { setTab(k); setQ(""); setStatusF(""); }}>
             {l}
@@ -355,7 +350,7 @@ export default function Admin() {
                     <td><Img src={p.images?.[0]} alt="" style={{ width: 44, height: 44, objectFit: "cover", borderRadius: 8 }} /></td>
                     <td><b>{p.name}</b><br /><small>{p.id || p._id} • {p.collection}</small></td>
                     <td>{p.category}</td>
-                    <td>{formatINR(p.price)} <s>{formatINR(p.mrp || p.price)}</s></td>
+                    <td>{formatINR(p.price)} {Number(p.mrp) > Number(p.price) && <s>{formatINR(p.mrp)}</s>}</td>
                     <td>{p.trackInventory === false || p.stock == null ? "—" : p.stock <= 5 ? `⚠ ${p.stock}` : p.stock}</td>
                     <td>{p.status || "published"}</td>
                     <td style={{ whiteSpace: "nowrap" }}>
@@ -388,6 +383,10 @@ export default function Admin() {
 
       {!loading && tab === "orders" && (
         <>
+          <p className="co-note">
+            New orders arrive on WhatsApp. This table keeps the history of orders placed through the old online
+            checkout so nothing is lost.
+          </p>
           <div className="toolbar">
             <input placeholder="Search orders (name, phone, id)…" value={q} onChange={(e) => setQ(e.target.value)} style={{ flex: 1, minWidth: 200 }} />
             <select value={statusF} onChange={(e) => setStatusF(e.target.value)}>
@@ -398,12 +397,11 @@ export default function Admin() {
             </select>
           </div>
           <OrdersTable orders={filteredOrders} full onStatus={setOrderStatus} />
-          {filteredOrders.length === 0 && <div className="empty">No orders yet — place a test order from the shop to see it here.</div>}
+          {filteredOrders.length === 0 && <div className="empty">No historical orders. New orders are handled on WhatsApp.</div>}
         </>
       )}
 
       {!loading && tab === "homepage" && (hasAPI ? <HomepageEditor /> : <div className="empty">Homepage editing needs the backend — connect VITE_API_URL and refresh.</div>)}
-      {!loading && tab === "promos" && (hasAPI ? <PromoEditor /> : <div className="empty">Promo codes need the backend — connect VITE_API_URL and refresh.</div>)}
 
       {editing && (
         <>
@@ -553,227 +551,6 @@ export default function Admin() {
         </>
       )}
     </main>
-  );
-}
-
-/* ════════════════════════════════════════════════════════════════════
-   Promo codes + B1G1 switch. Promo codes live in their own collection and
-   are validated on the SERVER at checkout; this tab only edits them.
-   ════════════════════════════════════════════════════════════════════ */
-
-const emptyPromo = () => ({ code: "", percent: 25, minSubtotal: 0, active: true, maxUses: "", description: "" });
-
-function PromoEditor() {
-  const [list, setList] = useState(null);
-  const [b1g1, setB1g1] = useState(null); // settings.coupons.b1g1.enabled
-  const [form, setForm] = useState(emptyPromo());
-  const [editing, setEditing] = useState(null); // code being edited, "new" = adding, null = closed
-  const [err, setErr] = useState("");
-  const [flash, setFlash] = useState("");
-  const [busy, setBusy] = useState(false);
-
-  const load = async () => {
-    setErr("");
-    try {
-      const [promos, settings] = await Promise.all([adminListPromos(), adminFetchSettings()]);
-      setList(promos);
-      setB1g1(Boolean(settings.coupons?.b1g1?.enabled));
-    } catch (ex) {
-      setErr(ex.message);
-    }
-  };
-  useEffect(() => { load(); }, []);
-
-  const startEdit = (p) => {
-    setEditing(p ? p.code : "new");
-    setForm(
-      p
-        ? { code: p.code, percent: p.percent, minSubtotal: p.minSubtotal || 0, active: p.active, maxUses: p.maxUses ?? "", description: p.description || "" }
-        : emptyPromo()
-    );
-    setFlash("");
-    setErr("");
-  };
-
-  const save = async (e) => {
-    e.preventDefault();
-    setBusy(true);
-    setErr("");
-    setFlash("");
-    const body = {
-      percent: +form.percent,
-      minSubtotal: +form.minSubtotal || 0,
-      active: form.active,
-      maxUses: form.maxUses === "" ? null : +form.maxUses,
-      description: form.description,
-    };
-    const isNew = editing === "new";
-    try {
-      if (isNew) await adminCreatePromo({ code: form.code, ...body });
-      else await adminUpdatePromo(editing, body);
-      setFlash(`${isNew ? `Promo ${form.code.trim().toUpperCase()} created` : `Promo ${editing} updated`} ✓ — visible to customers immediately.`);
-      setEditing(null);
-      setForm(emptyPromo());
-      await load();
-    } catch (ex) {
-      setErr(ex.message + (ex.details ? ` (${ex.details.map((d) => d.message).join(", ")})` : ""));
-    } finally {
-      setBusy(false);
-    }
-  };
-
-  const toggleActive = async (p) => {
-    setErr("");
-    try {
-      await adminUpdatePromo(p.code, { active: !p.active });
-      await load();
-    } catch (ex) {
-      setErr(ex.message);
-    }
-  };
-
-  const remove = async (code) => {
-    if (!confirm(`Delete promo code "${code}"? Customers who used it keep their discounts — only new checkouts are affected.`)) return;
-    setErr("");
-    try {
-      await adminDeletePromo(code);
-      setFlash(`Promo ${code} deleted ✓`);
-      await load();
-    } catch (ex) {
-      setErr(ex.message);
-    }
-  };
-
-  const saveB1G1 = async (enabled) => {
-    setErr("");
-    setFlash("");
-    try {
-      await adminSaveSettings({ coupons: { b1g1: { enabled } } });
-      window.dispatchEvent(new Event("nilaara:settings-updated"));
-      setB1g1(enabled);
-      setFlash(enabled ? "B1G1 is now ON — it applies to products tagged “B1G1 Free” only." : "B1G1 is now OFF — every tagged product sells at its normal price.");
-    } catch (ex) {
-      setErr(ex.message);
-      load();
-    }
-  };
-
-  if (!list && !err) return <div className="empty">Loading promo codes…</div>;
-  if (err && !list) {
-    return (
-      <div className="empty" role="alert">
-        <h3 className="serif">Couldn't load promo codes</h3>
-        <p>{err}</p>
-        <br />
-        <button className="btn btn-gold" onClick={load}>Try again</button>
-      </div>
-    );
-  }
-
-  return (
-    <div className="hp-editor">
-      {flash && <p style={{ color: "var(--green)", marginTop: 12 }}>{flash}</p>}
-      {err && <p className="auth-err">{err}</p>}
-
-      {/* ── B1G1 master switch ── */}
-      <section className="form hp-section">
-        <div className="hp-head">
-          <h3 className="serif" style={{ margin: 0, fontSize: 22 }}>Buy 1 Get 1 Free (site-wide)</h3>
-          <label className="hp-toggle">
-            <input type="checkbox" checked={b1g1 === true} disabled={b1g1 == null} onChange={(e) => saveB1G1(e.target.checked)} />
-            {b1g1 ? "ON" : "OFF"}
-          </label>
-        </div>
-        <p className="co-note">
-          When ON, every product tagged <b>B1G1 Free</b> in the Products tab gives one free item per pair (2 → pay 1, 3 → pay 2). Untagged products are never discounted. Turn each product's tag on/off in its edit form.
-        </p>
-      </section>
-
-      {/* ── Promo code list ── */}
-      <section className="form hp-section">
-        <div className="hp-head">
-          <h3 className="serif" style={{ margin: 0, fontSize: 22 }}>Promo codes ({list.length})</h3>
-          <button type="button" className="mini-btn" onClick={() => startEdit(null)}>+ New code</button>
-        </div>
-        <p className="co-note">Codes appear as chips in the bag, cart and checkout. The server re-checks every code when an order is placed.</p>
-
-        {list.length === 0 && <p className="co-note">No promo codes yet — add one (e.g. FLAT25).</p>}
-
-        <div className="admin-table-wrap">
-          <table className="admin-table">
-            <thead>
-              <tr><th>Code</th><th>Discount</th><th>Minimum</th><th>Used</th><th>Active</th><th></th></tr>
-            </thead>
-            <tbody>
-              {list.map((p) => (
-                <tr key={p.code}>
-                  <td><b>{p.code}</b>{p.description ? <><br /><small>{p.description}</small></> : null}</td>
-                  <td>{p.percent}% off</td>
-                  <td>{p.minSubtotal > 0 ? formatINR(p.minSubtotal) : "—"}</td>
-                  <td>{p.maxUses != null ? `${p.timesUsed}/${p.maxUses}` : p.timesUsed}</td>
-                  <td>
-                    <label className="hp-toggle" title={p.active ? "Click to deactivate" : "Click to activate"}>
-                      <input type="checkbox" checked={p.active} onChange={() => toggleActive(p)} />
-                      {p.active ? "On" : "Off"}
-                    </label>
-                  </td>
-                  <td>
-                    <button type="button" className="mini-btn" onClick={() => startEdit(p)}>Edit</button>
-                    <button type="button" className="mini-btn danger" onClick={() => remove(p.code)}>Delete</button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-
-        {/* ── Add / edit form ── */}
-        {editing && (
-          <form onSubmit={save} style={{ marginTop: 14, borderTop: "1px solid var(--line)", paddingTop: 14 }}>
-            <h4 className="serif" style={{ margin: "0 0 10px", fontSize: 18 }}>{editing === "new" ? "New promo code" : `Edit ${editing}`}</h4>
-            <label>Code</label>
-            <input
-              value={form.code}
-              disabled={editing !== "new"}
-              maxLength={20}
-              required
-              placeholder="e.g. FLAT25"
-              style={{ textTransform: "uppercase" }}
-              onChange={(e) => setForm({ ...form, code: e.target.value.toUpperCase().replace(/[^A-Z0-9_-]/g, "") })}
-            />
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <div>
-                <label>Discount %</label>
-                <input type="number" min={1} max={90} value={form.percent} onChange={(e) => setForm({ ...form, percent: e.target.value })} />
-              </div>
-              <div>
-                <label>Minimum subtotal (₹, 0 = none)</label>
-                <input type="number" min={0} value={form.minSubtotal} onChange={(e) => setForm({ ...form, minSubtotal: e.target.value })} />
-              </div>
-            </div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-              <div>
-                <label>Max uses (empty = unlimited)</label>
-                <input type="number" min={1} value={form.maxUses} onChange={(e) => setForm({ ...form, maxUses: e.target.value })} />
-              </div>
-              <div>
-                <label>Description (optional)</label>
-                <input value={form.description} maxLength={120} placeholder="e.g. Festive launch offer" onChange={(e) => setForm({ ...form, description: e.target.value })} />
-              </div>
-            </div>
-            <label className="b1g1-toggle" style={{ marginTop: 12 }}>
-              <input type="checkbox" checked={form.active} onChange={(e) => setForm({ ...form, active: e.target.checked })} />
-              <span className="track"><span className="knob" /></span>
-              <span className="t">Active — show this code to customers</span>
-            </label>
-            <div className="cta-row" style={{ marginTop: 12 }}>
-              <button className="btn btn-gold" type="submit" disabled={busy}>{busy ? "Saving…" : editing === "new" ? "Create code" : "Save changes"}</button>
-              <button type="button" className="btn btn-ghost" onClick={() => { setEditing(null); setForm(emptyPromo()); setErr(""); }}>Cancel</button>
-            </div>
-          </form>
-        )}
-      </section>
-    </div>
   );
 }
 

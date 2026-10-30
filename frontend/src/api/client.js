@@ -251,13 +251,19 @@ export async function adminUpdateOrderStatus(id, status, note) {
   return order;
 }
 
-export async function adminSaveProduct(p) {
+export async function adminSaveProduct(p, prevId) {
   if (!hasAPI) {
-    const id = p.id || `nilaara-${Date.now().toString(36)}`;
+    const id = p.id || prevId || `nilaara-${Date.now().toString(36)}`;
     const saved = { ...p, id };
     const ov = readLS("nilaara-admin-products", { upsert: [], remove: [] });
-    ov.upsert = [saved, ...ov.upsert.filter((x) => x.id !== id)];
+    // Drop any earlier copy under the new id AND the old id (renames), so the
+    // demo catalogue doesn't end up with a duplicate of the same product.
+    ov.upsert = [saved, ...ov.upsert.filter((x) => x.id !== id && x.id !== prevId)];
     ov.remove = ov.remove.filter((x) => x !== id);
+    // A renamed built-in product must retire its old catalogue entry too.
+    if (prevId && prevId !== id && PRODUCTS.some((x) => x.id === prevId) && !ov.remove.includes(prevId)) {
+      ov.remove.push(prevId);
+    }
     writeLS("nilaara-admin-products", ov);
     return saved;
   }

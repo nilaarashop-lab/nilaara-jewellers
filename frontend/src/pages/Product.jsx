@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { PRODUCTS, formatINR } from "../data/products";
+import { PRODUCTS, discountPercent, formatINR } from "../data/products";
 import { ProductCard, ProductsUnavailable, Img, IconWhatsApp } from "../components/Layout";
 import { useStore } from "../store/StoreContext";
 import { productEnquiryLink } from "../config";
@@ -38,7 +38,7 @@ export default function Product() {
     );
   }
   const related = items.filter((x) => x.id !== p.id && (x.category === p.category || x.collection === p.collection)).slice(0, 4);
-  const off = Math.round((1 - p.price / p.mrp) * 100);
+  const off = discountPercent(p.price, p.mrp);
   const soldOut = p.inStock === false || (p.inStock === undefined && p.trackInventory !== false && typeof p.stock === "number" && p.stock <= 0);
   const low = !soldOut && p.trackInventory !== false && typeof p.stock === "number" && p.stock <= (p.lowStockThreshold ?? 5);
 
@@ -53,7 +53,7 @@ export default function Product() {
         <div className="pd-info">
           <span className="badge" style={{ position: "static" }}>{soldOut ? <i className="o">Sold out</i> : <>{p.customTag ? <i className="g">{p.customTag}</i> : null}{p.tag ? <i className="g">{p.tag}</i> : null}<i>{p.badge}</i></>}</span>
           <h1>{p.name}</h1>
-          <div className="pr" style={{ marginTop: 10 }}><b>{formatINR(p.price)}</b><s>{formatINR(p.mrp)}</s><em>{off}% off</em></div>
+          <div className="pr" style={{ marginTop: 10 }}><b>{formatINR(p.price)}</b>{off > 0 && <><s>{formatINR(p.mrp)}</s><em>{off}% off</em></>}</div>
           <p style={{ color: "var(--green)", fontSize: 14 }}>Inclusive of all taxes</p>
           <p className={`stock ${soldOut ? "out" : low ? "low" : "in"}`} style={{ marginTop: 0 }}>{soldOut ? "Out of stock — back soon" : low ? `Hurry, only ${p.stock} left!` : "In stock • ready to ship"}</p>
           <p style={{ color: "var(--ink-soft)", lineHeight: 1.7 }}>{p.desc}</p>

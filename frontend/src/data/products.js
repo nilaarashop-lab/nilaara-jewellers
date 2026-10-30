@@ -230,3 +230,16 @@ export const SIDE_IMGS = [
 export const FESTIVE_IMG = img("photo-1584302179602-e4c3d3fd629d", 900);
 
 export const formatINR = (n) => "₹" + Number(n).toLocaleString("en-IN");
+
+/**
+ * Discount percentage vs MRP. Returns 0 when there is no genuine markdown
+ * (missing/zero MRP, or MRP not above the selling price) so the UI never shows
+ * "NaN% off", "-Infinity% off" or a negative discount.
+ */
+export const discountPercent = (price, mrp) => {
+  const p = Number(price);
+  const m = Number(mrp);
+  return Number.isFinite(p) && Number.isFinite(m) && m > p && p >= 0
+    ? Math.round((1 - p / m) * 100)
+    : 0;
+};

@@ -22,7 +22,9 @@ const read = () => {
  */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(read);
-  const [checking, setChecking] = useState(false);
+  // With a backend configured, /admin must verify the cookie session before
+  // showing the login form — otherwise staff see a login flash on every visit.
+  const [checking, setChecking] = useState(hasAPI);
 
   useEffect(() => {
     try {

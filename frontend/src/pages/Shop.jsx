@@ -97,7 +97,8 @@ export default function Shop() {
   const set = (k, v) => {
     const n = new URLSearchParams(params);
     if (!v) n.delete(k); else n.set(k, v);
-    setParams(n);
+    // replace: live search/sort changes shouldn't add a history entry per keystroke.
+    setParams(n, { replace: true });
   };
 
   const applyFilters = () => {

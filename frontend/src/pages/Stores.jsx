@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { STORES, embedUrl } from "../data/stores";
+import { WHATSAPP_DISPLAY, whatsappChatLink } from "../config";
 
 export default function Stores() {
   return (
@@ -24,10 +25,10 @@ export default function Stores() {
               <span className="eyebrow">{s.area}</span>
               <h3 className="serif">{s.name}</h3>
               <p>{s.address}</p>
-              <p><b>{s.hours}</b><br />{s.phone}</p>
+              <p><b>{s.hours}</b><br />{WHATSAPP_DISPLAY}</p>
               <div className="cta-row">
                 <a className="btn btn-gold" href={s.mapsUrl} target="_blank" rel="noreferrer">Get Directions →</a>
-                <a className="btn btn-ghost" href={`https://wa.me/91${s.phone.replace(/\D/g, "").slice(-10)}`} target="_blank" rel="noreferrer">WhatsApp Store</a>
+                <a className="btn btn-ghost" href={whatsappChatLink()} target="_blank" rel="noreferrer">WhatsApp Store</a>
               </div>
             </div>
           </article>

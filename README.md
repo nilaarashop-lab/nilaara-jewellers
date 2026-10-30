@@ -4,7 +4,7 @@ A premium light-theme **catalogue storefront** — customers browse the collecti
 
 ## How ordering works
 
-There is no customer account, cart or checkout. Each product card and product page has a **Buy Now** button that opens WhatsApp with a pre-filled message containing the product name, **product ID**, price, category and a link to the piece. The customer attaches a screenshot and sends their name, phone, address and pincode; the team confirms availability and books the order in chat.
+There is no customer account, cart or checkout. Each product card and product page has a **Buy Now** button that opens WhatsApp with a short pre-filled message containing the product name and **product ID**. Your WhatsApp Business auto-reply then shares price, availability, payment and shipping details, and the team books the order in chat.
 
 - The WhatsApp number lives in **one place**: `frontend/src/config.js` (`WHATSAPP_NUMBER` / `WHATSAPP_DISPLAY`). Change it there before launch — the placeholder is `+91 98XXXXXXXX`.
 - The wishlist is a local "save for later" list (`localStorage`), no sign-in needed.
@@ -151,7 +151,7 @@ Customers never sign in. The panel at `/admin` uses one server-side session (htt
   `Hi Nilaara Jewellers! I'd like to buy this product.` / `Product: <name>` / `Product ID: <id>`.
   Price, availability, payment and shipping are then handled by the WhatsApp Business auto-reply.
 - Header, footer and contact-page links open a general chat with the same number.
-- Product pages show the **Product ID** prominently (so it can be quoted even from a screenshot) plus care/shipping accordions.
+- Product pages show the **Product ID** prominently (so customers can quote it in chat) plus care/shipping accordions.
 - **Staff set the product ID** per product in the admin panel (`/admin` → Add / Edit product → *Product ID*). It is normalised to lower-case with dashes, must be unique, and becomes the `/product/<id>` URL.
 - Sold-out products show a disabled button instead of a WhatsApp link.
 - The contact form does not post to a server — it composes the message and opens WhatsApp.
