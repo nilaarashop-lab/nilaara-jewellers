@@ -11,7 +11,9 @@ name: Keep API awake
 
 on:
   schedule:
-    - cron: "*/5 * * * *"
+    # Every five minutes, offset from the top of the hour to avoid GitHub's
+    # busiest scheduling window.
+    - cron: "2,7,12,17,22,27,32,37,42,47,52,57 * * * *"
   # Also verify the workflow whenever this file changes.
   push:
     paths:
