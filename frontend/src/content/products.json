@@ -1,33 +1,3 @@
 {
-  "products": [
-    {
-      "id": "ws2000",
-      "slug": "w2000",
-      "name": "white stone",
-      "category": "white-stone",
-      "metal": "",
-      "purity": "",
-      "size": "",
-      "price": 799,
-      "mrp": 1499,
-      "makingCharges": 0,
-      "stock": 1,
-      "lowStockThreshold": 5,
-      "trackInventory": true,
-      "customTag": "",
-      "bestseller": false,
-      "newArrival": true,
-      "featured": false,
-      "rating": 0,
-      "reviews": 0,
-      "images": [
-        "/uploads/1793359849577-4o77-dsc00133.webp",
-        "/uploads/1793359854841-xtyc-dsc00137.webp"
-      ],
-      "desc": "",
-      "status": "published",
-      "chainOption": false,
-      "chainCharge": 0
-    }
-  ]
+  "products": []
 }
