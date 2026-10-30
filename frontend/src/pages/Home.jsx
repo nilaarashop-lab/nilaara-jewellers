@@ -27,15 +27,16 @@ const DEFAULT_SLIDE = {
   text: "Handcrafted kundan, temple & pearl jewellery — bridal-ready, skin-friendly, beautifully finished.",
 };
 
-/* Built-in promo cards used until the admin configures their own. */
+/* Built-in promo cards used until the admin configures their own. They link to
+   the whole shop because the sections only have designs once pieces are added. */
 const DEFAULT_CARDS = [
   {
     image: { url: SIDE_IMGS[0], alt: "Kundan" },
-    eyebrow: "New", title: "Kundan Festive Sets", text: "From ₹749", to: "/shop?cat=jewellery-sets", linkLabel: "Shop now →",
+    eyebrow: "New", title: "Kundan Festive Sets", text: "From ₹749", to: "/shop", linkLabel: "Shop now →",
   },
   {
     image: { url: SIDE_IMGS[1], alt: "Everyday elegance" },
-    eyebrow: "Everyday", title: "Everyday Elegance", text: "Lightweight • Skin-friendly", to: "/shop?cat=necklaces", linkLabel: "Shop now →",
+    eyebrow: "Everyday", title: "Everyday Elegance", text: "Lightweight • Skin-friendly", to: "/shop", linkLabel: "Shop now →",
   },
 ];
 
@@ -167,7 +168,7 @@ export default function Home() {
       <Hero slides={slides} />
 
       <div className="trust container" style={{ width: "100%" }}>
-        {[["✦", "Nickel-Safe Bases", "Hypoallergenic & skin-friendly"], ["◈", "Order on WhatsApp", "We confirm availability in chat"], ["✦", "Handcrafted in India", "Quality-checked pieces"], ["❖", "Free Shipping ₹999+", "Pan-India delivery"]].map(([icon, b, s]) => (
+        {[["✦", "Nickel-Safe Bases", "Hypoallergenic & skin-friendly"], ["◈", "Order on WhatsApp", "We confirm availability in chat"], ["✦", "Handcrafted in India", "Quality-checked pieces"], ["❖", "Freebies over ₹4,000", "On every order"]].map(([icon, b, s]) => (
           <div key={b}><span style={{ fontSize: 22, color: "var(--gold)" }}>{icon}</span><span><b>{b}</b><small>{s}</small></span></div>
         ))}
       </div>

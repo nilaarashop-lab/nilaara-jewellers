@@ -59,7 +59,7 @@ export function Contact() {
             <button className="btn btn-gold" style={{ marginTop: 12 }}><IconWhatsApp /> Send on WhatsApp</button>
           </form>
           {opened && <p>✓ Opening WhatsApp — send the message and we'll reply within a few hours.</p>}</div>
-        <div className="form"><h3 className="serif">Care & policies</h3><p style={{ lineHeight: 1.8, color: "var(--ink-soft)" }}>Shipping 3–5 days • Free over ₹999 • Keep jewellery away from perfume & water. To book a piece, tap Buy Now on any product — its ID and details are filled into WhatsApp for you.</p>
+        <div className="form"><h3 className="serif">Care & policies</h3><p style={{ lineHeight: 1.8, color: "var(--ink-soft)" }}>Shipping 3–5 days • Freebies over ₹4,000 • Keep jewellery away from perfume & water. To book a piece, tap Buy Now on any product — its ID and details are filled into WhatsApp for you.</p>
           <h3 className="serif" style={{ marginTop: 18 }}>Our 2 stores</h3>
           {STORES.map((s) => <p key={s.id} style={{ fontSize: 14 }}><b>{s.name}</b><br /><a className="link" href={s.mapsUrl} target="_blank" rel="noreferrer">Get Directions →</a></p>)}
           <Link to="/stores" className="btn btn-ghost" style={{ marginTop: 8 }}>View both stores</Link></div>

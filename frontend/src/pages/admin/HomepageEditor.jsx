@@ -80,7 +80,7 @@ const normalize = (raw) => ({
       : [],
   },
   shipping: {
-    freeOver: Number(raw?.shipping?.freeOver ?? 999),
+    freeOver: Number(raw?.shipping?.freeOver ?? 4000),
     fee: Number(raw?.shipping?.fee ?? 79),
   },
 });
@@ -519,7 +519,7 @@ export default function HomepageEditor() {
                   <input
                     value={card.to}
                     maxLength={200}
-                    placeholder="Link (e.g. /shop?cat=jhumkas)"
+                    placeholder="Link (e.g. /shop?cat=choker)"
                     onChange={(e) =>
                       set(() => {
                         const next = [...cards];
@@ -640,7 +640,7 @@ export default function HomepageEditor() {
         <p className="co-note">Used by the product page and the WhatsApp order conversation.</p>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <div>
-            <label>Free shipping over ₹</label>
+            <label>Freebies over ₹</label>
             <input
               type="number"
               min="0"

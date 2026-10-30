@@ -21,13 +21,15 @@ export const whatsappChatLink = () =>
  *
  * Deliberately short: the WhatsApp Business auto-reply handles price,
  * availability, payment and shipping. All it needs to identify the piece is the
- * product name + the admin-assigned product ID.
+ * product name + the admin-assigned product ID, plus `extra` when the product
+ * offered a choice (a chain, say) so the pick and its total travel with it.
  */
-export const productEnquiryMessage = (p) =>
+export const productEnquiryMessage = (p, extra = []) =>
   [
     "Hi Nilaara Jewellers! I'd like to buy this product.",
     `Product: ${p.name}`,
     `Product ID: ${p.id}`,
-  ].join("\n");
+    ...extra,
+  ].filter(Boolean).join("\n");
 
-export const productEnquiryLink = (p) => whatsappLink(productEnquiryMessage(p));
+export const productEnquiryLink = (p, extra) => whatsappLink(productEnquiryMessage(p, extra));

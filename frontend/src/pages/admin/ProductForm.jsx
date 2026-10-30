@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { previewUrl, uploadImage } from "../../api/github";
-import { categoryLabel, listCategories, slugify } from "../../data/categories";
+import { listCategories, slugify } from "../../data/categories";
 
 const PSTATUSES = ["draft", "published", "archived"];
 
@@ -23,6 +23,8 @@ const emptyProduct = () => ({
   lowStockThreshold: 5,
   trackInventory: true,
   customTag: "",
+  chainOption: false,
+  chainCharge: 200,
   bestseller: false,
   newArrival: true,
   featured: false,
@@ -49,8 +51,9 @@ const fromProduct = (product) => {
   return {
     ...emptyProduct(),
     ...rest,
-    // Show the readable name; the payload stores the slug again on save.
-    category: categoryLabel(rest.category),
+    // The dropdown is keyed by the stored slug, so a legacy category the shop
+    // no longer lists still round-trips instead of being silently renamed.
+    category: slugify(rest.category),
     description: rest.desc || rest.description || "",
     images: Array.isArray(rest.images)
       ? rest.images.map((image) => (typeof image === "string" ? image : image?.url)).filter(Boolean)
@@ -58,6 +61,8 @@ const fromProduct = (product) => {
     stock: rest.stock ?? 0,
     lowStockThreshold: rest.lowStockThreshold ?? 5,
     trackInventory: rest.trackInventory !== false,
+    // A product that never had the switch configured opens the form at ₹200.
+    chainCharge: rest.chainCharge != null && Number.isFinite(Number(rest.chainCharge)) ? Number(rest.chainCharge) : 200,
   };
 };
 
@@ -67,6 +72,10 @@ export default function ProductForm({ product, products, onClose, onSave, saving
   const [urlDraft, setUrlDraft] = useState("");
   const [error, setError] = useState("");
   const [flash, setFlash] = useState("");
+
+  // Your shop's sections, plus any older category a product still carries so
+  // editing that piece never renames it by accident.
+  const categoryChoices = listCategories(products);
 
   const set = (patch) => {
     setError("");
@@ -134,7 +143,7 @@ export default function ProductForm({ product, products, onClose, onSave, saving
     }
     const category = slugify(form.category);
     if (!category) {
-      setError("Add a category using letters or numbers — it decides where the piece appears in the shop menu.");
+      setError("Pick the category this piece belongs to — it decides where it appears in the shop menu.");
       return;
     }
 
@@ -165,6 +174,8 @@ export default function ProductForm({ product, products, onClose, onSave, saving
       lowStockThreshold: Math.max(0, Number(form.lowStockThreshold) || 0),
       trackInventory: Boolean(form.trackInventory),
       customTag: form.customTag?.trim() || "",
+      chainOption: Boolean(form.chainOption),
+      chainCharge: form.chainOption ? Math.max(0, Math.round(Number(form.chainCharge) || 0)) : 0,
       bestseller: Boolean(form.bestseller),
       newArrival: Boolean(form.newArrival),
       featured: Boolean(form.featured),
@@ -217,28 +228,16 @@ export default function ProductForm({ product, products, onClose, onSave, saving
             : ""}
         </small>
 
-        <label htmlFor="productCategory">Category — type the name you want</label>
-        <input
-          id="productCategory"
-          list="category-options"
-          maxLength={40}
-          placeholder="e.g. Jhumkas, Chokers, Bridal Sets"
-          value={form.category}
-          onChange={(e) => set({ category: e.target.value })}
-        />
-        <datalist id="category-options">
-          {listCategories(products).map((c) => (
-            <option key={c.slug} value={c.name} />
+        <label htmlFor="productCategory">Category — where this piece appears in the shop</label>
+        <select id="productCategory" value={form.category} onChange={(e) => set({ category: e.target.value })}>
+          <option value="">Choose a category…</option>
+          {categoryChoices.map((c) => (
+            <option key={c.slug} value={c.slug}>{c.name}</option>
           ))}
-        </datalist>
+        </select>
         <small className="custom-tag-hint">
-          Pick one below or type a new one — it appears in the menu, the shop filters, the footer and the home
-          page tiles as soon as this product is published.
-          {form.category.trim() && !slugify(form.category)
-            ? " Use letters or numbers so the shop link works."
-            : slugify(form.category)
-              ? ` Shop link: /shop?cat=${slugify(form.category)}`
-              : ""}
+          These are your shop's sections — the one you pick gets its own menu entry, filter and home page tile.
+          {form.category ? ` Shop link: /shop?cat=${slugify(form.category)}` : ""}
         </small>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
@@ -264,6 +263,30 @@ export default function ProductForm({ product, products, onClose, onSave, saving
           <span className="track"><span className="knob" /></span>
           <span className="t">New — listed under New Launches</span>
         </label>
+
+        <label className="switch-row">
+          <input type="checkbox" checked={Boolean(form.chainOption)} onChange={(e) => set({ chainOption: e.target.checked })} />
+          <span className="track"><span className="knob" /></span>
+          <span className="t">Chain choice — shoppers pick “With chain” or “Without chain” on this product's page</span>
+        </label>
+        {form.chainOption && (
+          <>
+            <label htmlFor="chainCharge">Chain costs extra ₹</label>
+            <input
+              id="chainCharge"
+              type="number"
+              min="0"
+              style={{ maxWidth: 180 }}
+              value={form.chainCharge}
+              onChange={(e) => set({ chainCharge: e.target.value })}
+            />
+            <small className="custom-tag-hint">
+              Shows as “With chain (+₹{Math.max(0, Math.round(Number(form.chainCharge) || 0))})” on the product page.
+              Until the shopper picks one, Buy Now stays locked, and their pick plus the total price are written into
+              the WhatsApp message you receive.
+            </small>
+          </>
+        )}
 
         <div className="custom-tag-field">
           <label htmlFor="customTag">Custom label — name it yourself (optional)</label>

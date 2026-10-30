@@ -196,15 +196,15 @@ h1,h2,h3,h4{color:var(--maroon)}
 .hbtn.admin-hbtn:hover{border-color:var(--maroon);background:var(--maroon);color:var(--gold-bright)}
 .hbtn.admin-hbtn:hover svg{color:var(--gold-bright)}
 .nav{
-  display:flex;align-items:center;gap:22px;justify-content:safe center;
-  padding:11px 0 12px;flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;white-space:nowrap;
+  display:flex;align-items:center;gap:2px 18px;justify-content:safe center;
+  padding:11px 0 12px;flex-wrap:wrap;white-space:normal;
   border-top:1px solid rgba(199,164,92,.22);
   background:linear-gradient(180deg,rgba(246,233,203,.22),rgba(246,233,203,0));
 }
 .nav::-webkit-scrollbar{display:none}
 .nav a{
-  font-size:12px;letter-spacing:1.8px;text-transform:uppercase;
-  color:var(--ink-soft);position:relative;padding:5px 0;flex-shrink:0;
+  font-size:11.5px;letter-spacing:1.4px;text-transform:uppercase;
+  color:var(--ink-soft);position:relative;padding:6px 2px;flex-shrink:0;
   transition:color .2s ease;
 }
 .nav a::after{
@@ -353,6 +353,13 @@ h1,h2,h3,h4{color:var(--maroon)}
 .pd-buy-row{display:flex;gap:10px;margin-top:16px;align-items:center}
 .pd-buy{flex:1;justify-content:center;gap:8px;text-align:center}
 .pd-hint{font-size:12.5px;color:var(--ink-soft);line-height:1.65;margin:10px 0 0;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.pd-opt{margin-top:16px}
+.pd-opt>b{font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:var(--ink-soft);display:block;margin-bottom:8px}
+.pd-opt-row{display:flex;gap:10px;flex-wrap:wrap}
+.pd-opt-row button{border:1px solid var(--line);background:var(--card);color:var(--ink);border-radius:10px;padding:11px 16px;font-family:inherit;font-size:14px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.pd-opt-row button em{font-style:normal;color:#A06A12;font-weight:600}
+.pd-opt-row button.on{border-color:var(--gold);background:var(--gold-soft);color:var(--maroon-deep);font-weight:600}
+.pd-opt small{display:block;margin-top:8px;font-size:12.5px;color:var(--ink-soft);line-height:1.6}
 .add:hover{background:linear-gradient(135deg,#EBD49A,#D5B064);border-color:#D5B064;color:var(--maroon-deep);box-shadow:0 12px 24px rgba(101,1,8,.16);transform:translateY(-1px)}
 .add:disabled{border-color:var(--line);background:var(--card-2);color:var(--muted);cursor:not-allowed;letter-spacing:1.4px;box-shadow:none;transform:none}
 .stock{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;margin-top:2px}

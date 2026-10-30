@@ -64,7 +64,7 @@ export function normalizeSettings(raw, commit = "") {
       categoryTiles,
     },
     shipping: {
-      freeOver: Number(source.shipping?.freeOver ?? 999),
+      freeOver: Number(source.shipping?.freeOver ?? 4000),
       fee: Number(source.shipping?.fee ?? 79),
     },
   };

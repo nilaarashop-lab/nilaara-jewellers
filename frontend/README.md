@@ -21,7 +21,7 @@ No environment variables are needed for the storefront.
 - `src/content/products.json` — catalogue. Only `status: "published"` products
   are shown; `draft` and `archived` stay hidden.
 - `src/content/settings.json` — announcement bar, hero slides, promo cards,
-  festive banner, category tile images and free-shipping threshold.
+  festive banner, category tile images and the freebies threshold.
 - `public/uploads/` — images uploaded through the admin.
 - `src/config.js` — WhatsApp number and message builders.
 

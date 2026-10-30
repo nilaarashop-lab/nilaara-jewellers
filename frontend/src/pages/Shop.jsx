@@ -65,7 +65,7 @@ export default function Shop() {
   const [draftPrice, setDraftPrice] = useState(maxPrice);
 
   useEffect(() => setQuery(q), [q]);
-  // Keep the drafts in sync when filters come from a link (e.g. /shop?cat=jhumkas).
+  // Keep the drafts in sync when filters come from a link (e.g. /shop?cat=choker).
   useEffect(() => {
     setDraftCat(cat);
     setDraftCol(activeCol?.slug || "");
@@ -125,7 +125,7 @@ export default function Shop() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const freeOver = Number(settings?.shipping?.freeOver ?? 999);
+  const freebiesOver = Number(settings?.shipping?.freeOver ?? 4000);
   const colName = activeCol?.name || "";
   const heading = colName || (cat ? categoryLabel(cat) : "Shop All Jewellery");
 
@@ -164,7 +164,7 @@ export default function Shop() {
           <input type="range" min={500} max={priceCap} step={50} value={draftPrice ?? priceCap} onChange={(e) => setDraftPrice(+e.target.value)} style={{ width: "100%", accentColor: "var(--gold)" }} />
           <h4>Good to know</h4>
           <p style={{ fontSize: 13.5, color: "var(--ink-soft)" }}>
-            ✦ Free shipping over ₹{freeOver}<br />
+            ✦ Freebies over ₹{freebiesOver.toLocaleString("en-IN")}<br />
             ✦ Book any piece on WhatsApp — product ID included automatically
           </p>
           <button type="button" className="btn btn-gold" style={{ width: "100%", justifyContent: "center", marginTop: 6 }} onClick={applyFilters}>
@@ -190,7 +190,7 @@ export default function Shop() {
               )}
             </div>
           </div>
-          {filtered.length === 0 ? <div className="empty">No designs match. Try clearing filters.</div>
+          {filtered.length === 0 ? <div className="empty">{cat ? "Coming soon — designs for this section are being added. Ask us on WhatsApp and we'll tell you the moment they're up." : "No designs match. Try clearing filters."}</div>
             : <div className="grid grid-3">{filtered.map((p) => <ProductCard key={p.id} p={p} />)}</div>}
         </div>
       </div>

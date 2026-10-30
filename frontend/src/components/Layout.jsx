@@ -62,6 +62,9 @@ export function ProductCard({ p }) {
         <div className="card-actions">
           {soldOut ? (
             <button className="add" disabled>Sold Out</button>
+          ) : p.chainOption ? (
+            // The chain has to be picked before an order makes sense.
+            <Link className="add" to={`/product/${p.id}`} aria-label={`Choose a chain for ${p.name}`}>Buy Now</Link>
           ) : (
             <a
               className="add add-wa"
@@ -131,8 +134,8 @@ export function AnnounceBar() {
   }
   return (
     <div className="announce">
-      <span className="announce-full">Free shipping over ₹999 <span className="dot">•</span> Order on WhatsApp</span>
-      <span className="announce-short">Free shipping over ₹999 <span className="dot">•</span> Order on WhatsApp</span>
+      <span className="announce-full">Freebies over ₹4,000 <span className="dot">•</span> Order on WhatsApp</span>
+      <span className="announce-short">Freebies over ₹4,000 <span className="dot">•</span> Order on WhatsApp</span>
     </div>
   );
 }
@@ -410,7 +413,7 @@ export function Header() {
               <img className="logo-mark" src="/nilaara-mark.png" alt="" />
               <span><span className="logo-name">NILAARA</span><br /><span className="logo-sub">Handcrafted • Artificial Jewellery</span></span>
             </Link>
-            <SearchBox placeholder="Search necklace sets, jhumkas, kundan, temple…" />
+            <SearchBox placeholder="Search temple jewellery, chokers, rings, diamond replica…" />
             <div className="hicons">
               <Link className="hbtn wish-hbtn" to="/wishlist" aria-label={wishlist.length > 0 ? `Wishlist, ${wishlist.length} saved` : "Wishlist"}>
                 <IconHeart />{wishlist.length > 0 && <span className="count">{wishlist.length}</span>}

@@ -10,6 +10,8 @@ const normalizeProduct = (p, commit = "") => ({
   mrp: Number(p.mrp) || 0,
   stock: Number.isFinite(Number(p.stock)) ? Number(p.stock) : 0,
   trackInventory: p.trackInventory !== false,
+  chainOption: p.chainOption === true,
+  chainCharge: Math.max(0, Number(p.chainCharge) || 0),
   images: Array.isArray(p.images)
     ? p.images.filter(Boolean).map((url) => mediaUrl(url, commit))
     : [],
