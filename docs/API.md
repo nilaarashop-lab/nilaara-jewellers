@@ -128,7 +128,7 @@ Remove one item / clear the bag (also used after a successful order).
 ## Settings — `/api/settings`
 
 ### `GET /api/settings`
-Public storefront configuration: announcement, brand block, `shipping: { freeOver, fee, methods: [{ id, label, fee, etaMinDays, etaMaxDays }] }` (enabled methods only) and `payments: { cod, razorpay }`. Contains **no secrets** — checkout renders delivery fees/ETAs and payment availability from this response only, so nothing is hardcoded in the browser.
+Public storefront configuration: announcement, brand block, `shipping: { freeOver, fee, methods: [{ id, label, fee, etaMinDays, etaMaxDays }] }` (enabled methods only) and `payments: { cod, razorpay }`. `cod` is now `false` (cash on delivery is not offered) and `razorpay` reflects whether online payments are configured. Contains **no secrets**.
 
 ---
 

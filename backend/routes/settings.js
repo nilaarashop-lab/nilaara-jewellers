@@ -113,7 +113,7 @@ router.get(
     res.json({
       ...s.toPublic(),
       payments: {
-        cod: true, // COD is always available unless business rules change (settings-driven later)
+        cod: false, // cash on delivery is no longer offered
         razorpay: env.paymentsEnabled(),
       },
     });

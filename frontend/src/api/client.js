@@ -148,7 +148,7 @@ export async function searchProducts(q, limit = 6) {
  */
 export async function fetchSettings() {
   if (!hasAPI) {
-    return { shipping: { freeOver: 999, fee: 79, methods: [] }, payments: { cod: true, razorpay: false } };
+    return { shipping: { freeOver: 999, fee: 79, methods: [] }, payments: { cod: false, razorpay: false } };
   }
   return api("/api/settings");
 }

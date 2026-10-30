@@ -93,7 +93,7 @@ bundle still contains the previous `VITE_API_URL`.
 - [ ] Login from an iPhone (Safari **and** Chrome for iOS) survives a refresh — the iOS cookie check
 - [ ] Hard refresh on a product URL does not 404
 - [ ] Image uploads in the admin return an ImageKit URL
-- [ ] An order can be placed end to end (COD)
+- [ ] A Buy Now button opens WhatsApp with the product name + ID
 
 ## Troubleshooting
 

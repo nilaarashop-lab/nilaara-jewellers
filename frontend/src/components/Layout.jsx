@@ -169,8 +169,8 @@ export function AnnounceBar() {
   }
   return (
     <div className="announce">
-      <span className="announce-full">Free shipping over ₹999 <span className="dot">•</span> COD available <span className="dot">•</span> 7-day easy exchange</span>
-      <span className="announce-short">Free shipping over ₹999 <span className="dot">•</span> COD available</span>
+      <span className="announce-full">Free shipping over ₹999 <span className="dot">•</span> 7-day easy exchange <span className="dot">•</span> Order on WhatsApp</span>
+      <span className="announce-short">Free shipping over ₹999 <span className="dot">•</span> Order on WhatsApp</span>
     </div>
   );
 }

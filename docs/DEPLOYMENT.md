@@ -89,7 +89,7 @@ See [CLOUDINARY.md](CLOUDINARY.md#migrating-existing-images) — the script back
 1. Add the three Razorpay variables and restart.
 2. Set the dashboard webhook URL to `https://api.nilaara.com/api/payments/razorpay/webhook` with the same `RAZORPAY_WEBHOOK_SECRET`.
 3. Test with Razorpay test cards first; only verified signatures (checkout verify or webhook HMAC) mark an order paid, and webhook processing is idempotent.
-4. Until configured, payment routes return `503` and checkout stays COD-only — by design, no fake success.
+4. Until configured, payment routes return `503` (no fake success); the storefront takes orders on WhatsApp instead.
 
 ## 6. Pre-launch checklist
 
@@ -99,6 +99,6 @@ See [CLOUDINARY.md](CLOUDINARY.md#migrating-existing-images) — the script back
 - [ ] `npm run create-admin` was run; you can log in at `/admin`
 - [ ] `.env` is git-ignored and contains no real secrets in git history
 - [ ] Cloudinary migration report shows 0 failed / 0 manual-attention products
-- [ ] Test order flow end-to-end: add to cart → checkout (COD) → track → admin updates status
+- [ ] Test the WhatsApp flow end-to-end: open a product → Buy Now → WhatsApp opens with the product name + ID
 - [ ] Unauthorized upload attempt returns 401 (`curl -X POST https://api…/api/upload`)
 - [ ] HTTPS everywhere; `Set-Cookie` shows `HttpOnly` (+ `Secure`)

@@ -99,7 +99,7 @@ function Hero({ slides }) {
             <Link to="/shop?col=temple" className="btn btn-ghost">Explore Temple</Link>
           </div>
           <div className="hero-trust">
-            <span>18K–24K gold plated</span><span>•</span><span>7-day exchange</span><span>•</span><span>COD</span>
+            <span>18K–24K gold plated</span><span>•</span><span>7-day exchange</span><span>•</span><span>WhatsApp ordering</span>
           </div>
           {total > 1 && (
             <div className="hero-dots" role="tablist" aria-label="Choose hero slide">
@@ -164,7 +164,7 @@ export default function Home() {
       <Hero slides={slides} />
 
       <div className="trust container" style={{ width: "100%" }}>
-        {[["✦ 18K–24K Gold Plating", "Skin-friendly & certified"], ["◈ 7-Day Exchange", "No-question returns"], ["⬣ COD Available", "Pay at your doorstep"], ["❖ Free Shipping ₹999+", "Pan-India delivery"]].map(([b, s]) => (
+        {[["✦ 18K–24K Gold Plating", "Skin-friendly & certified"], ["◈ 7-Day Exchange", "No-question returns"], ["✦ Handcrafted in India", "Quality-checked pieces"], ["❖ Free Shipping ₹999+", "Pan-India delivery"]].map(([b, s]) => (
           <div key={b}><span style={{ fontSize: 22, color: "var(--gold)" }}>✦</span><span><b>{b}</b><small>{s}</small></span></div>
         ))}
       </div>
