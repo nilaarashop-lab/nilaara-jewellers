@@ -37,7 +37,7 @@
     ]
   },
   "shipping": {
-    "freeOver": 999,
+    "freeOver": 5000,
     "fee": 79
   }
 }
