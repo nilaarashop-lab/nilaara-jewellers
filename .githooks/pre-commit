@@ -1,0 +1,27 @@
+#!/bin/sh
+# Blocks commits that rewrite merchant-owned catalogue data. Products and
+# homepage settings are written by /admin straight to GitHub, so a local code
+# commit must never carry them — that is how deleted or edited products get
+# resurrected.
+#
+# When the owner explicitly asks for a content change:
+#   NILAARA_ALLOW_CONTENT=1 git commit -m "..."
+
+if [ "$NILAARA_ALLOW_CONTENT" = "1" ]; then
+  echo "pre-commit: content guard waived by NILAARA_ALLOW_CONTENT=1." >&2
+  exit 0
+fi
+
+blocked=$(git diff --cached --name-only | grep -E '^frontend/(src/content/|public/uploads/)')
+
+if [ -z "$blocked" ]; then
+  exit 0
+fi
+
+echo "pre-commit: refusing to commit catalogue data:" >&2
+echo "$blocked" | sed 's/^/  /' >&2
+echo "" >&2
+echo "Keep these files out of the commit (git restore --staged <file>)." >&2
+echo "If the owner asked for this content change, rerun with:" >&2
+echo "  NILAARA_ALLOW_CONTENT=1 git commit ..." >&2
+exit 1
