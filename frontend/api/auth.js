@@ -1,11 +1,11 @@
 import crypto from "node:crypto";
 
 /**
- * Step 1 of the staff CMS GitHub login.
+ * Step 1 of the staff admin GitHub login.
  *
- * Decap opens this URL in a popup. We redirect to GitHub with a short-lived,
- * httpOnly state cookie so the callback can reject forged authorization codes.
- * The client secret never reaches the browser.
+ * The admin opens this URL in a popup. We redirect to GitHub with a
+ * short-lived, httpOnly state cookie so the callback can reject forged
+ * authorization codes. The client secret never reaches the browser.
  */
 
 const cookie = (name, value, secure, maxAge) =>
@@ -21,7 +21,7 @@ const fail = (res, status, message) => {
 export default function handler(req, res) {
   const clientId = process.env.GITHUB_OAUTH_CLIENT_ID || process.env.GITHUB_CLIENT_ID;
   if (!clientId) {
-    fail(res, 500, "CMS login is not configured: set GITHUB_OAUTH_CLIENT_ID in Vercel.");
+    fail(res, 500, "Admin login is not configured: set GITHUB_OAUTH_CLIENT_ID in Vercel.");
     return;
   }
 
@@ -46,7 +46,7 @@ export default function handler(req, res) {
   });
 
   res.statusCode = 302;
-  res.setHeader("Set-Cookie", cookie("decap_oauth_state", state, origin.startsWith("https://"), 600));
+  res.setHeader("Set-Cookie", cookie("nilaara_admin_oauth_state", state, origin.startsWith("https://"), 600));
   res.setHeader("Cache-Control", "no-store");
   res.setHeader("Location", `https://github.com/login/oauth/authorize?${params.toString()}`);
   res.end();

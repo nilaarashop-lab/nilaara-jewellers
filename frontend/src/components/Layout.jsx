@@ -84,14 +84,14 @@ export function ProductCard({ p }) {
  *    (duplicated track for a seamless loop; pauses on hover/focus).
  *  - Otherwise falls back to the settings text, then to the built-in festive
  *    copy.
- *  - `announcement: null` in the CMS means the bar is switched OFF.
+ *  - `announcement: null` in the admin settings means the bar is switched OFF.
  */
 export function AnnounceBar() {
   const { settings } = useStore();
   const a = settings?.announcement;
   const messages = (a?.messages || []).filter(Boolean);
 
-  // CMS explicitly turned the bar off.
+  // The admin explicitly turned the bar off.
   if (settings && a === null) return null;
 
   if (messages.length > 0) {

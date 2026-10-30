@@ -1,5 +1,7 @@
 # Cloudinary Image Storage Guide
 
+> **Legacy reference only.** The deployed storefront no longer uploads to Cloudinary or runs the Express backend. New staff uploads go through the GitHub-backed admin into `frontend/public/uploads/`. This guide documents the archived backend integration and is kept for historical reference.
+
 Nilaara stores **all new product images on Cloudinary** — a CDN built for images. The backend streams uploads straight from the admin panel to Cloudinary; nothing is saved on the app server and no binary data enters MongoDB (only `{url, publicId, alt}` references).
 
 ## 1. Get credentials (free tier is fine)

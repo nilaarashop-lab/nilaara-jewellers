@@ -7,12 +7,13 @@ import Shop from "./pages/Shop";
 import Product from "./pages/Product";
 import { Wishlist, About, Contact } from "./pages/Misc";
 import Stores from "./pages/Stores";
+import Admin from "./pages/Admin";
 
 export default function App() {
   return (
     // Router outermost so the store and header can use route context. The
-    // storefront is a static catalogue with WhatsApp ordering; staff content is
-    // edited through the Git CMS at /admin/ (outside this React app).
+    // storefront is a static catalogue with WhatsApp ordering; staff edit the
+    // catalogue and homepage at /admin through the GitHub-backed admin.
     <BrowserRouter>
       <StoreProvider>
         <ScrollToTopOnNavigate />
@@ -25,6 +26,7 @@ export default function App() {
           <Route path="/about" element={<About />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="/stores" element={<Stores />} />
+          <Route path="/admin" element={<Admin />} />
           {/* Retired storefront routes — old links land somewhere useful. */}
           <Route path="/cart" element={<Navigate to="/shop" replace />} />
           <Route path="/checkout" element={<Navigate to="/shop" replace />} />

@@ -10,10 +10,11 @@ site.
 npm install
 npm run dev      # http://localhost:5173
 npm run lint
+npm test
 npm run build
 ```
 
-No environment variables are needed.
+No environment variables are needed for the storefront.
 
 ## Content
 
@@ -21,12 +22,28 @@ No environment variables are needed.
   are shown; `draft` and `archived` stay hidden.
 - `src/content/settings.json` — announcement bar, hero slides, promo cards,
   festive banner, category tile images and free-shipping threshold.
-- `public/uploads/` — images uploaded through the CMS.
+- `public/uploads/` — images uploaded through the admin.
 - `src/config.js` — WhatsApp number and message builders.
 
-Staff edit these through the Git CMS at `/admin/` on the deployed site. The CMS
-config is `public/admin/config.yml`; GitHub OAuth is handled by `api/auth.js`
-and `api/callback.js` on Vercel.
+Staff edit these through the React admin at `/admin` on the deployed site. The
+admin reads and writes the JSON files through GitHub's Contents API, so every
+save is a commit on `main`. GitHub OAuth is handled by `api/auth.js` and
+`api/callback.js` on Vercel.
+
+## Admin
+
+- `/admin` — sign in with a GitHub account that has write access to
+  `nilaarashop-lab/nilaara-jewellers`.
+- Dashboard — catalogue counts, low stock, out of stock, hidden products.
+- Products — add, edit, delete, change product IDs, upload up to 6 photos.
+- Homepage — announcement messages, hero slides, promo cards, festive banner,
+  category tiles and shipping thresholds.
+- Images are resized/compressed in the browser, then committed to
+  `public/uploads/`.
+
+The OAuth token lives in `sessionStorage` and is cleared when the tab closes or
+staff press **Lock**. Only the two OAuth functions run on Vercel; there is no
+content API or database.
 
 ## WhatsApp number
 
@@ -52,7 +69,7 @@ payment and shipping.
 | `/product/:id` | Product detail (Buy Now on WhatsApp) |
 | `/wishlist` | Local favourites (localStorage) |
 | `/about`, `/contact`, `/stores` | Brand, contact, stores |
-| `/admin/` | Staff Git CMS |
+| `/admin` | Staff admin (GitHub sign-in, noindex) |
 
 Retired routes (`/login`, `/register`, `/account`, `/cart`, `/checkout`,
 `/success`, `/orders`, `/track`) redirect to `/` or `/shop`.
@@ -63,6 +80,10 @@ Retired routes (`/login`, `/register`, `/account`, `/cart`, `/checkout`,
 - `src/content/` — Git-managed JSON content
 - `src/data/products.js` — imports the catalogue and filters published items
 - `src/data/settings.js` — normalizes homepage settings for components
+- `src/api/github.js` — GitHub Contents API, image upload, OAuth popup
+- `src/api/client.js` — local catalogue search helpers
+- `src/pages/Admin.jsx` — staff admin shell
+- `src/pages/admin/` — login, product form, homepage editor, image slot
 - `src/store/StoreContext.jsx` — wishlist + static settings
 - `src/components/Layout.jsx` — header, product cards, footer, icons
 - `src/pages/` — Home, Shop, Product, Misc (Wishlist/About/Contact), Stores

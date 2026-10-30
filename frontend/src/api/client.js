@@ -3,7 +3,7 @@
  *
  * Products are committed as JSON and bundled at build time, so browsing and
  * search work without an API, a database, or a server that can sleep. Staff
- * edits happen through the Git CMS at /admin/ and deploy with Vercel.
+ * edits happen through the GitHub-backed admin at /admin and deploy with Vercel.
  */
 import { PRODUCTS } from "../data/products";
 

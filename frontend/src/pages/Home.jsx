@@ -9,11 +9,11 @@ const prefersReducedMotion = () =>
   typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 /*
- * Permanent hero. This mirrors the CMS hero exactly (same image URL and copy),
+ * Permanent hero. This mirrors the default hero exactly (same image URL and copy),
  * so the very first paint — before settings are read — already shows the real
  * design instead of a different placeholder. Because the URL matches, React
  * does not remount the image when settings arrive, so there is no swap or blank
- * frame. CMS slides can still override it.
+ * frame. Admin-configured slides can still override it.
  */
 const DEFAULT_SLIDE = {
   image: {
@@ -67,7 +67,7 @@ function Reveal({ className = "", children }) {
 }
 
 /**
- * Auto-rotating hero. Uses CMS-configured slides when present, otherwise the
+ * Auto-rotating hero. Uses admin-configured slides when present, otherwise the
  * present, otherwise the built-in festive hero. Autoplay pauses on hover/focus
  * and is disabled entirely for reduced-motion visitors (dots still work).
  */

@@ -1,6 +1,6 @@
 # Customer Authentication — Nilaara Jewellers
 
-> **Legacy reference only — not used by the deployed storefront.** The website is a static catalogue with WhatsApp ordering. There is no customer login, cart, checkout, or backend-admin login. Staff now edit content through the Git CMS at `/admin/`. Everything below documents the archived backend for legacy data/reference only.
+> **Legacy reference only — not used by the deployed storefront.** The website is a static catalogue with WhatsApp ordering. There is no customer login, cart, checkout, or backend-admin login. Staff now edit content through the GitHub-backed admin at `/admin`. Everything below documents the archived backend for legacy data/reference only.
 
 This guide covers the customer sign-in system: **email + password** (registration and login), plus **Google Sign-In**, the **email OTP (Resend)** code path (kept, currently unused by the UI — see below), the **mobile OTP** code path (kept but disabled via `OTP_PROVIDER`), the session/CSRF model, provider setup for India, environment variables, seed accounts, and testing.
 

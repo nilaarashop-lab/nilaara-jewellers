@@ -1,14 +1,14 @@
-# Deployment Guide — static catalogue + Git CMS
+# Deployment Guide — static catalogue + GitHub admin
 
-The deployed site is **only** the Vite frontend. Products and homepage content
-are committed JSON files; there is no API, database, or Render service in the
-customer path.
+The deployed site is **only** the Vite frontend plus two small Vercel functions
+for GitHub login. Products and homepage content are committed JSON files; there
+is no content API, database, or Render service in the customer path.
 
 ## Prerequisites
 
 - Node.js 18+ (tested on Node 24)
 - A Vercel account connected to the GitHub repository
-- A GitHub OAuth App for the staff CMS
+- A GitHub OAuth App for the staff admin
 
 ## 1. Vercel project
 
@@ -16,15 +16,23 @@ customer path.
 2. Set **Root Directory → `frontend`**.
 3. Framework preset **Vite**; build `npm run build`; output `dist` (also in
    `frontend/vercel.json`).
-4. Do **not** add `VITE_API_URL`. There is no backend to call.
+4. Do **not** add `VITE_API_URL`. There is no backend to call. If the variable
+   already exists from the old Render setup, delete it and redeploy.
 
-`frontend/vercel.json` keeps the SPA fallback, redirects `/admin` to `/admin/`,
-and marks admin/API responses as no-store/noindex.
+`frontend/vercel.json` keeps the SPA fallback and marks admin/API responses as
+no-store/noindex.
 
-## 2. Staff CMS login (GitHub OAuth)
+## 2. Staff admin login (GitHub OAuth)
 
-The CMS uses Decap CMS with the GitHub backend. Authentication is handled by two
-Vercel functions under `frontend/api/`.
+The admin is a React page at `/admin`. It uses GitHub's Contents API directly
+from the browser to read and write the content JSON. Two Vercel functions under
+`frontend/api/` handle the OAuth handshake:
+
+- `api/auth.js` — redirects to GitHub with a short-lived `state` cookie.
+- `api/callback.js` — exchanges the one-time code for a token and posts it back
+  to the admin popup.
+
+The token is stored in `sessionStorage`, never in the repository.
 
 ### Create the GitHub OAuth App
 
@@ -38,8 +46,8 @@ GitHub → Settings → Developer settings → OAuth Apps → **New OAuth App**:
 
 Copy the **Client ID**, then generate a **Client Secret**.
 
-If the production domain changes, update both the OAuth App callback URL and
-`base_url` in `frontend/public/admin/config.yml`.
+If the production domain changes, update the OAuth App callback URL. No file in
+the repository needs to change.
 
 ### Vercel environment variables
 
@@ -58,22 +66,24 @@ Redeploy after adding the variables.
 
 ### Who can edit
 
-Only GitHub accounts with write access to the repository can publish. There is
-no separate admin password list to maintain. Remove someone's repository access
-to remove CMS access.
+Only GitHub accounts with **write access** to the repository can publish. The
+admin checks `permissions.push` when it signs in, and GitHub rejects any write
+from a read-only account. There is no separate admin password list to maintain.
+Remove someone's repository access to remove admin access.
 
 ## 3. Editing flow
 
-1. Open `https://nilaara-jewellers.vercel.app/admin/`.
+1. Open `https://nilaara-jewellers.vercel.app/admin`.
 2. Sign in with GitHub.
-3. Edit **Products** or **Homepage & announcement**.
-4. Publish.
+3. Edit **Products** or **Homepage**.
+4. Save.
 
-Decap commits to `main`; Vercel detects the commit and rebuilds. The new content
-is live when the deployment finishes.
+Each save is a commit on `main`; Vercel detects the commit and rebuilds. The new
+content is live when the deployment finishes (usually under a minute).
 
 New uploads go to `frontend/public/uploads/` and are served from `/uploads/…`.
-Existing ImageKit URLs remain valid and can be kept.
+Existing ImageKit URLs remain valid and can be kept. Photos are resized and
+compressed in the browser to stay below GitHub's 1 MB Contents API limit.
 
 ## 4. Content files
 
@@ -81,8 +91,7 @@ Existing ImageKit URLs remain valid and can be kept.
 | --- | --- |
 | `frontend/src/content/products.json` | Product catalogue (`products` array) |
 | `frontend/src/content/settings.json` | Announcement, hero slides, cards, festive banner, category tiles, free-shipping threshold |
-| `frontend/public/admin/config.yml` | CMS fields |
-| `frontend/public/uploads/` | CMS image uploads |
+| `frontend/public/uploads/` | Admin image uploads |
 
 A product is visible only when `status` is `published`. `draft` and `archived`
 are hidden from the storefront and search. The product `id` is used in the
@@ -97,8 +106,9 @@ npm run dev      # http://localhost:5173
 npm run build    # dist/
 ```
 
-The local React app reads the same JSON files. CMS login is only available on
-the deployed Vercel site because GitHub OAuth needs the callback URL.
+The local React app reads the same JSON files. GitHub login is only available on
+the deployed Vercel site (or with `vercel dev`) because OAuth needs the callback
+URL.
 
 ## 6. Historical data
 
@@ -107,15 +117,16 @@ data must never be committed.
 
 The historical orders and promo record were exported to a private folder
 outside this repository. The old `backend/` folder remains for reference only
-and is not deployed.
+and is not deployed or called by the storefront.
 
 ## 7. Pre-launch checklist
 
 - [ ] Vercel Root Directory is `frontend`
 - [ ] `GITHUB_OAUTH_CLIENT_ID` and `GITHUB_OAUTH_CLIENT_SECRET` are set in Vercel
+- [ ] `VITE_API_URL` is deleted from Vercel
 - [ ] GitHub OAuth callback is exactly `https://<domain>/api/callback`
-- [ ] `/admin/` opens and GitHub login succeeds
-- [ ] A test CMS edit commits to `main` and triggers a Vercel rebuild
+- [ ] `/admin` opens and GitHub login succeeds
+- [ ] A test admin edit commits to `main` and triggers a Vercel rebuild
 - [ ] `/shop` shows only published products
 - [ ] `/product/<id>` hard refresh works
 - [ ] A Buy Now button opens WhatsApp with the product name + ID
@@ -126,9 +137,10 @@ and is not deployed.
 
 | Symptom | Check |
 | --- | --- |
-| `/admin/` loads but login says not configured | `GITHUB_OAUTH_CLIENT_ID` / `GITHUB_OAUTH_CLIENT_SECRET` in Vercel; redeploy |
+| `/admin` loads but login says not configured | `GITHUB_OAUTH_CLIENT_ID` / `GITHUB_OAUTH_CLIENT_SECRET` in Vercel; redeploy |
 | GitHub returns `redirect_uri_mismatch` | OAuth App callback must match `/api/callback` exactly, including https |
 | Login state did not match | Cookies blocked, or `SITE_URL`/domain changed between auth and callback |
-| CMS publishes but site does not change | Vercel Git integration / deployment status; the commit must reach `main` |
+| Admin says the account cannot publish | The GitHub account needs write access to the repository |
+| Admin saves but site does not change | Vercel Git integration / deployment status; the commit must reach `main` |
 | New image is broken | Check `frontend/public/uploads/…` was committed and the Vercel build finished |
 | Product is missing | Its `status` is not `published`, or the product ID is blank/duplicated |

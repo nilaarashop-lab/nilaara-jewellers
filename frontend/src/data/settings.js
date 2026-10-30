@@ -2,8 +2,8 @@ import raw from "../content/settings.json";
 
 /**
  * Storefront settings come from frontend/src/content/settings.json, which is
- * edited by staff through the Git CMS (/admin/). This module turns the friendly
- * editor shape into the exact shape the storefront components use.
+ * edited by staff through the GitHub-backed admin (/admin). This module turns
+ * the editor shape into the exact shape the storefront components use.
  */
 
 const imageRef = (url, alt = "") => (url ? { url, alt } : null);
@@ -44,6 +44,7 @@ export const SITE_SETTINGS = {
         text: raw.announcement.text || "",
         shortText: raw.announcement.shortText || raw.announcement.text || "",
         messages: list(raw.announcement.messages)
+          .filter((m) => typeof m === "string" || m?.active !== false)
           .map((m) => (typeof m === "string" ? m : m?.message || m?.text || ""))
           .filter(Boolean),
       }
@@ -52,8 +53,8 @@ export const SITE_SETTINGS = {
     heroSlides,
     cards,
     festive:
-      festive?.active && festive.image
-        ? { url: festive.image, alt: festive.alt || "", active: true }
+      festive?.active
+        ? { url: festive.image || "", alt: festive.alt || "", active: true }
         : null,
     categoryTiles,
   },

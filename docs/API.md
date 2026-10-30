@@ -1,6 +1,6 @@
 # Nilaara API Reference
 
-> **Legacy reference only.** The deployed storefront is now fully static: products and settings are JSON files edited through the Git CMS, and no customer-facing page calls a backend. This API document is kept for the archived `backend/` folder and historical data reference. It is not part of the deployed site.
+> **Legacy reference only.** The deployed storefront is now fully static: products and settings are JSON files edited through the GitHub-backed admin at `/admin`, and no customer-facing page calls a backend. This API document is kept for the archived `backend/` folder and historical data reference. It is not part of the deployed site.
 
 Base URL: whatever you set as the backend origin (e.g. `http://localhost:5000`). All endpoints are JSON unless noted.
 

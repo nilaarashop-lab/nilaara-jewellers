@@ -1,5 +1,7 @@
 # ImageKit Image Storage Guide
 
+> **Legacy reference only.** The deployed storefront no longer uploads to ImageKit through the Express backend. Existing ImageKit image URLs remain valid, but new staff uploads go through the GitHub-backed admin into `frontend/public/uploads/`. This guide documents the archived backend integration and is kept for historical reference.
+
 Nilaara stores product & homepage images on **ImageKit** (the project's current
 setup). The backend streams uploads straight from the admin panel to ImageKit
 using its REST API — no SDK, and nothing is saved on the app server or in

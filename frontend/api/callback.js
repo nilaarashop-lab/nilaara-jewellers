@@ -1,8 +1,8 @@
 /**
- * Step 2 of the staff CMS GitHub login.
+ * Step 2 of the staff admin GitHub login.
  *
  * GitHub redirects here with a one-time code. We exchange it for a token using
- * the client secret (server-side only), then hand the token to the Decap popup
+ * the client secret (server-side only), then hand the token to the admin popup
  * via postMessage. The token is never committed or written to disk.
  */
 
@@ -14,60 +14,118 @@ const readCookie = (header, name) => {
   return "";
 };
 
-const page = (script) => `<!doctype html>
-<html lang="en"><head><meta charset="utf-8"><title>Nilaara CMS login</title></head>
-<body style="font:15px/1.6 system-ui,sans-serif;color:#650108;padding:32px">
-<p id="status">Finishing sign-in…</p>
-<script>${script}</script>
-</body></html>`;
+const page = (payload, status) => {
+  const serialized = JSON.stringify(payload).replace(/</g, "\\u003c");
+  return {
+    status,
+    body: `<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<meta name="referrer" content="no-referrer">
+<title>Nilaara Admin sign-in</title>
+<style>
+  body { margin: 0; background: #FBF7EF; color: #650108; font: 15px/1.6 system-ui, sans-serif; }
+  main { max-width: 420px; margin: 0 auto; padding: 56px 28px; text-align: center; }
+  .mark { width: 48px; height: 48px; border-radius: 50%; background: #650108; color: #F3D9A4;
+          display: grid; place-items: center; margin: 0 auto 18px; font: 600 22px/1 Georgia, serif; }
+  h1 { font: 400 28px/1.2 Georgia, serif; margin: 0 0 8px; }
+  p { color: #6B5B4E; margin: 0; }
+</style>
+</head>
+<body>
+<main>
+  <div class="mark">N</div>
+  <h1 id="title">Finishing sign-in…</h1>
+  <p id="status">You can close this window when it finishes.</p>
+</main>
+<script>
+(function () {
+  var payload = ${serialized};
+  var target = window.location.origin;
+
+  function show(title, text) {
+    document.getElementById("title").textContent = title;
+    document.getElementById("status").textContent = text;
+  }
+
+  if (window.opener) {
+    window.opener.postMessage(payload, target);
+    if (payload.ok) {
+      show("Signed in", "Returning to the admin…");
+      setTimeout(function () { window.close(); }, 500);
+    } else {
+      show("Sign-in failed", payload.error || "Close this window and try again.");
+    }
+  } else if (payload.ok) {
+    show("Signed in", "Open the admin page to continue.");
+  } else {
+    show("Sign-in failed", payload.error || "Open the admin page and try again.");
+  }
+})();
+</script>
+</body></html>`,
+  };
+};
 
 const html = (res, status, body) => {
   res.statusCode = status;
   res.setHeader("Content-Type", "text/html; charset=utf-8");
   res.setHeader("Cache-Control", "no-store");
+  res.setHeader("Referrer-Policy", "no-referrer");
+  const secure = String(res.req?.headers?.["x-forwarded-proto"] || "").startsWith("https");
+  res.setHeader(
+    "Set-Cookie",
+    `nilaara_admin_oauth_state=; Path=/api; HttpOnly; ${secure ? "Secure; " : ""}SameSite=Lax; Max-Age=0`
+  );
   res.end(body);
 };
 
-const sendMessage = (res, status, message) => {
-  const serialized = JSON.stringify(message).replace(/</g, "\\u003c");
-  html(
-    res,
-    status,
-    page(`
-(function () {
-  var message = ${serialized};
-  function receive(e) {
-    if (window.opener) window.opener.postMessage(message, e.origin || "*");
-    window.removeEventListener("message", receive, false);
-    document.getElementById("status").textContent = "Signed in. You can close this window.";
-    setTimeout(function () { window.close(); }, 250);
-  }
-  window.addEventListener("message", receive, false);
-  if (window.opener) window.opener.postMessage("authorizing:github", "*");
-})();
-`)
-  );
+const send = (res, status, payload) => {
+  const output = page(payload, status);
+  html(res, output.status, output.body);
 };
 
 export default async function handler(req, res) {
   const clientId = process.env.GITHUB_OAUTH_CLIENT_ID || process.env.GITHUB_CLIENT_ID;
   const clientSecret = process.env.GITHUB_OAUTH_CLIENT_SECRET || process.env.GITHUB_CLIENT_SECRET;
   if (!clientId || !clientSecret) {
-    html(res, 500, "CMS login is not configured: set the GitHub OAuth environment variables in Vercel.");
+    send(res, 500, {
+      type: "nilaara-admin-auth",
+      ok: false,
+      error: "Admin login is not configured: set the GitHub OAuth environment variables in Vercel.",
+    });
     return;
   }
 
   const url = new URL(req.url, "https://nilaara.invalid");
   const code = url.searchParams.get("code");
   const state = url.searchParams.get("state");
-  const expectedState = readCookie(req.headers.cookie, "decap_oauth_state");
+  const oauthError = url.searchParams.get("error");
+  const expectedState = readCookie(req.headers.cookie, "nilaara_admin_oauth_state");
 
+  if (oauthError) {
+    send(res, 400, {
+      type: "nilaara-admin-auth",
+      ok: false,
+      error: oauthError === "access_denied" ? "GitHub sign-in was cancelled." : "GitHub could not sign you in.",
+    });
+    return;
+  }
   if (!code) {
-    sendMessage(res, 400, `authorization:github:error:${JSON.stringify({ message: "GitHub did not return an authorization code." })}`);
+    send(res, 400, {
+      type: "nilaara-admin-auth",
+      ok: false,
+      error: "GitHub did not return an authorization code.",
+    });
     return;
   }
   if (!state || !expectedState || state !== expectedState) {
-    sendMessage(res, 400, `authorization:github:error:${JSON.stringify({ message: "Login state did not match. Please try again." })}`);
+    send(res, 400, {
+      type: "nilaara-admin-auth",
+      ok: false,
+      error: "Login state did not match. Please try again.",
+    });
     return;
   }
 
@@ -95,16 +153,16 @@ export default async function handler(req, res) {
     if (!tokenRes.ok || !data.access_token) {
       throw new Error(data.error_description || data.error || `GitHub returned ${tokenRes.status}.`);
     }
-    sendMessage(
-      res,
-      200,
-      `authorization:github:success:${JSON.stringify({ token: data.access_token, provider: "github" })}`
-    );
+    send(res, 200, {
+      type: "nilaara-admin-auth",
+      ok: true,
+      token: data.access_token,
+    });
   } catch (err) {
-    sendMessage(
-      res,
-      502,
-      `authorization:github:error:${JSON.stringify({ message: err.message || "Could not complete GitHub login." })}`
-    );
+    send(res, 502, {
+      type: "nilaara-admin-auth",
+      ok: false,
+      error: err.message || "Could not complete GitHub login.",
+    });
   }
 }
