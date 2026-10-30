@@ -1,39 +1,6 @@
 {
   "products": [
     {
-      "id": "par-green-kundan-set",
-      "slug": "radiant-green-kundan-pearl-necklace-set-mvt2jxbn",
-      "name": "Radiant Green Kundan Pearl Necklace Set",
-      "category": "jewellery-sets",
-      "collection": "kundan",
-      "plating": "22K Gold Plated",
-      "metal": "Brass alloy",
-      "purity": "",
-      "stones": "Kundan • Emerald beads",
-      "size": "",
-      "variants": [],
-      "price": 749,
-      "mrp": 2500,
-      "makingCharges": 0,
-      "rating": 4.5,
-      "reviews": 1340,
-      "badge": "Festive",
-      "tag": "",
-      "customTag": "",
-      "featured": false,
-      "bestseller": false,
-      "newArrival": false,
-      "images": [
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jf06-ca7e6786de83_3qSFEcb4v.jpg",
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jdlf-3b78ae2e8091_svO01POVK.jpg"
-      ],
-      "desc": "Pendant set with emerald beads, perfect for mehendi / sangeet.",
-      "stock": 25,
-      "trackInventory": true,
-      "lowStockThreshold": 5,
-      "status": "published"
-    },
-    {
       "id": "par-gold-spiral-pendant",
       "slug": "gold-toned-spiral-motif-round-pendant-with-chain-mvt2jxdn",
       "name": "Gold-Toned Spiral Motif Round Pendant with Chain",
