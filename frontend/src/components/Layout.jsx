@@ -3,7 +3,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { useStore } from "../store/StoreContext";
 import { COLLECTIONS, discountPercent, formatINR } from "../data/products";
 import { whatsappChatLink, productEnquiryLink, WHATSAPP_DISPLAY } from "../config";
-import { searchProducts } from "../api/client";
+import { searchProducts, hasAPI } from "../api/client";
 
 /* ── Icon set (single stroke style, currentColor — inherits hover states) ── */
 const svgProps = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.7, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true, focusable: false };
@@ -126,9 +126,13 @@ export function ProductsUnavailable({ onRetry }) {
  *  - `announcement: null` from the backend means the bar is switched OFF.
  */
 export function AnnounceBar() {
-  const { settings } = useStore();
+  const { settings, settingsStatus } = useStore();
   const a = settings?.announcement;
   const messages = (a?.messages || []).filter(Boolean);
+
+  // First visit, no cached settings yet: don't paint the built-in line and then
+  // hide it a moment later when the server says the announcement is off.
+  if (hasAPI && settingsStatus === "loading") return null;
 
   // Server explicitly turned the bar off.
   if (settings && a === null) return null;
