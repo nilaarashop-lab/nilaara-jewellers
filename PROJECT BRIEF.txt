@@ -80,9 +80,10 @@ product uses it (except the 11 built-ins, which always show with fallback art).
 
 5. STOREFRONT FUNCTIONS
 Search: header search with live suggestions (name/category/customTag/product ID), loading, "no results",
-and "temporarily unavailable + retry" states; shop has search-within-results. The matcher lives in
-src/data/search.js and also matches the product ID (w2000, or just 2000) and slug, so a shopper who was
-given an ID on WhatsApp can type it and land on the piece. Filters:
+and "temporarily unavailable + retry" states; shop has search-within-results. Each suggestion shows the
+photo, name, category, price and its product ID (small, under the price) so staff can read it out.
+The matcher lives in src/data/search.js and also matches the product ID (w2000, or just 2000) and slug,
+so a shopper who was given an ID on WhatsApp can type it and land on the piece. Filters:
 category chips, Highlights (New Launches, Best Sellers), Edits (from customTag), max-price slider
 (starts at 500, grows with the catalogue, at max = no cap), Apply button; mobile filter drawer.
 Sort: Featured / Price low→high / Price high→low. Every filter is in the URL (?cat ?col ?max ?q ?sort),

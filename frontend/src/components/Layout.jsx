@@ -360,7 +360,10 @@ function SearchBox({ className = "", placeholder = "Search jewellery…" }) {
                       <b>{p.name}</b>
                       <small>{categoryLabel(p.category)}</small>
                     </span>
-                    <span className="sq-price">{formatINR(p.price)}</span>
+                    <span className="sq-side">
+                      <span className="sq-price">{formatINR(p.price)}</span>
+                      {p.id && <small className="sq-id">{p.id}</small>}
+                    </span>
                   </Link>
                 ))}
               </div>
