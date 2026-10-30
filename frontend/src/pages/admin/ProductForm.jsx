@@ -1,19 +1,20 @@
 import { useState } from "react";
 import { previewUrl, uploadImage } from "../../api/github";
-import { CATEGORIES, COLLECTIONS } from "../../data/products";
+import { CATEGORIES } from "../../data/products";
 
 const PSTATUSES = ["draft", "published", "archived"];
+
+// Merchandising attributes retired on request; an old catalogue entry that still
+// carries them must not keep them through the next save.
+const RETIRED_KEYS = ["collection", "plating", "stones", "badge", "tag"];
 
 const emptyProduct = () => ({
   id: "",
   slug: "",
   name: "",
   category: "necklaces",
-  collection: "gold-plated",
-  plating: "22K Gold Plated",
   metal: "",
   purity: "",
-  stones: "",
   size: "",
   price: 799,
   mrp: 1499,
@@ -21,8 +22,6 @@ const emptyProduct = () => ({
   stock: 10,
   lowStockThreshold: 5,
   trackInventory: true,
-  badge: "New",
-  tag: "",
   customTag: "",
   bestseller: false,
   newArrival: true,
@@ -42,17 +41,23 @@ const normalizeId = (value) =>
     .replace(/^-+|-+$/g, "")
     .slice(0, 60);
 
-const fromProduct = (p) => ({
-  ...emptyProduct(),
-  ...p,
-  description: p?.desc || p?.description || "",
-  images: Array.isArray(p?.images)
-    ? p.images.map((image) => (typeof image === "string" ? image : image?.url)).filter(Boolean)
-    : [],
-  stock: p?.stock ?? 0,
-  lowStockThreshold: p?.lowStockThreshold ?? 5,
-  trackInventory: p?.trackInventory !== false,
-});
+const fromProduct = (product) => {
+  // Retired attributes are dropped here as well as in the payload, so an old
+  // catalogue entry never carries them back into the form.
+  const rest = { ...product };
+  RETIRED_KEYS.forEach((key) => delete rest[key]);
+  return {
+    ...emptyProduct(),
+    ...rest,
+    description: rest.desc || rest.description || "",
+    images: Array.isArray(rest.images)
+      ? rest.images.map((image) => (typeof image === "string" ? image : image?.url)).filter(Boolean)
+      : [],
+    stock: rest.stock ?? 0,
+    lowStockThreshold: rest.lowStockThreshold ?? 5,
+    trackInventory: rest.trackInventory !== false,
+  };
+};
 
 export default function ProductForm({ product, products, onClose, onSave, saving }) {
   const [form, setForm] = useState(() => fromProduct(product));
@@ -143,11 +148,8 @@ export default function ProductForm({ product, products, onClose, onSave, saving
       slug: form.slug?.trim() || id,
       name: form.name.trim(),
       category: form.category,
-      collection: form.collection,
-      plating: form.plating || "",
       metal: form.metal || "",
       purity: form.purity || "",
-      stones: form.stones || "",
       size: form.size || "",
       price: Math.max(0, Number(form.price) || 0),
       mrp: Math.max(0, Number(form.mrp) || 0),
@@ -155,8 +157,6 @@ export default function ProductForm({ product, products, onClose, onSave, saving
       stock: Math.max(0, Number(form.stock) || 0),
       lowStockThreshold: Math.max(0, Number(form.lowStockThreshold) || 0),
       trackInventory: Boolean(form.trackInventory),
-      badge: form.badge || "",
-      tag: form.tag || "",
       customTag: form.customTag?.trim() || "",
       bestseller: Boolean(form.bestseller),
       newArrival: Boolean(form.newArrival),
@@ -168,6 +168,7 @@ export default function ProductForm({ product, products, onClose, onSave, saving
       status: form.status || "draft",
     };
     delete payload.description;
+    RETIRED_KEYS.forEach((key) => delete payload[key]);
 
     try {
       await onSave(payload, product);
@@ -209,29 +210,12 @@ export default function ProductForm({ product, products, onClose, onSave, saving
             : ""}
         </small>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <div>
-            <label>Category</label>
-            <select value={form.category} onChange={(e) => set({ category: e.target.value })}>
-              {CATEGORIES.map((c) => (
-                <option key={c.slug} value={c.slug}>{c.name}</option>
-              ))}
-            </select>
-          </div>
-          <div>
-            <label>Collection</label>
-            <select value={form.collection} onChange={(e) => set({ collection: e.target.value })}>
-              {COLLECTIONS.map((c) => (
-                <option key={c.slug} value={c.slug}>{c.name}</option>
-              ))}
-            </select>
-          </div>
-        </div>
-
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <div><label>Plating</label><input value={form.plating} onChange={(e) => set({ plating: e.target.value })} /></div>
-          <div><label>Stones</label><input value={form.stones} onChange={(e) => set({ stones: e.target.value })} /></div>
-        </div>
+        <label>Category</label>
+        <select value={form.category} onChange={(e) => set({ category: e.target.value })}>
+          {CATEGORIES.map((c) => (
+            <option key={c.slug} value={c.slug}>{c.name}</option>
+          ))}
+        </select>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
           <div><label>Price ₹</label><input type="number" min="0" value={form.price} onChange={(e) => set({ price: e.target.value })} /></div>
@@ -239,29 +223,19 @@ export default function ProductForm({ product, products, onClose, onSave, saving
           <div><label>Stock</label><input type="number" min="0" value={form.stock} disabled={!form.trackInventory} onChange={(e) => set({ stock: e.target.value })} /></div>
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
-          <div><label>Badge</label><input value={form.badge} maxLength={40} placeholder="e.g. New, Bestseller" onChange={(e) => set({ badge: e.target.value })} /></div>
-          <div>
-            <label>Status</label>
-            <select value={form.status || "draft"} onChange={(e) => set({ status: e.target.value })}>
-              {PSTATUSES.map((s) => (
-                <option key={s} value={s}>{s}</option>
-              ))}
-            </select>
-          </div>
-        </div>
+        <label>Status</label>
+        <select value={form.status || "draft"} onChange={(e) => set({ status: e.target.value })}>
+          {PSTATUSES.map((s) => (
+            <option key={s} value={s}>{s}</option>
+          ))}
+        </select>
 
-        <label className="b1g1-toggle">
-          <input type="checkbox" checked={form.tag === "B1G1 Free"} onChange={(e) => set({ tag: e.target.checked ? "B1G1 Free" : "" })} />
-          <span className="track"><span className="knob" /></span>
-          <span className="t">B1G1 Free — show buy-one-get-one badge on this product</span>
-        </label>
-        <label className="b1g1-toggle">
+        <label className="switch-row">
           <input type="checkbox" checked={Boolean(form.bestseller)} onChange={(e) => set({ bestseller: e.target.checked })} />
           <span className="track"><span className="knob" /></span>
           <span className="t">Best Seller — listed under Best Sellers and ranked first on the home page</span>
         </label>
-        <label className="b1g1-toggle">
+        <label className="switch-row">
           <input type="checkbox" checked={Boolean(form.newArrival)} onChange={(e) => set({ newArrival: e.target.checked })} />
           <span className="track"><span className="knob" /></span>
           <span className="t">New — listed under New Launches</span>
@@ -347,12 +321,12 @@ export default function ProductForm({ product, products, onClose, onSave, saving
             <div><label>Rating (0–5)</label><input type="number" min="0" max="5" step="0.1" value={form.rating} onChange={(e) => set({ rating: e.target.value })} /></div>
             <div><label>Review count</label><input type="number" min="0" value={form.reviews} onChange={(e) => set({ reviews: e.target.value })} /></div>
           </div>
-          <label className="b1g1-toggle">
+          <label className="switch-row">
             <input type="checkbox" checked={Boolean(form.trackInventory)} onChange={(e) => set({ trackInventory: e.target.checked })} />
             <span className="track"><span className="knob" /></span>
             <span className="t">Track stock — turn off to sell without a stock count</span>
           </label>
-          <label className="b1g1-toggle">
+          <label className="switch-row">
             <input type="checkbox" checked={Boolean(form.featured)} onChange={(e) => set({ featured: e.target.checked })} />
             <span className="track"><span className="knob" /></span>
             <span className="t">Featured — include in curated featured lists</span>

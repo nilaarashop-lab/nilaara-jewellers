@@ -23,18 +23,18 @@ const DEFAULT_SLIDE = {
   eyebrow: "Festive Edit • Flat 25% off",
   title: "Heirlooms,",
   highlight: "without the heirloom price.",
-  text: "Handcrafted kundan & gold-plated jewellery — bridal-ready, skin-friendly, tarnish-resistant.",
+  text: "Handcrafted kundan, temple & pearl jewellery — bridal-ready, skin-friendly, beautifully finished.",
 };
 
 /* Built-in promo cards used until the admin configures their own. */
 const DEFAULT_CARDS = [
   {
     image: { url: SIDE_IMGS[0], alt: "Kundan" },
-    eyebrow: "New", title: "Kundan Festive Sets", text: "From ₹749", to: "/shop?col=kundan", linkLabel: "Shop now →",
+    eyebrow: "New", title: "Kundan Festive Sets", text: "From ₹749", to: "/shop?cat=jewellery-sets", linkLabel: "Shop now →",
   },
   {
-    image: { url: SIDE_IMGS[1], alt: "Demi fine" },
-    eyebrow: "Demi-Fine", title: "Everyday Gold-Plated", text: "Waterproof • Tarnish-free", to: "/shop?col=american-diamond", linkLabel: "Shop now →",
+    image: { url: SIDE_IMGS[1], alt: "Everyday elegance" },
+    eyebrow: "Everyday", title: "Everyday Elegance", text: "Lightweight • Skin-friendly", to: "/shop?cat=necklaces", linkLabel: "Shop now →",
   },
 ];
 
@@ -104,10 +104,10 @@ function Hero({ slides }) {
           <p>{s.text || DEFAULT_SLIDE.text}</p>
           <div className="cta-row">
             <Link to="/shop?col=best-sellers" className="btn btn-gold">Shop Bestsellers →</Link>
-            <Link to="/shop?col=temple" className="btn btn-ghost">Explore Temple</Link>
+            <Link to="/shop" className="btn btn-ghost">Shop All Jewellery</Link>
           </div>
           <div className="hero-trust">
-            <span>18K–24K gold plated</span><span>•</span><span>7-day exchange</span><span>•</span><span>WhatsApp ordering</span>
+            <span>Handcrafted in India</span><span>•</span><span>Nickel-safe</span><span>•</span><span>WhatsApp ordering</span>
           </div>
           {total > 1 && (
             <div className="hero-dots" role="tablist" aria-label="Choose hero slide">
@@ -165,13 +165,13 @@ export default function Home() {
       <Hero slides={slides} />
 
       <div className="trust container" style={{ width: "100%" }}>
-        {[["✦ 18K–24K Gold Plating", "Skin-friendly & certified"], ["◈ 7-Day Exchange", "No-question returns"], ["✦ Handcrafted in India", "Quality-checked pieces"], ["❖ Free Shipping ₹999+", "Pan-India delivery"]].map(([b, s]) => (
-          <div key={b}><span style={{ fontSize: 22, color: "var(--gold)" }}>✦</span><span><b>{b}</b><small>{s}</small></span></div>
+        {[["✦", "Nickel-Safe Bases", "Hypoallergenic & skin-friendly"], ["◈", "Order on WhatsApp", "We confirm availability in chat"], ["✦", "Handcrafted in India", "Quality-checked pieces"], ["❖", "Free Shipping ₹999+", "Pan-India delivery"]].map(([icon, b, s]) => (
+          <div key={b}><span style={{ fontSize: 22, color: "var(--gold)" }}>{icon}</span><span><b>{b}</b><small>{s}</small></span></div>
         ))}
       </div>
 
       <section className="sec">
-        <div className="sec-head"><div><h2>Shop by Category</h2><p>Demi-fine & ethnic — gold-plated</p></div><Link to="/shop" className="link">View all</Link></div>
+        <div className="sec-head"><div><h2>Shop by Category</h2><p>Ethnic & contemporary — handcrafted</p></div><Link to="/shop" className="link">View all</Link></div>
         <div className="circles">
           {CATEGORIES.map((ct) => (
             <Link key={ct.slug} to={`/shop?cat=${ct.slug}`} className="circle">

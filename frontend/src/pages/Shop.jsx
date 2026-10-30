@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { CATEGORIES, COLLECTIONS } from "../data/products";
+import { CATEGORIES } from "../data/products";
 import { ProductCard } from "../components/Layout";
 import { matchesQuery } from "../api/client";
 import { useStore } from "../store/StoreContext";
@@ -27,21 +27,45 @@ export default function Shop() {
   // category link does not carry a stale cap into the next listing.
   const priceCap = Math.max(500, Math.ceil(Math.max(...items.map((p) => p.price), 0) / 50) * 50);
   const maxPrice = Number(max) > 0 && Number(max) < priceCap ? Number(max) : null;
+  // Admin-named labels become real filters automatically; curated lists keep
+  // their slugs if a label happens to clash.
+  const labels = useMemo(() => {
+    const taken = new Set(CURATED.map((c) => c.slug));
+    const map = new Map();
+    for (const p of items) {
+      const name = (p.customTag || "").trim();
+      if (!name) continue;
+      const slug = slugifyLabel(name);
+      if (!slug || taken.has(slug)) continue;
+      taken.add(slug);
+      map.set(slug, name);
+    }
+    return [...map].map(([slug, name]) => ({ slug, name }));
+  }, [items]);
+
+  // Links shared before the collection attribute existed still carry slugs like
+  // ?col=kundan. An unknown slug filters nothing, so an old bookmark never opens
+  // a dead-end "0 designs" page.
+  const activeCol = useMemo(
+    () => [...CURATED, ...labels].find((c) => c.slug === col) || null,
+    [col, labels]
+  );
+  const activeFilterCount = (cat ? 1 : 0) + (activeCol ? 1 : 0) + (maxPrice != null ? 1 : 0) + (query ? 1 : 0);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
   const sortRef = useRef(null);
   // Left-panel filter drafts — applied only when the user clicks Apply.
   const [draftCat, setDraftCat] = useState(cat);
-  const [draftCol, setDraftCol] = useState(col);
+  const [draftCol, setDraftCol] = useState(activeCol?.slug || "");
   const [draftPrice, setDraftPrice] = useState(maxPrice);
 
   useEffect(() => setQuery(q), [q]);
   // Keep the drafts in sync when filters come from a link (e.g. /shop?cat=jhumkas).
   useEffect(() => {
     setDraftCat(cat);
-    setDraftCol(col);
+    setDraftCol(activeCol?.slug || "");
     setDraftPrice(maxPrice);
-  }, [cat, col, maxPrice]);
+  }, [cat, activeCol, maxPrice]);
   // Close the sort menu on outside click / Escape.
   useEffect(() => {
     if (!sortOpen) return;
@@ -59,39 +83,23 @@ export default function Shop() {
   ];
   const sortLabel = SORT_OPTIONS.find(([v]) => v === sort)?.[1] || "Featured";
 
-  const activeFilterCount = (cat ? 1 : 0) + (col ? 1 : 0) + (maxPrice != null ? 1 : 0) + (query ? 1 : 0);
-
-  // Admin-named labels become real filters automatically; built-in
-  // collections keep their slugs if a label happens to clash.
-  const labels = useMemo(() => {
-    const taken = new Set([...CURATED, ...COLLECTIONS].map((c) => c.slug));
-    const map = new Map();
-    for (const p of items) {
-      const name = (p.customTag || "").trim();
-      if (!name) continue;
-      const slug = slugifyLabel(name);
-      if (!slug || taken.has(slug)) continue;
-      taken.add(slug);
-      map.set(slug, name);
-    }
-    return [...map].map(([slug, name]) => ({ slug, name }));
-  }, [items]);
-
   const filtered = useMemo(() => {
     let list = [...items];
     if (cat) list = list.filter((p) => p.category === cat);
-    if (col === "new") list = list.filter((p) => p.newArrival || ["New", "Trending"].includes(p.badge));
-    else if (col === "best-sellers") {
-      const curated = list.filter((p) => p.bestseller || p.badge === "Bestseller");
+    if (activeCol?.slug === "new") list = list.filter((p) => p.newArrival);
+    else if (activeCol?.slug === "best-sellers") {
+      const curated = list.filter((p) => p.bestseller);
       list = curated.length ? curated : list.slice(0, 12);
-    } else if (col) list = list.filter((p) => p.collection === col || (p.customTag && slugifyLabel(p.customTag) === col));
+    } else if (activeCol) {
+      list = list.filter((p) => p.customTag && slugifyLabel(p.customTag) === activeCol.slug);
+    }
 
     if (query) list = list.filter((p) => matchesQuery(p, query));
     if (maxPrice != null) list = list.filter((p) => p.price <= maxPrice);
     if (sort === "low") list.sort((a, b) => a.price - b.price);
     if (sort === "high") list.sort((a, b) => b.price - a.price);
     return list;
-  }, [items, cat, col, sort, query, maxPrice]);
+  }, [items, cat, activeCol, sort, query, maxPrice]);
 
   const set = (k, v) => {
     const n = new URLSearchParams(params);
@@ -113,13 +121,13 @@ export default function Shop() {
   };
 
   const freeOver = Number(settings?.shipping?.freeOver ?? 999);
-  const colName = CURATED.find((c) => c.slug === col)?.name || labels.find((l) => l.slug === col)?.name || COLLECTIONS.find((c) => c.slug === col)?.name || (col ? col.replace(/-/g, " ") : "");
+  const colName = activeCol?.name || "";
   const heading = colName || (cat ? cat.replace(/-/g, " ") : "Shop All Jewellery");
 
   return (
     <main className="container">
-      <div className="breadcrumb">Home / Shop {cat && `/ ${cat}`} {col && `/ ${colName}`}</div>
-      <div className="sec-head"><div><h2>{heading}</h2><p>{`${filtered.length} designs`} • artificial & gold-plated</p></div></div>
+      <div className="breadcrumb">Home / Shop {cat && `/ ${cat}`} {activeCol && `/ ${colName}`}</div>
+      <div className="sec-head"><div><h2>{heading}</h2><p>{`${filtered.length} designs`} • artificial jewellery</p></div></div>
       <div className="shop-layout">
         <div className="filters-bar">
           <button
@@ -137,9 +145,9 @@ export default function Shop() {
           <div><button className={`chip ${!draftCat ? "on" : ""}`} onClick={() => setDraftCat("")}>All</button>
             {CATEGORIES.map((c) => <button key={c.slug} className={`chip ${draftCat === c.slug ? "on" : ""}`} onClick={() => setDraftCat(c.slug)}>{c.name}</button>)}
           </div>
-          <h4>Collection</h4>
+          <h4>Highlights</h4>
           <div><button className={`chip ${!draftCol ? "on" : ""}`} onClick={() => setDraftCol("")}>All</button>
-            {[...CURATED, ...COLLECTIONS].map((c) => <button key={c.slug} className={`chip ${draftCol === c.slug ? "on" : ""}`} onClick={() => setDraftCol(c.slug)}>{c.name}</button>)}
+            {CURATED.map((c) => <button key={c.slug} className={`chip ${draftCol === c.slug ? "on" : ""}`} onClick={() => setDraftCol(c.slug)}>{c.name}</button>)}
           </div>
           {labels.length > 0 && (
             <>
@@ -152,7 +160,6 @@ export default function Shop() {
           <h4>Good to know</h4>
           <p style={{ fontSize: 13.5, color: "var(--ink-soft)" }}>
             ✦ Free shipping over ₹{freeOver}<br />
-            ✦ 7-day easy exchange<br />
             ✦ Book any piece on WhatsApp — product ID included automatically
           </p>
           <button type="button" className="btn btn-gold" style={{ width: "100%", justifyContent: "center", marginTop: 6 }} onClick={applyFilters}>

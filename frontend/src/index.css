@@ -240,7 +240,6 @@ h1,h2,h3,h4{color:var(--maroon)}
 .mnav-group{margin-top:14px}
 .mnav-group>small{display:block;font-size:10.5px;letter-spacing:2.2px;text-transform:uppercase;color:var(--gold-2);margin-bottom:2px}
 .mnav-links{display:grid;grid-template-columns:1fr 1fr;gap:0 14px}
-.mnav-links.one{grid-template-columns:1fr}
 .mnav-links a{font-size:14.5px;padding:8px 0;border-bottom:1px solid var(--line);color:var(--ink);min-width:0}
 .mnav-links a:hover{color:var(--maroon)}
 .mnav-count{
@@ -336,7 +335,6 @@ h1,h2,h3,h4{color:var(--maroon)}
 .wish:hover{transform:scale(1.07);background:#FFFDF8;border-color:var(--gold)}
 .wish.on{background:var(--maroon);border-color:var(--maroon);color:#FFF3D6}
 .card-body{padding:15px 17px 17px;display:flex;flex-direction:column;gap:5px;flex:1}
-.plating{font-size:9.5px;letter-spacing:2px;text-transform:uppercase;color:var(--gold-2);font-weight:500}
 .card-title{display:block}
 .card-body h3{font-family:var(--serif);font-size:17px;font-weight:600;line-height:1.28;letter-spacing:.2px;margin:0;min-height:2.56em;color:var(--maroon-deep);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .pr{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;margin-top:4px}
@@ -546,16 +544,16 @@ select.status{border:1px solid var(--line);border-radius:999px;padding:7px 12px;
 .upload-tile b{font-size:30px;line-height:1}
 .upload-tile small{font-size:11px;letter-spacing:1px;text-transform:uppercase;color:var(--ink-soft)}
 
-/* B1G1 toggle (admin product form) */
-.form .b1g1-toggle{display:flex;align-items:center;gap:10px;margin:16px 0 4px;cursor:pointer;user-select:none;text-transform:none;letter-spacing:normal}
-.form .b1g1-toggle input{position:absolute;opacity:0;width:auto;height:auto;padding:0;border:0;pointer-events:none}
-.b1g1-toggle .track{width:46px;height:26px;border-radius:999px;background:var(--bg-2);border:1px solid var(--line);position:relative;transition:.18s;flex-shrink:0}
-.b1g1-toggle .knob{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:.18s}
-.b1g1-toggle input:checked ~ .track{background:var(--maroon);border-color:var(--maroon)}
-.b1g1-toggle input:checked ~ .track .knob{left:22px}
-.b1g1-toggle .t{font-size:13.5px;color:var(--ink);letter-spacing:.2px}
+/* On/off toggle rows (admin product form) */
+.form .switch-row{display:flex;align-items:center;gap:10px;margin:16px 0 4px;cursor:pointer;user-select:none;text-transform:none;letter-spacing:normal}
+.form .switch-row input{position:absolute;opacity:0;width:auto;height:auto;padding:0;border:0;pointer-events:none}
+.switch-row .track{width:46px;height:26px;border-radius:999px;background:var(--bg-2);border:1px solid var(--line);position:relative;transition:.18s;flex-shrink:0}
+.switch-row .knob{position:absolute;top:2px;left:2px;width:20px;height:20px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:.18s}
+.switch-row input:checked ~ .track{background:var(--maroon);border-color:var(--maroon)}
+.switch-row input:checked ~ .track .knob{left:22px}
+.switch-row .t{font-size:13.5px;color:var(--ink);letter-spacing:.2px}
 
-/* Admin: free-text merchandising label (sits under the B1G1/Best Seller/New toggles) */
+/* Admin: free-text merchandising label (sits under the Best Seller/New toggles) */
 .custom-tag-field{margin:14px 0 4px}
 .custom-tag-field>label{margin-bottom:6px}
 .custom-tag-row{display:flex;gap:8px;align-items:center}
@@ -714,7 +712,6 @@ select.status{border:1px solid var(--line);border-radius:999px;padding:7px 12px;
   .sec-head{margin-bottom:14px}
   .card-body{padding:11px 12px 13px;gap:3px}
   .card-body h3{font-size:14.5px;line-height:1.3;min-height:2.6em}
-  .plating{font-size:8.5px;letter-spacing:1.5px}
   .pr{gap:6px;margin-top:2px}
   .pr b{font-size:17px}
   .pr s{font-size:10.5px}

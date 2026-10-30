@@ -24,8 +24,8 @@ export function About() {
       <div className="breadcrumb">Home / Our Craft</div>
       <div className="pd"><div className="pd-media"><Img src={products[0]?.images?.[0]} alt="craft" /></div>
         <div><span className="eyebrow">Nilaara Jewellers • heirlooms for every celebration</span>
-          <h1 className="serif" style={{ fontSize: 52, margin: "10px 0" }}>Gold-plated artistry, honest prices.</h1>
-          <p style={{ color: "var(--ink-soft)", lineHeight: 1.8 }}>We work with Jaipur & Mumbai karigars to craft artificial jewellery that feels real — 18K–24K micron plating, hand-set kundan & American diamonds, skin-safe bases. Every piece is quality-checked, weight-balanced for comfort, and shipped in a keepsake box.<br /><br />✦ Tarnish-resistant plating • ✦ Nickel-safe • ✦ 7-day exchange • ✦ Book any piece on WhatsApp</p>
+          <h1 className="serif" style={{ fontSize: 52, margin: "10px 0" }}>Handcrafted artistry, honest prices.</h1>
+          <p style={{ color: "var(--ink-soft)", lineHeight: 1.8 }}>We work with Jaipur & Mumbai karigars to craft artificial jewellery that feels real — hand-set kundan & American diamonds on skin-safe bases. Every piece is quality-checked, weight-balanced for comfort, and shipped in a keepsake box.<br /><br />✦ Nickel-safe • ✦ Hypoallergenic • ✦ Book any piece on WhatsApp</p>
         </div></div>
     </main>
   );
@@ -59,7 +59,7 @@ export function Contact() {
             <button className="btn btn-gold" style={{ marginTop: 12 }}><IconWhatsApp /> Send on WhatsApp</button>
           </form>
           {opened && <p>✓ Opening WhatsApp — send the message and we'll reply within a few hours.</p>}</div>
-        <div className="form"><h3 className="serif">Care & policies</h3><p style={{ lineHeight: 1.8, color: "var(--ink-soft)" }}>Shipping 3–5 days • Free over ₹999 • 7-day exchange on unused pieces • Keep jewellery away from perfume & water. To book a piece, tap Buy Now on any product — its ID and details are filled into WhatsApp for you.</p>
+        <div className="form"><h3 className="serif">Care & policies</h3><p style={{ lineHeight: 1.8, color: "var(--ink-soft)" }}>Shipping 3–5 days • Free over ₹999 • Keep jewellery away from perfume & water. To book a piece, tap Buy Now on any product — its ID and details are filled into WhatsApp for you.</p>
           <h3 className="serif" style={{ marginTop: 18 }}>Our 2 stores</h3>
           {STORES.map((s) => <p key={s.id} style={{ fontSize: 14 }}><b>{s.name}</b><br /><a className="link" href={s.mapsUrl} target="_blank" rel="noreferrer">Get Directions →</a></p>)}
           <Link to="/stores" className="btn btn-ghost" style={{ marginTop: 8 }}>View both stores</Link></div>

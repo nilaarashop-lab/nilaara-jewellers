@@ -1,7 +1,7 @@
 import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
-import { useEffect, useId, useRef, useState } from "react";
+import { Fragment, useEffect, useId, useRef, useState } from "react";
 import { useStore } from "../store/StoreContext";
-import { COLLECTIONS, discountPercent, formatINR } from "../data/products";
+import { CATEGORIES, discountPercent, formatINR } from "../data/products";
 import { mediaUrl } from "../data/repo.js";
 import { whatsappChatLink, productEnquiryLink, WHATSAPP_DISPLAY } from "../config";
 import { searchProducts } from "../api/client";
@@ -49,13 +49,12 @@ export function ProductCard({ p }) {
     <div className={`card ${soldOut ? "soldout" : ""}`}>
       <Link to={`/product/${p.id}`} className="card-media">
         <Img src={p.images?.[0]} alt={p.name} />
-        <div className="badge">{soldOut ? <i className="o">Sold out</i> : <>{p.customTag ? <i className="g">{p.customTag}</i> : null}{p.tag ? <i className="g">{p.tag}</i> : null}{p.badge ? <i>{p.badge}</i> : null}</>}</div>
+        <div className="badge">{soldOut ? <i className="o">Sold out</i> : <>{p.customTag ? <i className="g">{p.customTag}</i> : null}</>}</div>
       </Link>
       <button className={`wish ${wishlist.includes(p.id) ? "on" : ""}`} onClick={() => toggleWish(p.id)} aria-label="wishlist">
         {wishlist.includes(p.id) ? "♥" : "♡"}
       </button>
       <div className="card-body">
-        <div className="plating">{p.plating}</div>
         <Link to={`/product/${p.id}`} className="card-title"><h3>{p.name}</h3></Link>
         <div className="pr"><b>{formatINR(p.price)}</b>{off > 0 && <><s>{formatINR(p.mrp)}</s><em>{off}% off</em></>}</div>
         {!soldOut && low && <div className="stock low">Only {p.stock} left</div>}
@@ -131,7 +130,7 @@ export function AnnounceBar() {
   }
   return (
     <div className="announce">
-      <span className="announce-full">Free shipping over ₹999 <span className="dot">•</span> 7-day easy exchange <span className="dot">•</span> Order on WhatsApp</span>
+      <span className="announce-full">Free shipping over ₹999 <span className="dot">•</span> Order on WhatsApp</span>
       <span className="announce-short">Free shipping over ₹999 <span className="dot">•</span> Order on WhatsApp</span>
     </div>
   );
@@ -345,7 +344,7 @@ function SearchBox({ className = "", placeholder = "Search jewellery…" }) {
                     <Img src={p.images?.[0]} alt="" className="sq-thumb" />
                     <span className="sq-info">
                       <b>{p.name}</b>
-                      <small>{String(p.category || p.plating || "").replace(/-/g, " ")}</small>
+                      <small>{String(p.category || "").replace(/-/g, " ")}</small>
                     </span>
                     <span className="sq-price">{formatINR(p.price)}</span>
                   </Link>
@@ -405,7 +404,7 @@ export function Header() {
             <button className="hbtn menu-btn" onClick={() => setMnav(true)} aria-label="Open menu" aria-expanded={mnav}><IconMenu /></button>
             <Link to="/" className="logo" aria-label="Nilaara Jewellers home">
               <img className="logo-mark" src="/nilaara-mark.png" alt="" />
-              <span><span className="logo-name">NILAARA</span><br /><span className="logo-sub">Gold-Plated • Artificial Jewellery</span></span>
+              <span><span className="logo-name">NILAARA</span><br /><span className="logo-sub">Handcrafted • Artificial Jewellery</span></span>
             </Link>
             <SearchBox placeholder="Search necklace sets, jhumkas, kundan, temple…" />
             <div className="hicons">
@@ -428,14 +427,7 @@ export function Header() {
           <nav className="nav">
             {navLink("/shop?col=new", "New Launches")}
             {navLink("/shop?col=best-sellers", "Best Sellers")}
-            {navLink("/shop?cat=jewellery-sets", "Jewellery Sets")}
-            {navLink("/shop?cat=necklaces", "Necklaces")}
-            {navLink("/shop?cat=earrings", "Earrings")}
-            {navLink("/shop?cat=jhumkas", "Jhumkas")}
-            {navLink("/shop?cat=bangles", "Bangles")}
-            {navLink("/shop?cat=rings", "Rings")}
-            {navLink("/shop?col=kundan", "Kundan")}
-            {navLink("/shop?col=temple", "Temple")}
+            {CATEGORIES.map((c) => navLink(`/shop?cat=${c.slug}`, c.name))}
             {navLink("/stores", "Our Stores")}
             {navLink("/about", "Our Craft")}
           </nav>
@@ -467,23 +459,8 @@ export function Header() {
               <div className="mnav-group">
                 <small>Shop by category</small>
                 <div className="mnav-links">
-                  {[
-                    ["Jewellery Sets", "/shop?cat=jewellery-sets"],
-                    ["Necklaces", "/shop?cat=necklaces"],
-                    ["Earrings", "/shop?cat=earrings"],
-                    ["Jhumkas", "/shop?cat=jhumkas"],
-                    ["Bangles", "/shop?cat=bangles"],
-                    ["Rings", "/shop?cat=rings"],
-                  ].map(([label, to]) => (
-                    <Link key={label} to={to} onClick={() => setMnav(false)}>{label}</Link>
-                  ))}
-                </div>
-              </div>
-              <div className="mnav-group">
-                <small>Collections</small>
-                <div className="mnav-links one">
-                  {COLLECTIONS.map((c) => (
-                    <Link key={c.slug} to={`/shop?col=${c.slug}`} onClick={() => setMnav(false)}>{c.name}</Link>
+                  {CATEGORIES.map((c) => (
+                    <Link key={c.slug} to={`/shop?cat=${c.slug}`} onClick={() => setMnav(false)}>{c.name}</Link>
                   ))}
                 </div>
               </div>
@@ -528,16 +505,21 @@ export function Footer() {
         <div className="footer-grid">
           <div>
             <img className="footer-logo" src="/nilaara-logo.png" alt="Nilaara Jewellers" />
-            <p>Premium artificial & gold-plated jewellery — handcrafted in India. Skin-friendly, tarnish-resistant, made for weddings, festivals & everyday elegance.</p>
+            <p>Premium artificial jewellery — handcrafted in India. Skin-friendly, nickel-safe, made for weddings, festivals & everyday elegance.</p>
             <p style={{ marginTop: 10 }}>CIN: UXXXXXKA2026PTC000000<br />© 2026 Nilaara Jewellers. All rights reserved.</p>
           </div>
           <div>
             <h4>Care</h4>
-            <p><a href={whatsappChatLink()} target="_blank" rel="noreferrer">Chat on WhatsApp</a><br /><Link to="/stores">Our 2 Stores + Directions</Link><br /><Link to="/about">Shipping Policy</Link><br /><Link to="/about">Return & Exchange</Link><br /><Link to="/about">Jewellery Care</Link><br /><Link to="/contact">Contact Us</Link></p>
+            <p><a href={whatsappChatLink()} target="_blank" rel="noreferrer">Chat on WhatsApp</a><br /><Link to="/stores">Our 2 Stores + Directions</Link><br /><Link to="/about">Shipping Policy</Link><br /><Link to="/about">Jewellery Care</Link><br /><Link to="/contact">Contact Us</Link></p>
           </div>
           <div>
             <h4>Shop</h4>
-            <p><Link to="/shop?cat=jewellery-sets">Jewellery Sets</Link><br /><Link to="/shop?cat=jhumkas">Jhumkas</Link><br /><Link to="/shop?cat=bangles">Bangles</Link><br /><Link to="/shop?col=kundan">Kundan</Link><br /><Link to="/shop?col=temple">Temple</Link></p>
+            <p>{CATEGORIES.map((c, i) => (
+              <Fragment key={c.slug}>
+                {i > 0 && <br />}
+                <Link to={`/shop?cat=${c.slug}`}>{c.name}</Link>
+              </Fragment>
+            ))}</p>
           </div>
           <div>
             <h4>Order on WhatsApp</h4>
@@ -548,7 +530,7 @@ export function Footer() {
             <p style={{ marginTop: 12 }}>WhatsApp: <a href={whatsappChatLink()} target="_blank" rel="noreferrer">{WHATSAPP_DISPLAY}</a><br />10:30 AM – 5:30 PM, Mon–Sat</p>
           </div>
         </div>
-        <div className="copy"><span>Made with care in India • Order on WhatsApp • Easy 7-day exchange</span><span>Every piece is hand-checked before dispatch • <Link to="/admin/">Staff login</Link></span></div>
+        <div className="copy"><span>Made with care in India • Order on WhatsApp</span><span>Every piece is hand-checked before dispatch • <Link to="/admin/">Staff login</Link></span></div>
       </div>
     </footer>
   );

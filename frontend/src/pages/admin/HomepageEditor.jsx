@@ -514,7 +514,7 @@ export default function HomepageEditor() {
                   <input
                     value={card.to}
                     maxLength={200}
-                    placeholder="Link (e.g. /shop?col=kundan)"
+                    placeholder="Link (e.g. /shop?cat=jhumkas)"
                     onChange={(e) =>
                       set(() => {
                         const next = [...cards];

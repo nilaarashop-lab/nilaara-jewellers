@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { CATEGORIES, COLLECTIONS, formatINR } from "../data/products";
+import { CATEGORIES, formatINR } from "../data/products";
 import { Img } from "../components/Layout";
 import {
   clearToken,
@@ -120,7 +120,7 @@ export default function Admin() {
     return products.filter((p) => {
       if (statusF && (p.status || "published") !== statusF) return false;
       if (!needle) return true;
-      return [p.name, p.id, p.category, p.collection, p.customTag, p.badge]
+      return [p.name, p.id, p.category, p.customTag]
         .filter(Boolean)
         .join(" ")
         .toLowerCase()
@@ -260,7 +260,7 @@ export default function Admin() {
             <Stat
               label="Published"
               value={stats.published.length}
-              sub={`${CATEGORIES.length} categories • ${COLLECTIONS.length} collections`}
+              sub={`${CATEGORIES.length} categories in the catalogue`}
             />
             <Stat
               label="Low stock"
@@ -294,7 +294,7 @@ export default function Admin() {
                 <tbody>
                   {stats.lowStock.slice(0, 8).map((p) => (
                     <tr key={p.id}>
-                      <td><b>{p.name}</b><br /><small>{p.id} • {p.collection}</small></td>
+                      <td><b>{p.name}</b><br /><small>{p.id}</small></td>
                       <td>{p.category}</td>
                       <td style={{ color: stockOf(p) <= 0 ? "var(--danger)" : undefined }}>
                         {stockOf(p) <= 0 ? "Sold out" : `${stockOf(p)} left`}
@@ -381,7 +381,7 @@ export default function Admin() {
                         style={{ width: 44, height: 44, objectFit: "cover", borderRadius: 8 }}
                       />
                     </td>
-                    <td><b>{p.name}</b><br /><small>{p.id} • {p.collection}</small></td>
+                    <td><b>{p.name}</b><br /><small>{p.id}</small></td>
                     <td>{p.category}</td>
                     <td>
                       {formatINR(p.price)} {Number(p.mrp) > Number(p.price) && <s>{formatINR(p.mrp)}</s>}

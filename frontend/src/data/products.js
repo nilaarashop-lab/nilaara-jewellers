@@ -13,15 +13,6 @@ export const CATEGORIES = [
   { slug: "rings", name: "Rings", img: img("photo-1605100804763-247f67b3557e", 400), count: "180 styles" },
 ];
 
-export const COLLECTIONS = [
-  { slug: "gold-plated", name: "Gold Plated", img: img("photo-1611652022419-a9419f74343d", 600) },
-  { slug: "american-diamond", name: "American Diamond", img: img("photo-1515562141207-7a88fb7ce338", 600) },
-  { slug: "kundan", name: "Kundan", img: img("photo-1584302179602-e4c3d3fd629d", 600) },
-  { slug: "temple", name: "Temple", img: img("photo-1602173574767-37ac01994b2a", 600) },
-  { slug: "oxidised", name: "Oxidised", img: img("photo-1610694955371-d4a3e0ce4b52", 600) },
-  { slug: "pearl", name: "Pearl & Beaded", img: img("photo-1599643477877-530eb83abc8e", 600) },
-];
-
 /** Published products from the Git-managed catalogue (frontend/src/content/products.json). */
 const normalizeProduct = (p, commit = "") => ({
   ...p,

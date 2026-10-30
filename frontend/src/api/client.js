@@ -9,7 +9,7 @@
 import { PRODUCTS } from "../data/products";
 
 const searchable = (p) =>
-  [p.name, p.plating, p.stones, p.collection, p.category, p.customTag, p.tag, p.badge]
+  [p.name, p.category, p.customTag]
     .filter(Boolean)
     .join(" ")
     .toLowerCase();

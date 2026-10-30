@@ -36,7 +36,7 @@ export default function Stores() {
       </div>
       <div className="form" style={{ marginTop: 20 }}>
         <h3 className="serif" style={{ margin: 0 }}>Can’t visit? Shop online</h3>
-        <p style={{ color: "var(--ink-soft)" }}>Same designs, same prices — order on WhatsApp, 7-day exchange, free shipping over ₹999.</p>
+        <p style={{ color: "var(--ink-soft)" }}>Same designs, same prices — order on WhatsApp, free shipping over ₹999.</p>
         <div className="cta-row"><Link to="/shop" className="btn btn-gold">Shop Bestsellers →</Link></div>
       </div>
     </main>

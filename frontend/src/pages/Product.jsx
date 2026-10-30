@@ -31,7 +31,16 @@ export default function Product() {
       </main>
     );
   }
-  const related = items.filter((x) => x.id !== p.id && (x.category === p.category || x.collection === p.collection)).slice(0, 4);
+  const sameCat = items.filter((x) => x.id !== p.id && x.category === p.category);
+  const related = [...sameCat, ...items.filter((x) => x.id !== p.id && x.category !== p.category)].slice(0, 4);
+  const specs = [
+    p.metal && `Base: ${p.metal}`,
+    p.size && `Size: ${p.size}`,
+    p.purity && `Purity: ${p.purity}`,
+    "Closure: push-back / lobster",
+    "Hypoallergenic, nickel-safe",
+    "Includes Nilaara gift box & care card",
+  ].filter(Boolean).join(" • ");
   // Live updates can replace the photo list while this page is open; keep the
   // selected index inside the new range.
   const imageIndex = Math.min(imgI, Math.max((p.images?.length || 1) - 1, 0));
@@ -48,13 +57,14 @@ export default function Product() {
           <div className="thumbs">{(p.images || []).map((s, i) => <Img key={i} src={s} alt="" className={i === imageIndex ? "on" : ""} onClick={() => setImgI(i)} />)}</div>
         </div>
         <div className="pd-info">
-          <span className="badge" style={{ position: "static" }}>{soldOut ? <i className="o">Sold out</i> : <>{p.customTag ? <i className="g">{p.customTag}</i> : null}{p.tag ? <i className="g">{p.tag}</i> : null}<i>{p.badge}</i></>}</span>
+          {(soldOut || p.customTag) && (
+            <span className="badge" style={{ position: "static" }}>{soldOut ? <i className="o">Sold out</i> : <i className="g">{p.customTag}</i>}</span>
+          )}
           <h1>{p.name}</h1>
           <div className="pr" style={{ marginTop: 10 }}><b>{formatINR(p.price)}</b>{off > 0 && <><s>{formatINR(p.mrp)}</s><em>{off}% off</em></>}</div>
           <p style={{ color: "var(--green)", fontSize: 14 }}>Inclusive of all taxes</p>
           <p className={`stock ${soldOut ? "out" : low ? "low" : "in"}`} style={{ marginTop: 0 }}>{soldOut ? "Out of stock — back soon" : low ? `Hurry, only ${p.stock} left!` : "In stock • ready to ship"}</p>
           <p style={{ color: "var(--ink-soft)", lineHeight: 1.7 }}>{p.desc}</p>
-          <p style={{ fontSize: 13.5 }}><b>Plating:</b> {p.plating} &nbsp;•&nbsp; <b>Stones:</b> {p.stones}</p>
           <p className="pd-id">Product ID: <code>{p.id}</code></p>
           <div className="pd-buy-row">
             {soldOut ? (
@@ -73,9 +83,9 @@ export default function Product() {
             <button className="hbtn pd-wish" onClick={() => toggleWish(p.id)} aria-label="Save to wishlist">{wishlist.includes(p.id) ? "♥" : "♡"}</button>
           </div>
           <p className="pd-hint">Tap <b>Buy Now</b> — WhatsApp opens with this piece's name and <b>Product ID</b> already filled in. We'll reply there with price, availability, payment and shipping details.</p>
-          <details className="acc" open><summary>Product details</summary><div>Base: brass alloy • Plating: {p.plating} • Stones: {p.stones} • Closure: push-back / lobster • Hypoallergenic, nickel-safe. Includes Nilaara gift box & care card.</div></details>
-          <details className="acc"><summary>Shipping & returns</summary><div>Dispatch in 24h • Delivery 3–5 days • 7-day easy exchange (unused, tags intact). Shipping and payment are confirmed on WhatsApp when you book.</div></details>
-          <details className="acc"><summary>Jewellery care</summary><div>Keep away from perfume & water. Wipe with soft cloth after wear. Store in zip pouch. Re-plating service available on request.</div></details>
+          <details className="acc" open><summary>Product details</summary><div>{specs}</div></details>
+          <details className="acc"><summary>Shipping</summary><div>Dispatch in 24h • Delivery 3–5 days • Shipping and payment are confirmed on WhatsApp when you book.</div></details>
+          <details className="acc"><summary>Jewellery care</summary><div>Keep away from perfume & water. Wipe with soft cloth after wear. Store in zip pouch.</div></details>
         </div>
       </div>
       <section className="sec">
