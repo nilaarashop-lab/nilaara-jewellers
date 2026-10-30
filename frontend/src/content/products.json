@@ -57,6 +57,35 @@
       ],
       "desc": "",
       "status": "published"
+    },
+    {
+      "id": "w2002",
+      "slug": "w2002",
+      "name": "test7",
+      "category": "white-stone",
+      "metal": "",
+      "purity": "",
+      "size": "",
+      "price": 799,
+      "mrp": 1499,
+      "makingCharges": 0,
+      "stock": 10,
+      "lowStockThreshold": 5,
+      "trackInventory": true,
+      "customTag": "",
+      "chainOption": false,
+      "chainCharge": 0,
+      "bestseller": false,
+      "newArrival": true,
+      "featured": false,
+      "rating": 0,
+      "reviews": 0,
+      "images": [
+        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/1793377482267-5kjl-dsc00148-cropped_O77a4U5aC",
+        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/1793377494369-7gpq-dsc00149-cropped_wsdrmGFvE"
+      ],
+      "desc": "",
+      "status": "published"
     }
   ]
 }
