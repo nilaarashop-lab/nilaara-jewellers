@@ -9,7 +9,7 @@ export default function AdminLogin({ onLogin, busy, error }) {
           <h2 className="serif" style={{ fontSize: 38, margin: "8px 0" }}>Control centre</h2>
           <p style={{ color: "var(--ink-soft)" }}>
             Sign in with the GitHub account that has write access to the Nilaara repository. Every save is a
-            commit, and the live storefront rebuilds automatically.
+            commit, and the live storefront reads the change on its next page load.
           </p>
 
           <button

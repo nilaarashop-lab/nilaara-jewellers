@@ -1,14 +1,13 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useStore } from "../store/StoreContext";
-import { PRODUCTS } from "../data/products";
 import { STORES } from "../data/stores";
 import { ProductCard, Img, IconWhatsApp } from "../components/Layout";
 import { whatsappChatLink, whatsappLink, WHATSAPP_DISPLAY } from "../config";
 
 export function Wishlist() {
-  const { wishlist } = useStore();
-  const list = PRODUCTS.filter((p) => wishlist.includes(p.id));
+  const { wishlist, products } = useStore();
+  const list = products.filter((p) => wishlist.includes(p.id));
   return (
     <main className="container"><div className="breadcrumb">Home / Wishlist</div>
       <div className="sec-head"><h2>Wishlist ({list.length})</h2></div>
@@ -19,10 +18,11 @@ export function Wishlist() {
 }
 
 export function About() {
+  const { products } = useStore();
   return (
     <main className="container">
       <div className="breadcrumb">Home / Our Craft</div>
-      <div className="pd"><div className="pd-media"><Img src={PRODUCTS[0].images[0]} alt="craft" /></div>
+      <div className="pd"><div className="pd-media"><Img src={products[0]?.images?.[0]} alt="craft" /></div>
         <div><span className="eyebrow">Nilaara Jewellers • heirlooms for every celebration</span>
           <h1 className="serif" style={{ fontSize: 52, margin: "10px 0" }}>Gold-plated artistry, honest prices.</h1>
           <p style={{ color: "var(--ink-soft)", lineHeight: 1.8 }}>We work with Jaipur & Mumbai karigars to craft artificial jewellery that feels real — 18K–24K micron plating, hand-set kundan & American diamonds, skin-safe bases. Every piece is quality-checked, weight-balanced for comfort, and shipped in a keepsake box.<br /><br />✦ Tarnish-resistant plating • ✦ Nickel-safe • ✦ 7-day exchange • ✦ Book any piece on WhatsApp</p>

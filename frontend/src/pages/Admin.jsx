@@ -162,7 +162,7 @@ export default function Admin() {
       );
       setEditing(null);
       setFlash(
-        `${original ? "Product updated" : "Product added"} ✓ — Vercel is rebuilding; the storefront updates in about a minute.`
+        `${original ? "Product updated" : "Product added"} ✓ — live on the storefront now. Open Preview to check it.`
       );
     } finally {
       setSaving(false);
@@ -178,7 +178,7 @@ export default function Admin() {
       const next = products.filter((p) => p.id !== product.id);
       await persist(next, `Admin: delete product “${product.name}”`);
       if (editing && editing !== "new" && editing.id === product.id) setEditing(null);
-      setFlash("Product deleted ✓ — Vercel is rebuilding.");
+      setFlash("Product deleted ✓ — removed from the storefront now.");
     } catch (ex) {
       setLoadErr(ex.message);
     } finally {

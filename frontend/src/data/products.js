@@ -33,9 +33,12 @@ const normalizeProduct = (p) => ({
   inStock: p.trackInventory === false ? true : Number(p.stock) > 0,
 });
 
-export const PRODUCTS = (catalogue.products || [])
-  .filter((p) => p.status === "published")
-  .map(normalizeProduct);
+export const normalizeProducts = (list) =>
+  (Array.isArray(list) ? list : [])
+    .filter((p) => p && p.status === "published")
+    .map(normalizeProduct);
+
+export const PRODUCTS = normalizeProducts(catalogue.products);
 
 export const HERO_IMG = img("photo-1611652022419-a9419f74343d", 1200);
 export const SIDE_IMGS = [

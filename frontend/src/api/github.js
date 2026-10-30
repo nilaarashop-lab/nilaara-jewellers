@@ -3,12 +3,15 @@
  *
  * The site is static: there is no content server or database. Staff sign in
  * with GitHub, and this module reads/writes the JSON catalogue through GitHub's
- * Contents API. Every save is a commit on `main`, which triggers a Vercel
- * rebuild. Images are committed to `frontend/public/uploads`.
+ * Contents API. Every save is a commit on `main`; the storefront reads the
+ * latest committed JSON on page load, and the commit also refreshes the
+ * bundled fallback on the next Vercel build. Images are committed to
+ * `frontend/public/uploads`.
  */
 
-export const REPO = "nilaarashop-lab/nilaara-jewellers";
-export const BRANCH = "main";
+import { BRANCH, REPO, mediaUrl } from "../data/repo.js";
+
+export { BRANCH, REPO };
 export const PRODUCTS_PATH = "frontend/src/content/products.json";
 export const SETTINGS_PATH = "frontend/src/content/settings.json";
 export const UPLOADS_DIR = "frontend/public/uploads";
@@ -369,9 +372,5 @@ export async function uploadImage(file, token = getToken()) {
 
 /** Preview committed uploads immediately, before the Vercel rebuild finishes. */
 export function previewUrl(url) {
-  if (!url) return "";
-  if (String(url).startsWith("/uploads/")) {
-    return `https://raw.githubusercontent.com/${REPO}/${BRANCH}/frontend/public${url}`;
-  }
-  return url;
+  return mediaUrl(url);
 }

@@ -7,10 +7,12 @@ login, cart, checkout, or order API.
 The site is **fully static**:
 
 - Products and homepage content are JSON files committed to this repository.
-- Vercel builds the storefront from those files — there is no content API,
-  database, or server to start, sleep, or keep alive.
+- The storefront reads the latest committed JSON on page load, with the
+  build-time copy as an offline fallback. There is no content API, database, or
+  server to start, sleep, or keep alive.
 - Staff edit content through a custom React admin at **`/admin`**. Publishing
-  commits to `main` and triggers a Vercel rebuild.
+  commits to `main`; the change appears on the next storefront page load, without
+  waiting for a Vercel rebuild.
 
 ## How ordering works
 
@@ -30,6 +32,7 @@ frontend/                       # storefront + staff admin
   src/content/settings.json     # homepage hero, announcement, category tiles
   src/data/products.js          # imports JSON; only published products are shown
   src/data/settings.js          # turns admin JSON into storefront settings
+  src/data/liveContent.js       # fetches the latest committed JSON at runtime
   src/pages/Admin.jsx           # staff admin shell, dashboard, product table
   src/pages/admin/              # login card, product form, homepage editor
   src/api/github.js             # GitHub Contents API reads/writes + image upload
@@ -69,12 +72,13 @@ or edit the JSON files directly.
 2. Sign in with the GitHub account that has write access to
    `nilaarashop-lab/nilaara-jewellers`.
 3. Edit **Products** or **Homepage**.
-4. Save. The admin commits to `main`; Vercel rebuilds automatically.
+4. Save. The admin commits to `main`; the storefront picks up the new JSON on the
+   next page load. Vercel also rebuilds the bundled fallback automatically.
 
-New image uploads are committed to `frontend/public/uploads/` and served from
-`/uploads/…`. Existing ImageKit URLs can stay as they are. Photos are resized and
-compressed in the browser so each upload stays below GitHub's 1 MB Contents API
-limit.
+New image uploads are committed to `frontend/public/uploads/` and read from the
+repository immediately. Existing ImageKit URLs can stay as they are. Photos are
+resized and compressed in the browser so each upload stays below GitHub's 1 MB
+Contents API limit.
 
 Only GitHub accounts with **write access** to the repository can publish. There
 is no separate admin password. The OAuth token is kept in `sessionStorage` for

@@ -1,8 +1,9 @@
 # Deployment Guide — static catalogue + GitHub admin
 
 The deployed site is **only** the Vite frontend plus two small Vercel functions
-for GitHub login. Products and homepage content are committed JSON files; there
-is no content API or database.
+for GitHub login. Products and homepage content are committed JSON files read at
+runtime, with the build-time copy as a fallback; there is no content API or
+database.
 
 ## Prerequisites
 
@@ -78,12 +79,15 @@ Remove someone's repository access to remove admin access.
 3. Edit **Products** or **Homepage**.
 4. Save.
 
-Each save is a commit on `main`; Vercel detects the commit and rebuilds. The new
-content is live when the deployment finishes (usually under a minute).
+Each save is a commit on `main`. The storefront fetches the latest committed
+JSON from GitHub on page load, so the change is visible on the next refresh —
+no rebuild wait. Vercel also rebuilds in the background to refresh the bundled
+offline fallback.
 
-New uploads go to `frontend/public/uploads/` and are served from `/uploads/…`.
-Existing ImageKit URLs remain valid and can be kept. Photos are resized and
-compressed in the browser to stay below GitHub's 1 MB Contents API limit.
+New uploads go to `frontend/public/uploads/` and are read from the repository
+immediately. Existing ImageKit URLs remain valid and can be kept. Photos are
+resized and compressed in the browser to stay below GitHub's 1 MB Contents API
+limit.
 
 ## 4. Content files
 
@@ -124,7 +128,7 @@ outside this repository and are not part of the deployed site.
 - [ ] `GITHUB_OAUTH_CLIENT_ID` and `GITHUB_OAUTH_CLIENT_SECRET` are set in Vercel
 - [ ] GitHub OAuth callback is exactly `https://<domain>/api/callback`
 - [ ] `/admin` opens and GitHub login succeeds
-- [ ] A test admin edit commits to `main` and triggers a Vercel rebuild
+- [ ] A test admin edit commits to `main` and appears on the next storefront load
 - [ ] `/shop` shows only published products
 - [ ] `/product/<id>` hard refresh works
 - [ ] A Buy Now button opens WhatsApp with the product name + ID
@@ -138,6 +142,6 @@ outside this repository and are not part of the deployed site.
 | GitHub returns `redirect_uri_mismatch` | OAuth App callback must match `/api/callback` exactly, including https |
 | Login state did not match | Cookies blocked, or `SITE_URL`/domain changed between auth and callback |
 | Admin says the account cannot publish | The GitHub account needs write access to the repository |
-| Admin saves but site does not change | Vercel Git integration / deployment status; the commit must reach `main` |
-| New image is broken | Check `frontend/public/uploads/…` was committed and the Vercel build finished |
+| Admin saves but site does not change | The commit must reach `main`; refresh the storefront tab. Check the browser can reach `raw.githubusercontent.com` |
+| New image is broken | Check `frontend/public/uploads/…` was committed; the storefront reads it from the repository immediately |
 | Product is missing | Its `status` is not `published`, or the product ID is blank/duplicated |

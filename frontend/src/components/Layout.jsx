@@ -2,6 +2,7 @@ import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useId, useRef, useState } from "react";
 import { useStore } from "../store/StoreContext";
 import { COLLECTIONS, discountPercent, formatINR } from "../data/products";
+import { mediaUrl } from "../data/repo.js";
 import { whatsappChatLink, productEnquiryLink, WHATSAPP_DISPLAY } from "../config";
 import { searchProducts } from "../api/client";
 
@@ -23,7 +24,7 @@ export const IconMenu = () => (<svg {...svgProps}><path d="M4 7h16M4 12h16M4 17h
  * Nilaara mark instead of a broken icon or an unrelated picture.
  */
 export function Img({ src, alt = "", ...rest }) {
-  const safe = src || "/nilaara-mark.png";
+  const safe = mediaUrl(src) || "/nilaara-mark.png";
   const [current, setCurrent] = useState(safe);
   if (current !== safe) setCurrent(safe); // adjust state during render when src changes
   return (
@@ -143,7 +144,7 @@ const SEARCH_TERMS = ["Jhumka", "Kundan", "Temple", "Necklace set", "Bangles"];
  * Debounced catalogue lookup. Fires only while the panel is open and the query
  * is at least two characters; a failed request surfaces as an error state.
  */
-function useProductSearch(term, active) {
+function useProductSearch(term, active, products) {
   const [state, setState] = useState({ status: "idle", results: [] });
   const [attempt, setAttempt] = useState(0);
   const needle = term.trim();
@@ -156,7 +157,7 @@ function useProductSearch(term, active) {
     let alive = true;
     setState((s) => ({ status: "loading", results: s.results }));
     const timer = setTimeout(() => {
-      searchProducts(needle, 6)
+      searchProducts(needle, 6, products)
         .then((results) => alive && setState({ status: "ready", results }))
         .catch(() => alive && setState({ status: "error", results: [] }));
     }, 200);
@@ -164,7 +165,7 @@ function useProductSearch(term, active) {
       alive = false;
       clearTimeout(timer);
     };
-  }, [needle, active, attempt]);
+  }, [needle, active, attempt, products]);
   return [state, () => setAttempt((n) => n + 1)];
 }
 
@@ -176,12 +177,13 @@ function SearchBox({ className = "", placeholder = "Search jewellery…" }) {
   const uid = useId().replace(/:/g, "");
   const nav = useNavigate();
   const { pathname } = useLocation();
+  const { products } = useStore();
   const [term, setTerm] = useState("");
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(-1);
   const wrapRef = useRef(null);
   const inputRef = useRef(null);
-  const [search, retry] = useProductSearch(term, open);
+  const [search, retry] = useProductSearch(term, open, products);
   const { status, results } = search;
   const needle = term.trim();
 

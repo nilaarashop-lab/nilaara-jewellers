@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CATEGORIES, PRODUCTS, SIDE_IMGS, FESTIVE_IMG } from "../data/products";
+import { CATEGORIES, SIDE_IMGS, FESTIVE_IMG } from "../data/products";
 import { ProductCard, Img } from "../components/Layout";
 import { useStore } from "../store/StoreContext";
 
@@ -138,8 +138,7 @@ function Hero({ slides }) {
 }
 
 export default function Home() {
-  const { settings } = useStore();
-  const items = PRODUCTS;
+  const { settings, products: items } = useStore();
   // Best Seller flags lead; the rest stay in catalogue order.
   const best = [...items].sort((a, b) => Number(Boolean(b.bestseller)) - Number(Boolean(a.bestseller))).slice(0, 8);
 

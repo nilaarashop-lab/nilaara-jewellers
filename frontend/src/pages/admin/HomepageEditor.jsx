@@ -160,7 +160,7 @@ export default function HomepageEditor() {
     try {
       const saved = await saveSettings(doc, sha, "Admin: update homepage");
       setSha(saved.sha);
-      setFlash("Homepage saved ✓ — Vercel is rebuilding; the storefront updates in about a minute.");
+      setFlash("Homepage saved ✓ — live on the storefront now.");
     } catch (ex) {
       setErr(ex.message);
     } finally {

@@ -1,17 +1,23 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
-import { PRODUCTS, discountPercent, formatINR } from "../data/products";
+import { discountPercent, formatINR } from "../data/products";
 import { ProductCard, Img, IconWhatsApp } from "../components/Layout";
 import { useStore } from "../store/StoreContext";
 import { productEnquiryLink } from "../config";
 
 export default function Product() {
   const { id } = useParams();
-  const { toggleWish, wishlist } = useStore();
-  const items = PRODUCTS;
+  const { toggleWish, wishlist, products: items, contentStatus } = useStore();
   const [imgI, setImgI] = useState(0);
   useEffect(() => { setImgI(0); window.scrollTo(0, 0); }, [id]);
   const p = items.find((x) => x.id === id);
+  if (!p && contentStatus === "loading") {
+    return (
+      <main className="container">
+        <div className="empty">Loading this piece…</div>
+      </main>
+    );
+  }
   if (!p) {
     return (
       <main className="container">

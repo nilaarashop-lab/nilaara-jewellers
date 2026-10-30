@@ -34,7 +34,9 @@ separate static admin page.
 ## Publishing content
 
 Every admin save creates a commit on `main` through GitHub's Contents API. The
-connected Vercel project rebuilds automatically, bundling the new JSON files.
+storefront fetches the latest committed JSON from GitHub on page load, so the
+change appears on the next refresh without waiting for a build. The connected
+Vercel project still rebuilds automatically to refresh the bundled fallback.
 
 The content files are:
 
@@ -71,5 +73,5 @@ Environment variables are set in the Vercel dashboard, not in `.env`.
 | Login says not configured | Missing GitHub OAuth env vars, or deployment predates them |
 | `redirect_uri_mismatch` | OAuth App callback URL differs from `/api/callback` |
 | Admin says the account cannot publish | The GitHub account has read-only repository access |
-| Admin commits but site is stale | Vercel Git integration is disconnected, or the commit went to another branch |
-| Old products still show | The deployment has not finished, or the product was edited outside the admin and not pushed |
+| Admin commits but site is stale | The commit went to another branch, or the browser cannot reach `raw.githubusercontent.com` |
+| Old products still show | Refresh the tab; the live fetch may have failed and the bundled fallback is being used |

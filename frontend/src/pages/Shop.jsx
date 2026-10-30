@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { CATEGORIES, COLLECTIONS, PRODUCTS } from "../data/products";
+import { CATEGORIES, COLLECTIONS } from "../data/products";
 import { ProductCard } from "../components/Layout";
 import { matchesQuery } from "../api/client";
 import { useStore } from "../store/StoreContext";
@@ -14,9 +14,8 @@ const CURATED = [
 const slugifyLabel = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
 export default function Shop() {
-  const { settings } = useStore();
+  const { settings, products: items } = useStore();
   const [params, setParams] = useSearchParams();
-  const items = PRODUCTS;
   const cat = params.get("cat") || "";
   const col = params.get("col") || "";
   const sort = params.get("sort") || "featured";

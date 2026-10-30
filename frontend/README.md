@@ -27,8 +27,10 @@ No environment variables are needed for the storefront.
 
 Staff edit these through the React admin at `/admin` on the deployed site. The
 admin reads and writes the JSON files through GitHub's Contents API, so every
-save is a commit on `main`. GitHub OAuth is handled by `api/auth.js` and
-`api/callback.js` on Vercel.
+save is a commit on `main`. The storefront fetches the latest committed JSON on
+page load (with the bundled copy as a fallback), so edits appear on the next
+refresh without waiting for a rebuild. GitHub OAuth is handled by `api/auth.js`
+and `api/callback.js` on Vercel.
 
 ## Admin
 
@@ -81,6 +83,8 @@ Retired routes (`/login`, `/register`, `/account`, `/cart`, `/checkout`,
 - `src/data/products.js` — imports the catalogue and filters published items
 - `src/data/settings.js` — normalizes homepage settings for components
 - `src/api/github.js` — GitHub Contents API, image upload, OAuth popup
+- `src/data/liveContent.js` — runtime JSON refresh with bundled fallback
+- `src/data/repo.js` — repository coordinates and upload URL helper
 - `src/api/client.js` — local catalogue search helpers
 - `src/pages/Admin.jsx` — staff admin shell
 - `src/pages/admin/` — login, product form, homepage editor, image slot
