@@ -1,10 +1,10 @@
 {
   "products": [
     {
-      "id": "w2000",
+      "id": "ws2000",
       "slug": "w2000",
-      "name": "white diamond",
-      "category": "necklaces",
+      "name": "white stone",
+      "category": "white-stone",
       "metal": "",
       "purity": "",
       "size": "",
@@ -25,7 +25,9 @@
         "/uploads/1793359854841-xtyc-dsc00137.webp"
       ],
       "desc": "",
-      "status": "published"
+      "status": "published",
+      "chainOption": false,
+      "chainCharge": 0
     }
   ]
 }
