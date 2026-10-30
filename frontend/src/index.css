@@ -550,6 +550,8 @@ select.status{border:1px solid var(--line);border-radius:999px;padding:7px 12px;
 .crop-frame img{position:absolute;top:50%;left:50%;max-width:none;pointer-events:none;user-select:none;-webkit-user-select:none}
 .crop-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;margin-top:12px}
 .crop-ratios .chip{margin:0;padding:11px 14px;font-size:12px}
+.crop-rotate{margin:0;padding:11px 14px;font-size:12px;letter-spacing:.4px;white-space:nowrap}
+.crop-rotate:disabled{opacity:.5;cursor:not-allowed}
 .crop-zoom{display:flex;align-items:center;gap:10px;flex:1;min-width:170px;font-size:11.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--ink-soft);margin:0}
 .crop-zoom input{flex:1;accent-color:var(--gold);width:auto}
 .crop-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-top:14px}

@@ -52,6 +52,28 @@ export const sourceRect = ({ imgW, imgH, frameW, frameH, zoom = 1, tx = 0, ty = 
   };
 };
 
+/**
+ * A quarter-turn swaps width and height. Turns are counted clockwise and kept
+ * at 0–3, so the caller only ever rotates by 90° steps.
+ */
+export const rotatedDims = (imgW, imgH, turns = 0) =>
+  turns % 2 === 0 ? { w: imgW, h: imgH } : { w: imgH, h: imgW };
+
+/**
+ * The offscreen canvas a rotated photo is drawn into: swapped dimensions, and
+ * scaled down only when the photo is larger than `maxEdge`. `scale` is 1 for
+ * everything a phone or camera usually produces.
+ */
+export const rotationPlan = (imgW, imgH, turns = 0, maxEdge = 2400) => {
+  const { w, h } = rotatedDims(imgW, imgH, turns);
+  const scale = Math.min(1, maxEdge / Math.max(w, h));
+  return {
+    w: Math.max(1, Math.round(w * scale)),
+    h: Math.max(1, Math.round(h * scale)),
+    scale,
+  };
+};
+
 /** Output pixels for that rectangle, capped so the upload stays small. */
 export const outputSize = (rect, maxEdge = 1600) => {
   const scale = Math.min(1, maxEdge / Math.max(rect.w, rect.h));

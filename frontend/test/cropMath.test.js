@@ -1,6 +1,15 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { clampPan, coverScale, fitFrame, outputSize, panLimits, sourceRect } from "../src/data/crop.js";
+import {
+  clampPan,
+  coverScale,
+  fitFrame,
+  outputSize,
+  panLimits,
+  rotatedDims,
+  rotationPlan,
+  sourceRect,
+} from "../src/data/crop.js";
 
 test("the frame is the biggest box of its shape that fits the stage", () => {
   assert.deepEqual(fitFrame(400, 400, 1), { w: 400, h: 400 });
@@ -53,4 +62,25 @@ test("a clamped crop never reaches outside the photo", () => {
 test("output stays capped on its long edge", () => {
   assert.deepEqual(outputSize({ w: 1000, h: 800 }), { w: 1000, h: 800 });
   assert.deepEqual(outputSize({ w: 3000, h: 1500 }), { w: 1600, h: 800 });
+});
+
+test("a quarter turn swaps the photo's width and height, two turns restore them", () => {
+  assert.deepEqual(rotatedDims(1200, 800, 1), { w: 800, h: 1200 });
+  assert.deepEqual(rotatedDims(1200, 800, 3), { w: 800, h: 1200 });
+  assert.deepEqual(rotatedDims(1200, 800, 2), { w: 1200, h: 800 });
+  assert.deepEqual(rotatedDims(1200, 800, 0), { w: 1200, h: 800 });
+});
+
+test("the rotation canvas keeps phone photos full size and caps huge ones", () => {
+  assert.deepEqual(rotationPlan(1200, 800, 1), { w: 800, h: 1200, scale: 1 });
+  assert.deepEqual(rotationPlan(4800, 3200, 0), { w: 2400, h: 1600, scale: 0.5 });
+  assert.deepEqual(rotationPlan(4800, 3200, 1), { w: 1600, h: 2400, scale: 0.5 });
+});
+
+test("a portrait photo rotated upright crops with its new dimensions", () => {
+  const dims = rotatedDims(3000, 2000, 1);
+  const rect = sourceRect({ imgW: dims.w, imgH: dims.h, frameW: 320, frameH: 352 });
+  assert.ok(rect.x >= 0 && rect.y >= 0);
+  assert.ok(rect.x + rect.w <= dims.w + 0.5);
+  assert.ok(rect.y + rect.h <= dims.h + 0.5);
 });

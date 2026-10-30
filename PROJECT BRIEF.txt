@@ -1,0 +1,141 @@
+PROJECT BRIEF — Nilaara Jewellers website (nilaarashop-lab/nilaara-jewellers)
+
+LIVING PROMPT. This file describes the website as it is TODAY. Update it in the same change as any
+website edit — a new feature, changed wording, a new data field, a removed feature, a new rule.
+If this file and the code disagree, this file is wrong and must be fixed before the change is done.
+Last updated: 2026-10-30.
+
+1. WHAT THE BUSINESS IS
+- Brand: Nilaara Jewellers. Artificial (imitation) jewellery, India. WhatsApp orders: +91 96331 36081.
+- THE WEBSITE IS AN ONLINE RETAIL (SALE) STORE. Customers browse and buy; the order is completed on WhatsApp.
+- ONLY THE TWO PHYSICAL SHOPS ARE RENTAL: "Parinaya Rentals — Store 1" and "Parinaya Rentals — Store 2".
+  Any "rent/rental" wording must be scoped to a store visit ("in store", "at either store").
+  Never describe the website, checkout, prices or shipping as rental.
+- THERE IS NO CART, CHECKOUT, PAYMENT GATEWAY, LOGIN OR ACCOUNT FOR SHOPPERS. Those routes
+  (/cart /checkout /success /orders /track /login /register /account) redirect to /shop or /.
+  Orders happen on WhatsApp. No database, no content server — everything is static JSON + GitHub.
+
+2. STACK / ARCHITECTURE
+- React 19 + Vite 8 static SPA (frontend/), react-router-dom v7, BrowserRouter, plain CSS (src/index.css).
+- Hosting: Vercel, project root = frontend/. Build = "npm run build"; prebuild runs
+  scripts/sync-content.mjs which copies src/content/*.json into public/content/ and stamps "_commit".
+- SPA rewrite: every unknown path serves index.html (so a missing asset returns HTTP 200 + HTML).
+- Catalogue source of truth: frontend/src/content/products.json and settings.json (committed).
+- Runtime freshness: storefront fetches /content/products.json + settings.json (no-store, ?v=timestamp)
+  on load, polls every 10 s, refreshes on tab focus, and after an admin save fetches the exact commit
+  from raw.githubusercontent. Bundled JSON is the offline fallback.
+- Images: admin uploads are committed to frontend/public/uploads/ and displayed through
+  raw.githubusercontent (branch URL normally, exact-commit URL right after a save).
+- Admin auth: GitHub OAuth popup via serverless functions frontend/api/auth.js + callback.js
+  (state cookie, client secret stays server-side). Token lives in sessionStorage only.
+  /admin is noindex; it also checks the token's repo push permission and refuses read-only accounts.
+
+3. ROUTES / PAGES
+/                Home: auto-rotating hero (admin slides or built-in festive hero), trust strip,
+                 Shop by Category tiles, promo cards, Best Sellers, New Arrivals, Instagram strip,
+                 "Visit us in person — Two stores" rental-invite block.
+/shop            Catalogue with filters/sort/search (details in 5).
+/product/:id     Product detail (details in 5).
+/wishlist        Saved pieces (localStorage, survives reload).
+/about /contact  Brand story / WhatsApp + store contact.
+/stores          Two Google Maps embeds, hours, Get Directions, WhatsApp, "buy online or rent in store" box.
+/admin           Staff control centre (details in 6).
+
+4. DATA MODEL
+Product fields: id (auto-slug from name; a duplicate id is refused with an inline error),
+name, category, price, mrp (discount % only when mrp > price), stock, trackInventory,
+lowStockThreshold, status (published | draft | archived — only published shows to shoppers),
+customTag ("Edits" filter, shown as a badge), metal, size, purity, rating, reviews,
+featured, bestseller, newArrival, chainOption (true/false) + chainCharge, desc, images[] (max 6).
+Removed for good in 2026-10: collection, plating, stones, badge, B1G1. Unknown legacy ?col= slugs
+are ignored (never a dead-end page).
+Settings: announcement {active,text,shortText,messages[]}, home.heroSlides[] (max 4),
+home.cards[] (max 4), home.festive banner, home.categoryTiles[] per category slug,
+shipping {freeOver (currently 5,000), fee}.
+Categories: 11 built-in sections (temple-jewellery, non-idol-design, white-stone, diamond-replica,
+ring-necklace, choker, earrings, bracelet, bangles, rings, long-necklace). A category typed/added in
+the admin appears in the menu and shop filters automatically; the list must also SHRINK when no
+product uses it (except the 11 built-ins, which always show with fallback art).
+
+5. STOREFRONT FUNCTIONS
+Search: header search with live suggestions (name/category/customTag), loading, "no results",
+and "temporarily unavailable + retry" states; shop has search-within-results. Filters:
+category chips, Highlights (New Launches, Best Sellers), Edits (from customTag), max-price slider
+(starts at 500, grows with the catalogue, at max = no cap), Apply button; mobile filter drawer.
+Sort: Featured / Price low→high / Price high→low. Every filter is in the URL (?cat ?col ?max ?q ?sort),
+so links are shareable. Empty states distinguish "no match" from "coming soon".
+Cards: photo, name, price, strikethrough MRP + % off, badges, sold-out overlay, wishlist heart,
+Buy Now (opens WhatsApp), Choose-a-chain link when the product has a chain option.
+Product page: gallery + thumbnails, badges, price/discount, stock states (in stock / "Hurry, only N
+left!" / out of stock), product ID, chain radio (Without / With +₹charge) which GATES Buy Now until
+chosen, WhatsApp Buy Now with name + product ID + chosen chain + total pre-filled, wishlist, details /
+shipping (dispatch 24 h, delivery 3–5 days) / care accordions, "You may also love".
+Stores page: two map iframes (9.5917471,76.5259062 and 9.617801,76.532909), 10:30 AM–9:00 PM daily,
+Get Directions, WhatsApp Store, "Can't visit? Shop online" box.
+Global: announcement bar (marquee, rotating messages, or plain text; hidden when the owner turns it off),
+mobile menu, wishlist counter, back-to-top, scroll restore, reveal animations, freebies-over-₹5,000
+messaging driven by settings.
+
+6. ADMIN (/admin) FUNCTIONS
+Sign-in: "Sign in with GitHub" popup; expired session and missing-write-access errors are explained.
+Dashboard: product count, published vs draft/archived, low stock (at/below lowStockThreshold),
+out of stock, "Needs restocking" table, "Not visible in the shop" table.
+Products tab: search + status filter, Add Product, Edit, Preview (opens /product/:id), Delete
+(confirm dialog; deletion is permanent in the catalogue).
+Product form: every field in 4, category as a real dropdown (with a visible arrow) plus the ability
+to type a new category, duplicate-ID inline warning before save, photo workflow —
+  • pick up to 6 photos; each opens a CROP dialog: drag to pan, zoom 1–4×, ↻ Rotate 90° (quarter turns;
+    four taps return the exact original because every turn is rebuilt from the source photo), ratios
+    Shop card 10:11 / Square 1:1 / Portrait 4:5, then "Upload as is" or "Crop & upload".
+    Pan resets to centre after a rotation; GIFs skip the crop dialog.
+  • any existing photo can be re-cropped (Crop button on its thumbnail) — including rotating it
+  • paste an image URL instead of uploading; remove a photo from the product
+  • uploads are compressed client-side to ≤900 KB WebP (max edge 1600 px, input cap 12 MB),
+    committed to the repo, and retried up to 3× on GitHub 500/502/503/504 or a dropped connection;
+    a repeated write is treated as already committed. Errors name GitHub and print its request id.
+Homepage tab: announcement (on/off, rotating messages, desktop + mobile fallback text),
+hero slides (on/off, image, eyebrow, title, highlight, text), promo cards (image, eyebrow, title, text,
+link, label), festive banner, category tile pictures, shipping (Freebies over ₹, standard fee).
+Every save is a commit on main and goes live without a developer.
+
+7. HARD RULES WHEN COMMITTING AND PUSHING  ← read this before any git command
+A. NEVER commit frontend/src/content/** or frontend/public/uploads/**. They belong to the shop owner,
+   who edits them through /admin. A .githooks/pre-commit hook refuses them (waiver
+   NILAARA_ALLOW_CONTENT=1 only when the owner explicitly asks for a content change).
+   This is how deleted products stay deleted. Code commits must not resurrect or reword the catalogue.
+B. The owner's admin commits land on origin/main constantly. ALWAYS: git fetch origin, then
+   git rebase origin/main (never force-push, never reset --hard over their work). Verify afterwards:
+   git diff origin/main --stat -- frontend/src/content frontend/public/uploads   → must be EMPTY.
+C. Before committing: run in frontend/ — npm test (42 tests), npm run lint (oxlint: 0 errors; 9 known
+   react(set-state-in-effect) warnings are pre-existing), npm run build. Commit only source, tests,
+   styles, docs. Never commit dist/, node_modules/, public/content/, .env.
+D. Never commit secrets: GitHub OAuth client secret, ImageKit private key, tokens. Admin tokens stay in
+   sessionStorage, never in files. Report to the owner if a secret would be needed.
+E. Commit and push are separate actions. Commit when asked to commit; push only when asked to push.
+   Ask before destructive git operations (force-push, reset --hard, branch -D, clean).
+F. Commit message: what changed and why, in plain language (the owner reads them). One bundled commit
+   is fine for a related feature set; don't split for the sake of it.
+G. After pushing, VERIFY THE LIVE SITE — don't trust the push:
+   1) poll https://nilaara-jewellers.vercel.app/content/products.json until "_commit" equals the pushed
+      SHA (takes ~30–120 s);
+   2) load /, /shop, /stores and one /product/:id — correct copy, same product count as the commit,
+      zero broken images;
+   3) confirm the new strings exist in the live JS bundle (asset filenames differ between Vercel and
+      local builds — compare content, never hashes);
+   4) Vercel answers 200 + index.html for missing assets, so check Content-Type, not status.
+H. Never "fix" confusion by editing catalogue JSON by hand. Products, prices, stock and homepage
+   content are changed in /admin by the owner, or restored from a previous commit only if the owner
+   explicitly asks.
+I. Admin UI cannot be browser-verified without the owner's GitHub session. Test its pure logic with
+   node tests, or mount the component in a throwaway Vite entry (delete it afterwards).
+J. UPDATE THIS FILE in the same commit as any change: sections 3–6 for behaviour and copy, section 8
+   for state. If a feature is removed, delete its lines here — a stale brief is a defect.
+
+8. CURRENT STATE (2026-10-30)
+- Everything below is on main and live via Vercel; /content/products.json "._commit" names the exact
+  commit the live site is serving.
+- Catalogue has 1 product: id w2000, name "test2", added in the admin at ~20:10 IST, after the earlier
+  "white stone" product was deleted. Its two photos were uploaded with the crop tool (the repo files
+  end in "-cropped.webp"). Announcement bar is off; freebies threshold ₹5,000.
+- Shipped and live: photo crop tool, ↻ Rotate 90°, duplicate-ID guard, Parinaya Rentals store names,
+  online-sale/offline-rental wording, upload retry on GitHub server errors.
