@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { SIDE_IMGS, FESTIVE_IMG } from "../data/products";
+import { imageKitUrl } from "../data/repo.js";
 import { listCategories } from "../data/categories";
 import { freebiesLabel } from "../data/freebies";
 import { ProductCard, Img } from "../components/Layout";
@@ -131,7 +132,7 @@ function Hero({ slides }) {
         <div className="hero-art">
           <span className="hero-blob" aria-hidden="true" />
           <img
-            src={s.image?.url || DEFAULT_SLIDE.image.url}
+            src={imageKitUrl(s.image?.url || DEFAULT_SLIDE.image.url, 1200)}
             alt={s.image?.alt || s.title || "Nilaara jewellery"}
             key={s.image?.url || i}
           />
@@ -190,7 +191,7 @@ export default function Home() {
         <div className="circles">
           {cats.map((ct) => (
             <Link key={ct.slug} to={`/shop?cat=${ct.slug}`} className="circle">
-              <div className="circle-img"><img src={ct.img || SIDE_IMGS[0]} alt={ct.alt || ct.name} loading="lazy" /></div>
+              <div className="circle-img"><img src={imageKitUrl(ct.img || SIDE_IMGS[0], 400)} alt={ct.alt || ct.name} loading="lazy" /></div>
               <b>{ct.name}</b>
             </Link>
           ))}
@@ -202,7 +203,7 @@ export default function Home() {
         <div className="bento">
           {cards.map((cd, x) => (
             <Link key={x} to={cd.to || "/shop"} className={`bento-card ${x === 0 ? "lead" : ""}`}>
-              {cd.image?.url && <img src={cd.image.url} alt={cd.image.alt || cd.title || ""} loading="lazy" />}
+              {cd.image?.url && <img src={imageKitUrl(cd.image.url, 800)} alt={cd.image.alt || cd.title || ""} loading="lazy" />}
               <span className="bento-shade" aria-hidden="true" />
               <span className="bento-body">
                 {cd.eyebrow && <small className="eyebrow">{cd.eyebrow}</small>}
@@ -229,7 +230,7 @@ export default function Home() {
               <p style={{ opacity: .85 }}>Handcrafted kundan, temple & pearl pieces — from everyday sparkle to wedding-day shine.</p>
               <div className="cta-row"><Link to="/shop" className="btn btn-gold">Shop the edit →</Link></div>
             </div>
-            <img src={festiveImg} alt={festive?.alt || "Festive jewellery"} loading="lazy" />
+            <img src={imageKitUrl(festiveImg, 800)} alt={festive?.alt || "Festive jewellery"} loading="lazy" />
           </div>
         </Reveal>
       )}
@@ -237,7 +238,7 @@ export default function Home() {
       {items.length > 0 && (
         <section className="sec">
           <div className="sec-head"><h2 style={{ fontSize: 30 }}>@nilaara.jewellers</h2><span className="link">Follow</span></div>
-          <div className="insta">{[...items].slice(0, 4).map((p) => <Img key={p.id} src={p.images?.[0]} alt={p.name} />)}</div>
+          <div className="insta">{[...items].slice(0, 4).map((p) => <Img key={p.id} src={p.images?.[0]} alt={p.name} width={400} />)}</div>
         </section>
       )}
 
@@ -249,7 +250,7 @@ export default function Home() {
             <p>Rent bridal & festive jewellery in either store — try it on in person.</p>
             <div className="cta-row"><Link to="/stores" className="btn btn-gold">Our 2 Stores + Directions →</Link></div>
           </div>
-          <img src={SIDE_IMGS[0]} alt="Nilaara store" style={{ height: 220 }} loading="lazy" />
+          <img src={imageKitUrl(SIDE_IMGS[0], 800)} alt="Nilaara store" style={{ height: 220 }} loading="lazy" />
         </div>
       </section>
     </main>

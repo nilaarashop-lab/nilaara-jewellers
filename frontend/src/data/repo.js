@@ -60,3 +60,17 @@ export function mediaUrl(url, commit = "") {
   }
   return value;
 }
+
+const IMAGEKIT_HOST = "https://ik.imagekit.io/";
+
+/**
+ * Ask ImageKit for a downsized copy instead of the full-size original.
+ * Anything that is not an ImageKit file (repo uploads, pasted links) and any
+ * URL without a width are returned untouched.
+ */
+export function imageKitUrl(url, width, quality = 80) {
+  const value = String(url || "");
+  if (!width || !value.startsWith(IMAGEKIT_HOST) || /[?&]tr=/.test(value)) return value;
+  const separator = value.includes("?") ? "&" : "?";
+  return `${value}${separator}tr=w-${Math.round(width)},q-${quality}`;
+}

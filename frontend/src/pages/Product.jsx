@@ -60,8 +60,8 @@ export default function Product() {
       <div className="breadcrumb"><Link to="/">Home</Link> / <Link to="/shop">Shop</Link> / {p.name}</div>
       <div className="pd">
         <div className="pd-media">
-          <Img src={p.images?.[imageIndex]} alt={p.name} />
-          <div className="thumbs">{(p.images || []).map((s, i) => <Img key={i} src={s} alt="" className={i === imageIndex ? "on" : ""} onClick={() => setImgI(i)} />)}</div>
+          <Img src={p.images?.[imageIndex]} alt={p.name} width={1200} quality={85} />
+          <div className="thumbs">{(p.images || []).map((s, i) => <Img key={i} src={s} alt="" width={200} quality={70} className={i === imageIndex ? "on" : ""} onClick={() => setImgI(i)} />)}</div>
         </div>
         <div className="pd-info">
           {(soldOut || p.customTag) && (

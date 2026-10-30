@@ -6,7 +6,7 @@ import { categoryLabel, listCategories } from "../data/categories";
 import { freebiesLabel } from "../data/freebies";
 import { isLowStock, isSoldOut } from "../data/inventory";
 import { STORE_HOURS } from "../data/stores";
-import { mediaUrl } from "../data/repo.js";
+import { imageKitUrl, mediaUrl } from "../data/repo.js";
 import { whatsappChatLink, productEnquiryLink, WHATSAPP_DISPLAY } from "../config";
 import { searchProducts } from "../api/client";
 
@@ -27,8 +27,8 @@ export const IconMenu = () => (<svg {...svgProps}><path d="M4 7h16M4 12h16M4 17h
  * Product image with a branded fallback — a missing or broken image shows the
  * Nilaara mark instead of a broken icon or an unrelated picture.
  */
-export function Img({ src, alt = "", ...rest }) {
-  const safe = mediaUrl(src) || "/nilaara-mark.png";
+export function Img({ src, alt = "", width, quality, ...rest }) {
+  const safe = imageKitUrl(mediaUrl(src), width, quality) || "/nilaara-mark.png";
   const [current, setCurrent] = useState(safe);
   if (current !== safe) setCurrent(safe); // adjust state during render when src changes
   return (
@@ -51,7 +51,7 @@ export function ProductCard({ p }) {
   return (
     <div className={`card ${soldOut ? "soldout" : ""}`}>
       <Link to={`/product/${p.id}`} className="card-media">
-        <Img src={p.images?.[0]} alt={p.name} />
+        <Img src={p.images?.[0]} alt={p.name} width={600} />
         <div className="badge">{soldOut ? <i className="o">Sold out</i> : <>{p.customTag ? <i className="g">{p.customTag}</i> : null}</>}</div>
       </Link>
       <button

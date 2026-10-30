@@ -31,7 +31,13 @@ Last updated: 2026-10-30.
   gated on the staff GitHub token having push access), then posts the file to upload.imagekit.io.
   Without keys — or if ImageKit fails — the photo is committed to frontend/public/uploads/ and shown
   through raw.githubusercontent (branch URL normally, exact-commit URL right after a save). ImageKit
-  URLs are absolute and pass through mediaUrl() unchanged.
+  URLs are absolute and pass through mediaUrl() unchanged, then imageKitUrl() in src/data/repo.js
+  adds ?tr=w-<n>,q-<n> so each slot downloads a copy sized for it (cards 600, gallery 1200/200,
+  hero 1200, tiles 400, promos 800). A 1454 px photo drops from ~228 KB to ~49 KB on a card and
+  ~6 KB as a thumbnail; non-ImageKit URLs are left untouched.
+- Analytics: @vercel/analytics, injected in src/main.jsx with history mode so each SPA route change
+  counts once. Cookieless, no consent banner, no personal data. It only collects after the owner
+  turns Web Analytics on in the Vercel project (until then the script 404s silently).
 - Admin auth: GitHub OAuth popup via serverless functions frontend/api/auth.js + callback.js
   (state cookie, client secret stays server-side). Token lives in sessionStorage only.
   /admin is noindex; it also checks the token's repo push permission and refuses read-only accounts.
@@ -84,7 +90,8 @@ shipping (dispatch 24 h, delivery 3–5 days) / care accordions, "You may also l
 Stores page: two map iframes (9.5917471,76.5259062 and 9.617801,76.532909), 10:30 AM–9:00 PM daily,
 Get Directions, WhatsApp Store, "Can't visit? Shop online" box.
 Global: announcement bar (marquee, rotating messages, or plain text; hidden when the owner turns it off),
-mobile menu, wishlist counter, back-to-top, scroll restore, reveal animations.
+mobile menu, wishlist counter, back-to-top, scroll restore, reveal animations, cookieless page-view
+analytics (see section 2).
 Single sources: store hours come from STORE_HOURS in src/data/stores.js (footer, contact, store cards);
 freebie copy comes from settings.shipping.freeOver via src/data/freebies.js (home trust strip, shop
 sidebar, stores box, contact, announcement fallback). Never hardcode either number in a page.
@@ -129,7 +136,7 @@ A. NEVER commit frontend/src/content/** or frontend/public/uploads/**. They belo
 B. The owner's admin commits land on origin/main constantly. ALWAYS: git fetch origin, then
    git rebase origin/main (never force-push, never reset --hard over their work). Verify afterwards:
    git diff origin/main --stat -- frontend/src/content frontend/public/uploads   → must be EMPTY.
-C. Before committing: run in frontend/ — npm test (55 tests), npm run lint (oxlint: 0 errors; 9 known
+C. Before committing: run in frontend/ — npm test (57 tests), npm run lint (oxlint: 0 errors; 9 known
    react(set-state-in-effect) warnings are pre-existing), npm run build. Commit only source, tests,
    styles, docs. Never commit dist/, node_modules/, public/content/, public/sitemap.xml (generated), .env.
 D. Never commit secrets: GitHub OAuth client secret, ImageKit private key/public key, tokens. They live
@@ -173,5 +180,7 @@ J. UPDATE THIS FILE in the same commit as any change: sections 3–6 for behavio
 - IMAGEKIT, live since 4258813 (2026-10-30): uploads go through the signed endpoint
   frontend/api/imagekit.js to the nilaara/products folder, with the GitHub commit as automatic
   fallback. Keys are set in Vercel; the owner's test7 save proved it (only products.json changed,
-  no upload commit). Photos uploaded before that stay in the repo (4 /uploads files). Tests: 55
-  passing.
+  no upload commit). Photos uploaded before that stay in the repo (4 /uploads files).
+- FASTER PHOTOS + ANALYTICS (code in this commit): ImageKit images now request a width fit for their
+  slot (see section 2), and @vercel/analytics is installed and injected. Analytics stays dark until
+  the owner enables Web Analytics once in the Vercel dashboard and redeploys. Tests: 57 passing.
