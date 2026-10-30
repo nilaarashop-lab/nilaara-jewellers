@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { CATEGORIES, PRODUCTS, HERO_IMG, SIDE_IMGS, FESTIVE_IMG } from "../data/products";
+import { CATEGORIES, PRODUCTS, SIDE_IMGS, FESTIVE_IMG } from "../data/products";
 import { ProductCard, ProductGridSkeleton, ProductsUnavailable, Img } from "../components/Layout";
 import { useStore } from "../store/StoreContext";
 import { fetchProducts, hasAPI } from "../api/client";
@@ -9,13 +9,22 @@ import { fetchProducts, hasAPI } from "../api/client";
 const prefersReducedMotion = () =>
   typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
-/* Built-in hero used until (or unless) the admin configures slides. */
+/*
+ * Permanent hero. This mirrors the admin-configured hero exactly (same image
+ * URL and copy), so the very first paint — before /api/settings resolves —
+ * already shows the real design instead of a different placeholder. Because
+ * the URL matches, React does not remount the image when settings arrive, so
+ * there is no swap or blank frame. Admin slides can still override it later.
+ */
 const DEFAULT_SLIDE = {
-  image: { url: HERO_IMG, alt: "Nilaara gold jewellery" },
-  eyebrow: "Festive Edit",
+  image: {
+    url: "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt1xjp6-82ebd4529631.png",
+    alt: "Nilaara kundan necklace set",
+  },
+  eyebrow: "Festive Edit • Flat 25% off",
   title: "Heirlooms,",
   highlight: "without the heirloom price.",
-  text: "Nilaara crafts premium artificial & gold-plated jewellery — kundan chokers, temple bangles, American-diamond demi-fine & pearl sets. Skin-friendly, tarnish-resistant, wedding-ready.",
+  text: "Handcrafted kundan & gold-plated jewellery — bridal-ready, skin-friendly, tarnish-resistant.",
 };
 
 /* Built-in promo cards used until the admin configures their own. */
