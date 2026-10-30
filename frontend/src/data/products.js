@@ -1,17 +1,6 @@
 import catalogue from "../content/products.json";
 import { mediaUrl } from "./repo.js";
-
-const img = (id, w = 800) =>
-  `https://images.unsplash.com/${id}?q=80&w=${w}&auto=format&fit=crop`;
-
-export const CATEGORIES = [
-  { slug: "jewellery-sets", name: "Jewellery Sets", img: img("photo-1599643478518-a784e5dc4c8f", 400) },
-  { slug: "necklaces", name: "Necklaces", img: img("photo-1601121141461-9d6647bca1ed", 400) },
-  { slug: "earrings", name: "Earrings", img: img("photo-1573408301185-9146fe634ad0", 400) },
-  { slug: "jhumkas", name: "Jhumkas", img: img("photo-1617038220319-276d3cfab638", 400) },
-  { slug: "bangles", name: "Bangles", img: img("photo-1611591437281-460bfbe1220a", 400) },
-  { slug: "rings", name: "Rings", img: img("photo-1605100804763-247f67b3557e", 400) },
-];
+import { img } from "./images.js";
 
 /** Published products from the Git-managed catalogue (frontend/src/content/products.json). */
 const normalizeProduct = (p, commit = "") => ({

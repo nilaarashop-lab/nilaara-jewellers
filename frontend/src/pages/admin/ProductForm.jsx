@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { previewUrl, uploadImage } from "../../api/github";
-import { CATEGORIES } from "../../data/products";
+import { categoryLabel, listCategories, slugify } from "../../data/categories";
 
 const PSTATUSES = ["draft", "published", "archived"];
 
@@ -12,7 +12,7 @@ const emptyProduct = () => ({
   id: "",
   slug: "",
   name: "",
-  category: "necklaces",
+  category: "",
   metal: "",
   purity: "",
   size: "",
@@ -49,6 +49,8 @@ const fromProduct = (product) => {
   return {
     ...emptyProduct(),
     ...rest,
+    // Show the readable name; the payload stores the slug again on save.
+    category: categoryLabel(rest.category),
     description: rest.desc || rest.description || "",
     images: Array.isArray(rest.images)
       ? rest.images.map((image) => (typeof image === "string" ? image : image?.url)).filter(Boolean)
@@ -130,6 +132,11 @@ export default function ProductForm({ product, products, onClose, onSave, saving
       setError("Add at least one photo.");
       return;
     }
+    const category = slugify(form.category);
+    if (!category) {
+      setError("Add a category using letters or numbers — it decides where the piece appears in the shop menu.");
+      return;
+    }
 
     const id = normalizeId(form.id || form.name);
     if (!id) {
@@ -147,7 +154,7 @@ export default function ProductForm({ product, products, onClose, onSave, saving
       id,
       slug: form.slug?.trim() || id,
       name: form.name.trim(),
-      category: form.category,
+      category,
       metal: form.metal || "",
       purity: form.purity || "",
       size: form.size || "",
@@ -210,12 +217,29 @@ export default function ProductForm({ product, products, onClose, onSave, saving
             : ""}
         </small>
 
-        <label>Category</label>
-        <select value={form.category} onChange={(e) => set({ category: e.target.value })}>
-          {CATEGORIES.map((c) => (
-            <option key={c.slug} value={c.slug}>{c.name}</option>
+        <label htmlFor="productCategory">Category — type the name you want</label>
+        <input
+          id="productCategory"
+          list="category-options"
+          maxLength={40}
+          placeholder="e.g. Jhumkas, Chokers, Bridal Sets"
+          value={form.category}
+          onChange={(e) => set({ category: e.target.value })}
+        />
+        <datalist id="category-options">
+          {listCategories(products).map((c) => (
+            <option key={c.slug} value={c.name} />
           ))}
-        </select>
+        </datalist>
+        <small className="custom-tag-hint">
+          Pick one below or type a new one — it appears in the menu, the shop filters, the footer and the home
+          page tiles as soon as this product is published.
+          {form.category.trim() && !slugify(form.category)
+            ? " Use letters or numbers so the shop link works."
+            : slugify(form.category)
+              ? ` Shop link: /shop?cat=${slugify(form.category)}`
+              : ""}
+        </small>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
           <div><label>Price ₹</label><input type="number" min="0" value={form.price} onChange={(e) => set({ price: e.target.value })} /></div>

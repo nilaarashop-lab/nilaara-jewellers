@@ -1,7 +1,8 @@
 import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
-import { Fragment, useEffect, useId, useRef, useState } from "react";
+import { Fragment, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useStore } from "../store/StoreContext";
-import { CATEGORIES, discountPercent, formatINR } from "../data/products";
+import { discountPercent, formatINR } from "../data/products";
+import { categoryLabel, listCategories } from "../data/categories";
 import { mediaUrl } from "../data/repo.js";
 import { whatsappChatLink, productEnquiryLink, WHATSAPP_DISPLAY } from "../config";
 import { searchProducts } from "../api/client";
@@ -344,7 +345,7 @@ function SearchBox({ className = "", placeholder = "Search jewellery…" }) {
                     <Img src={p.images?.[0]} alt="" className="sq-thumb" />
                     <span className="sq-info">
                       <b>{p.name}</b>
-                      <small>{String(p.category || "").replace(/-/g, " ")}</small>
+                      <small>{categoryLabel(p.category)}</small>
                     </span>
                     <span className="sq-price">{formatINR(p.price)}</span>
                   </Link>
@@ -363,7 +364,10 @@ function SearchBox({ className = "", placeholder = "Search jewellery…" }) {
 }
 
 export function Header() {
-  const { wishlist } = useStore();
+  const { wishlist, products } = useStore();
+  // Generated from the live catalogue, so a category the owner types in the
+  // admin shows up in the menu without a code change.
+  const cats = useMemo(() => listCategories(products), [products]);
   const [mnav, setMnav] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const { pathname, search } = useLocation();
@@ -427,7 +431,7 @@ export function Header() {
           <nav className="nav">
             {navLink("/shop?col=new", "New Launches")}
             {navLink("/shop?col=best-sellers", "Best Sellers")}
-            {CATEGORIES.map((c) => navLink(`/shop?cat=${c.slug}`, c.name))}
+            {cats.map((c) => navLink(`/shop?cat=${c.slug}`, c.name))}
             {navLink("/stores", "Our Stores")}
             {navLink("/about", "Our Craft")}
           </nav>
@@ -459,7 +463,7 @@ export function Header() {
               <div className="mnav-group">
                 <small>Shop by category</small>
                 <div className="mnav-links">
-                  {CATEGORIES.map((c) => (
+                  {cats.map((c) => (
                     <Link key={c.slug} to={`/shop?cat=${c.slug}`} onClick={() => setMnav(false)}>{c.name}</Link>
                   ))}
                 </div>
@@ -499,6 +503,8 @@ export function Header() {
 }
 
 export function Footer() {
+  const { products } = useStore();
+  const cats = useMemo(() => listCategories(products), [products]);
   return (
     <footer className="footer">
       <div className="container">
@@ -514,7 +520,7 @@ export function Footer() {
           </div>
           <div>
             <h4>Shop</h4>
-            <p>{CATEGORIES.map((c, i) => (
+            <p>{cats.map((c, i) => (
               <Fragment key={c.slug}>
                 {i > 0 && <br />}
                 <Link to={`/shop?cat=${c.slug}`}>{c.name}</Link>

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
-import { CATEGORIES } from "../data/products";
+import { categoryLabel, listCategories, slugify } from "../data/categories";
 import { ProductCard } from "../components/Layout";
 import { matchesQuery } from "../api/client";
 import { useStore } from "../store/StoreContext";
@@ -11,12 +11,13 @@ const CURATED = [
   { slug: "best-sellers", name: "Best Sellers" },
 ];
 
-const slugifyLabel = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
+
 
 export default function Shop() {
   const { settings, products: items } = useStore();
   const [params, setParams] = useSearchParams();
-  const cat = params.get("cat") || "";
+  // Normalised so a shared link typed as ?cat=Necklaces still matches.
+  const cat = slugify(params.get("cat"));
   const col = params.get("col") || "";
   const sort = params.get("sort") || "featured";
   const q = params.get("q") || "";
@@ -35,13 +36,17 @@ export default function Shop() {
     for (const p of items) {
       const name = (p.customTag || "").trim();
       if (!name) continue;
-      const slug = slugifyLabel(name);
+      const slug = slugify(name);
       if (!slug || taken.has(slug)) continue;
       taken.add(slug);
       map.set(slug, name);
     }
     return [...map].map(([slug, name]) => ({ slug, name }));
   }, [items]);
+
+  // Category chips come from the catalogue, so anything typed in the admin is
+  // filterable without touching this file.
+  const cats = useMemo(() => listCategories(items), [items]);
 
   // Links shared before the collection attribute existed still carry slugs like
   // ?col=kundan. An unknown slug filters nothing, so an old bookmark never opens
@@ -85,13 +90,13 @@ export default function Shop() {
 
   const filtered = useMemo(() => {
     let list = [...items];
-    if (cat) list = list.filter((p) => p.category === cat);
+    if (cat) list = list.filter((p) => slugify(p.category) === cat);
     if (activeCol?.slug === "new") list = list.filter((p) => p.newArrival);
     else if (activeCol?.slug === "best-sellers") {
       const curated = list.filter((p) => p.bestseller);
       list = curated.length ? curated : list.slice(0, 12);
     } else if (activeCol) {
-      list = list.filter((p) => p.customTag && slugifyLabel(p.customTag) === activeCol.slug);
+      list = list.filter((p) => p.customTag && slugify(p.customTag) === activeCol.slug);
     }
 
     if (query) list = list.filter((p) => matchesQuery(p, query));
@@ -122,11 +127,11 @@ export default function Shop() {
 
   const freeOver = Number(settings?.shipping?.freeOver ?? 999);
   const colName = activeCol?.name || "";
-  const heading = colName || (cat ? cat.replace(/-/g, " ") : "Shop All Jewellery");
+  const heading = colName || (cat ? categoryLabel(cat) : "Shop All Jewellery");
 
   return (
     <main className="container">
-      <div className="breadcrumb">Home / Shop {cat && `/ ${cat}`} {activeCol && `/ ${colName}`}</div>
+      <div className="breadcrumb">Home / Shop {cat && `/ ${categoryLabel(cat)}`} {activeCol && `/ ${colName}`}</div>
       <div className="sec-head"><div><h2>{heading}</h2><p>{`${filtered.length} designs`} • artificial jewellery</p></div></div>
       <div className="shop-layout">
         <div className="filters-bar">
@@ -143,7 +148,7 @@ export default function Shop() {
         <aside id="shop-filters" className={`filters ${filtersOpen ? "open" : ""}`}>
           <h4>Category</h4>
           <div><button className={`chip ${!draftCat ? "on" : ""}`} onClick={() => setDraftCat("")}>All</button>
-            {CATEGORIES.map((c) => <button key={c.slug} className={`chip ${draftCat === c.slug ? "on" : ""}`} onClick={() => setDraftCat(c.slug)}>{c.name}</button>)}
+            {cats.map((c) => <button key={c.slug} className={`chip ${draftCat === c.slug ? "on" : ""}`} onClick={() => setDraftCat(c.slug)}>{c.name}</button>)}
           </div>
           <h4>Highlights</h4>
           <div><button className={`chip ${!draftCol ? "on" : ""}`} onClick={() => setDraftCol("")}>All</button>

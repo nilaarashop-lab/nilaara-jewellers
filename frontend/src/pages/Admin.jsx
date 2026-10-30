@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { CATEGORIES, formatINR } from "../data/products";
+import { formatINR } from "../data/products";
+import { categoryLabel, listCategories } from "../data/categories";
 import { Img } from "../components/Layout";
 import {
   clearToken,
@@ -260,7 +261,7 @@ export default function Admin() {
             <Stat
               label="Published"
               value={stats.published.length}
-              sub={`${CATEGORIES.length} categories in the catalogue`}
+              sub={`${listCategories(products).length} categories in the catalogue`}
             />
             <Stat
               label="Low stock"
@@ -295,7 +296,7 @@ export default function Admin() {
                   {stats.lowStock.slice(0, 8).map((p) => (
                     <tr key={p.id}>
                       <td><b>{p.name}</b><br /><small>{p.id}</small></td>
-                      <td>{p.category}</td>
+                      <td>{categoryLabel(p.category)}</td>
                       <td style={{ color: stockOf(p) <= 0 ? "var(--danger)" : undefined }}>
                         {stockOf(p) <= 0 ? "Sold out" : `${stockOf(p)} left`}
                       </td>
@@ -325,7 +326,7 @@ export default function Admin() {
                   {stats.hidden.map((p) => (
                     <tr key={p.id}>
                       <td><b>{p.name}</b><br /><small>{p.id}</small></td>
-                      <td>{p.category}</td>
+                      <td>{categoryLabel(p.category)}</td>
                       <td>{p.status}</td>
                       <td>
                         <button className="mini-btn" onClick={() => setEditing(p)} disabled={!catalogue.sha}>Edit</button>
@@ -382,7 +383,7 @@ export default function Admin() {
                       />
                     </td>
                     <td><b>{p.name}</b><br /><small>{p.id}</small></td>
-                    <td>{p.category}</td>
+                    <td>{categoryLabel(p.category)}</td>
                     <td>
                       {formatINR(p.price)} {Number(p.mrp) > Number(p.price) && <s>{formatINR(p.mrp)}</s>}
                     </td>

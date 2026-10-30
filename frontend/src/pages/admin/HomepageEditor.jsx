@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { loadSettings, saveSettings } from "../../api/github";
-import { CATEGORIES } from "../../data/products";
+import { listCategories } from "../../data/categories";
+import { useStore } from "../../store/StoreContext";
 import ImageSlot from "./ImageSlot";
 
 const emptySlide = () => ({
@@ -85,6 +86,10 @@ const normalize = (raw) => ({
 });
 
 export default function HomepageEditor() {
+  const { products } = useStore();
+  // Tiles are offered for every category the catalogue uses, so a category
+  // typed on a product can get its own picture here.
+  const cats = listCategories(products);
   const [doc, setDoc] = useState(null);
   const [sha, setSha] = useState("");
   const [loading, setLoading] = useState(true);
@@ -603,7 +608,7 @@ export default function HomepageEditor() {
         </div>
         <p className="co-note">One picture per category tile on the home page. Leave empty to keep the built-in image.</p>
         <div className="hp-tiles">
-          {CATEGORIES.map((category) => {
+          {cats.map((category) => {
             const tile = (doc.home.categoryTiles || []).find((t) => t.slug === category.slug);
             return (
               <div key={category.slug} className="hp-tile">

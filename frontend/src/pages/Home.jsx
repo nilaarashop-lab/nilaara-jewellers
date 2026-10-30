@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { CATEGORIES, SIDE_IMGS, FESTIVE_IMG } from "../data/products";
+import { SIDE_IMGS, FESTIVE_IMG } from "../data/products";
+import { listCategories } from "../data/categories";
 import { ProductCard, Img } from "../components/Layout";
 import { useStore } from "../store/StoreContext";
 
@@ -156,9 +157,10 @@ export default function Home() {
   const festive = settings?.home?.festive || null;
   const festiveImg = festive?.url || FESTIVE_IMG;
 
-  // Admin can override the "Shop by Category" tile images (keyed by catalogue
-  // slug); the built-in images are the fallback.
-  const catTiles = useMemo(() => new Map((settings?.home?.categoryTiles || []).map((t) => [t.slug, t])), [settings]);
+  // Tiles are generated from the catalogue, so a category the owner types in
+  // the admin appears here without a code change. The admin can override the
+  // picture; built-in art, then a product photo, are the fallbacks.
+  const cats = useMemo(() => listCategories(items, settings?.home?.categoryTiles || []), [items, settings]);
 
   return (
     <main className="container">
@@ -173,9 +175,9 @@ export default function Home() {
       <section className="sec">
         <div className="sec-head"><div><h2>Shop by Category</h2><p>Ethnic & contemporary — handcrafted</p></div><Link to="/shop" className="link">View all</Link></div>
         <div className="circles">
-          {CATEGORIES.map((ct) => (
+          {cats.map((ct) => (
             <Link key={ct.slug} to={`/shop?cat=${ct.slug}`} className="circle">
-              <div className="circle-img"><img src={catTiles.get(ct.slug)?.url || ct.img} alt={catTiles.get(ct.slug)?.alt || ct.name} loading="lazy" /></div>
+              <div className="circle-img"><img src={ct.img || SIDE_IMGS[0]} alt={ct.alt || ct.name} loading="lazy" /></div>
               <b>{ct.name}</b>
             </Link>
           ))}
