@@ -308,7 +308,6 @@ h1,h2,h3,h4{color:var(--maroon)}
 .circle-img img{width:100%;height:100%;object-fit:cover;border-radius:50%}
 .circle:hover .circle-img{transform:translateY(-4px);box-shadow:var(--shadow-sm);border-color:var(--gold)}
 .circle b{display:block;margin-top:10px;font-size:13px;letter-spacing:1.5px;text-transform:uppercase;font-weight:500;color:var(--ink)}
-.circle small{color:var(--ink-soft);font-size:12.5px}
 
 /* product grid */
 .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:22px}
@@ -737,7 +736,6 @@ select.status{border:1px solid var(--line);border-radius:999px;padding:7px 12px;
   .trust b{font-size:11.5px;letter-spacing:.3px}
   .trust small{font-size:10.5px}
   .circle b{font-size:11px;letter-spacing:1px}
-  .circle small{font-size:11px}
   .festive{padding:26px 22px;border-radius:18px}
   .festive img{height:200px}
   .drawer{width:100vw}

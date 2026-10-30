@@ -176,7 +176,7 @@ export default function Home() {
           {CATEGORIES.map((ct) => (
             <Link key={ct.slug} to={`/shop?cat=${ct.slug}`} className="circle">
               <div className="circle-img"><img src={catTiles.get(ct.slug)?.url || ct.img} alt={catTiles.get(ct.slug)?.alt || ct.name} loading="lazy" /></div>
-              <b>{ct.name}</b><small>{ct.count}</small>
+              <b>{ct.name}</b>
             </Link>
           ))}
         </div>
