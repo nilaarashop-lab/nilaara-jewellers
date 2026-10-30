@@ -28,6 +28,35 @@
       ],
       "desc": "",
       "status": "published"
+    },
+    {
+      "id": "w2001",
+      "slug": "w2001",
+      "name": "test23",
+      "category": "white-stone",
+      "metal": "",
+      "purity": "",
+      "size": "",
+      "price": 799,
+      "mrp": 1499,
+      "makingCharges": 0,
+      "stock": 7,
+      "lowStockThreshold": 5,
+      "trackInventory": true,
+      "customTag": "",
+      "chainOption": false,
+      "chainCharge": 0,
+      "bestseller": false,
+      "newArrival": true,
+      "featured": false,
+      "rating": 0,
+      "reviews": 0,
+      "images": [
+        "/uploads/1793371693147-5cle-dsc00115-cropped.webp",
+        "/uploads/1793371707025-j09a-dsc00117-cropped.webp"
+      ],
+      "desc": "",
+      "status": "published"
     }
   ]
 }
