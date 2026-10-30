@@ -1,39 +1,6 @@
 {
   "products": [
     {
-      "id": "par-temple-lakshmi-bangle",
-      "slug": "divine-lakshmi-temple-bangles-set-of-2",
-      "name": "Divine Lakshmi Temple Bangles — Set of 2",
-      "category": "bangles",
-      "collection": "temple",
-      "plating": "24K Gold Plated",
-      "metal": "Brass alloy",
-      "purity": "",
-      "stones": "Ruby • Emerald",
-      "size": "",
-      "variants": [],
-      "price": 1299,
-      "mrp": 2569,
-      "makingCharges": 0,
-      "rating": 4.4,
-      "reviews": 1180,
-      "badge": "Bestseller",
-      "tag": "",
-      "customTag": "",
-      "featured": false,
-      "bestseller": false,
-      "newArrival": false,
-      "images": [
-        "/uploads/1793351660227-y2dl-0002.webp",
-        "/uploads/1793351665751-w3uf-0002-1.webp"
-      ],
-      "desc": "Temple-work bangles with Lakshmi motif.",
-      "stock": 39,
-      "trackInventory": true,
-      "lowStockThreshold": 5,
-      "status": "published"
-    },
-    {
       "id": "par-tribal-necklace-set",
       "slug": "tribal-magic-green-red-necklace-set",
       "name": "Tribal Magic Green & Red Necklace Set",
