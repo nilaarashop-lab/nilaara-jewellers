@@ -44,6 +44,7 @@ export default function Admin() {
   const [flash, setFlash] = useState("");
   const [saving, setSaving] = useState(false);
   const [editing, setEditing] = useState(null); // null | "new" | product
+  const [deleted, setDeleted] = useState(null); // { product, index } — last delete, undoable
   const [q, setQ] = useState("");
   const [statusF, setStatusF] = useState("");
 
@@ -111,6 +112,7 @@ export default function Admin() {
     setSession(null);
     setCatalogue({ products: [], sha: "", doc: null });
     setEditing(null);
+    setDeleted(null);
     setTab("dashboard");
     setFlash("");
     setLoadErr("");
@@ -172,6 +174,7 @@ export default function Admin() {
 
   const deleteProduct = async (product) => {
     if (!window.confirm(`Delete “${product.name}”? This removes it from the catalogue.`)) return;
+    const index = products.findIndex((p) => p.id === product.id);
     setSaving(true);
     setLoadErr("");
     setFlash("");
@@ -179,7 +182,53 @@ export default function Admin() {
       const next = products.filter((p) => p.id !== product.id);
       await persist(next, `Admin: delete product “${product.name}”`);
       if (editing && editing !== "new" && editing.id === product.id) setEditing(null);
+      setDeleted({ product, index });
       setFlash("Product deleted ✓ — removed from the storefront now.");
+    } catch (ex) {
+      setLoadErr(ex.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // Undo re-inserts the last deleted product in its old position. The delete
+  // itself is already saved, so this is a second save — not a local trick.
+  const undoDelete = async () => {
+    if (!deleted || saving) return;
+    const { product, index } = deleted;
+    setSaving(true);
+    setLoadErr("");
+    setFlash("");
+    try {
+      if (!products.some((p) => p.id === product.id)) {
+        const next = [...products];
+        next.splice(Math.min(Math.max(index, 0), next.length), 0, product);
+        await persist(next, `Admin: restore product “${product.name}”`);
+        setFlash("Product restored ✓ — live on the storefront again.");
+      }
+      setDeleted(null);
+    } catch (ex) {
+      setLoadErr(ex.message);
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  // The catalogue order is the order shoppers see on the homepage and in the
+  // shop, so the move is saved immediately like every other admin action.
+  const moveProduct = async (product, delta) => {
+    const from = products.findIndex((p) => p.id === product.id);
+    const to = from + delta;
+    if (from < 0 || to < 0 || to >= products.length || saving) return;
+    setSaving(true);
+    setLoadErr("");
+    setFlash("");
+    try {
+      const next = [...products];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      await persist(next, `Admin: reorder products (“${product.name}” ${delta < 0 ? "up" : "down"})`);
+      setFlash(`Moved “${product.name}” ${delta < 0 ? "up" : "down"} ✓`);
     } catch (ex) {
       setLoadErr(ex.message);
     } finally {
@@ -239,7 +288,24 @@ export default function Admin() {
         ))}
       </div>
 
-      {flash && <p style={{ color: "var(--green)", marginTop: 12 }}>{flash}</p>}
+      {flash && (
+        <p style={{ color: "var(--green)", marginTop: 12 }}>
+          {flash}
+          {deleted && (
+            <>
+              {" "}
+              <button
+                className="link"
+                style={{ background: "none", border: 0, cursor: saving ? "default" : "pointer" }}
+                onClick={undoDelete}
+                disabled={saving}
+              >
+                Undo delete
+              </button>
+            </>
+          )}
+        </p>
+      )}
       {loadErr && (
         <p className="auth-err">
           {loadErr}{" "}
@@ -367,6 +433,8 @@ export default function Admin() {
             </button>
           </div>
 
+          <p className="co-note">↑ ↓ set the order shoppers see on the homepage and in the shop.</p>
+
           <div className="admin-table-wrap">
             <table className="admin-table">
               <thead>
@@ -392,6 +460,24 @@ export default function Admin() {
                     </td>
                     <td>{p.status || "published"}</td>
                     <td style={{ whiteSpace: "nowrap" }}>
+                      <button
+                        className="mini-btn"
+                        onClick={() => moveProduct(p, -1)}
+                        disabled={saving || !catalogue.sha || products[0]?.id === p.id}
+                        aria-label={`Move “${p.name}” up`}
+                        title="Move up"
+                      >
+                        ↑
+                      </button>
+                      <button
+                        className="mini-btn"
+                        onClick={() => moveProduct(p, 1)}
+                        disabled={saving || !catalogue.sha || products[products.length - 1]?.id === p.id}
+                        aria-label={`Move “${p.name}” down`}
+                        title="Move down"
+                      >
+                        ↓
+                      </button>
                       <button className="mini-btn" onClick={() => setEditing(p)} disabled={!catalogue.sha}>Edit</button>
                       <button className="mini-btn" onClick={() => window.open(`/product/${p.id}`, "_blank")}>Preview</button>
                       <button className="mini-btn danger" onClick={() => deleteProduct(p)} disabled={saving || !catalogue.sha}>Delete</button>

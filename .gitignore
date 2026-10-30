@@ -2,6 +2,7 @@ node_modules/
 dist/
 dist-ssr/
 frontend/public/content/
+frontend/public/sitemap.xml
 *.local
 .env
 .env.*

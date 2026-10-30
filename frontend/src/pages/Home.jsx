@@ -2,7 +2,9 @@ import { Link } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { SIDE_IMGS, FESTIVE_IMG } from "../data/products";
 import { listCategories } from "../data/categories";
+import { freebiesLabel } from "../data/freebies";
 import { ProductCard, Img } from "../components/Layout";
+import { usePageMeta } from "../components/meta";
 import { useStore } from "../store/StoreContext";
 
 /** True when the visitor prefers reduced motion (autoplay/parallax off). */
@@ -140,6 +142,7 @@ function Hero({ slides }) {
 }
 
 export default function Home() {
+  usePageMeta("");
   const { settings, products: items } = useStore();
   // Best Seller flags lead; the rest stay in catalogue order.
   const best = [...items].sort((a, b) => Number(Boolean(b.bestseller)) - Number(Boolean(a.bestseller))).slice(0, 8);
@@ -163,12 +166,21 @@ export default function Home() {
   // picture; built-in art, then a product photo, are the fallbacks.
   const cats = useMemo(() => listCategories(items, settings?.home?.categoryTiles || []), [items, settings]);
 
+  // The freebie badge is dropped entirely when no threshold is configured.
+  const freebies = freebiesLabel(settings);
+  const trust = [
+    ["✦", "Nickel-Safe Bases", "Hypoallergenic & skin-friendly"],
+    ["◈", "Order on WhatsApp", "We confirm availability in chat"],
+    ["✦", "Handcrafted in India", "Quality-checked pieces"],
+    ...(freebies ? [["❖", freebies, "On every order"]] : []),
+  ];
+
   return (
     <main className="container">
       <Hero slides={slides} />
 
       <div className="trust container" style={{ width: "100%" }}>
-        {[["✦", "Nickel-Safe Bases", "Hypoallergenic & skin-friendly"], ["◈", "Order on WhatsApp", "We confirm availability in chat"], ["✦", "Handcrafted in India", "Quality-checked pieces"], ["❖", "Freebies over ₹5,000", "On every order"]].map(([icon, b, s]) => (
+        {trust.map(([icon, b, s]) => (
           <div key={b}><span style={{ fontSize: 22, color: "var(--gold)" }}>{icon}</span><span><b>{b}</b><small>{s}</small></span></div>
         ))}
       </div>

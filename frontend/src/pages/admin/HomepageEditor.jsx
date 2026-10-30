@@ -81,7 +81,6 @@ const normalize = (raw) => ({
   },
   shipping: {
     freeOver: Number(raw?.shipping?.freeOver ?? 5000),
-    fee: Number(raw?.shipping?.fee ?? 79),
   },
 });
 
@@ -637,7 +636,7 @@ export default function HomepageEditor() {
         <div className="hp-head">
           <h3 className="serif" style={{ margin: 0, fontSize: 22 }}>Shipping</h3>
         </div>
-        <p className="co-note">Used by the product page and the WhatsApp order conversation.</p>
+        <p className="co-note">Every mention of the freebie threshold on the storefront reads this number. Set it to 0 to hide the freebie line everywhere.</p>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
           <div>
             <label>Freebies over ₹</label>
@@ -649,17 +648,6 @@ export default function HomepageEditor() {
                 set(() =>
                   setDoc({ ...doc, shipping: { ...doc.shipping, freeOver: Number(e.target.value) || 0 } })
                 )
-              }
-            />
-          </div>
-          <div>
-            <label>Standard shipping fee ₹</label>
-            <input
-              type="number"
-              min="0"
-              value={doc.shipping.fee}
-              onChange={(e) =>
-                set(() => setDoc({ ...doc, shipping: { ...doc.shipping, fee: Number(e.target.value) || 0 } }))
               }
             />
           </div>

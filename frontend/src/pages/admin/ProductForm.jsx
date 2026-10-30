@@ -52,7 +52,10 @@ const fromProduct = (product) => {
     images: Array.isArray(rest.images)
       ? rest.images.map((image) => (typeof image === "string" ? image : image?.url)).filter(Boolean)
       : [],
-    stock: rest.stock ?? 0,
+    // A product saved before stock tracking opened at 0, which turned into
+    // "Sold out" the moment the merchant pressed Save. Open at the new-product
+    // default instead; the merchant can still set a real count.
+    stock: rest.stock ?? emptyProduct().stock,
     lowStockThreshold: rest.lowStockThreshold ?? 5,
     trackInventory: rest.trackInventory !== false,
     // A product that never had the switch configured opens the form at ₹200.

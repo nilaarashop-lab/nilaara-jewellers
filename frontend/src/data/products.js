@@ -1,22 +1,27 @@
 import catalogue from "../content/products.json";
+import { hasStockCount, isSoldOut, tracksStock } from "./inventory.js";
 import { mediaUrl } from "./repo.js";
 import { img } from "./images.js";
 
 /** Published products from the Git-managed catalogue (frontend/src/content/products.json). */
-const normalizeProduct = (p, commit = "") => ({
-  ...p,
-  id: String(p.id || p.slug || ""),
-  price: Number(p.price) || 0,
-  mrp: Number(p.mrp) || 0,
-  stock: Number.isFinite(Number(p.stock)) ? Number(p.stock) : 0,
-  trackInventory: p.trackInventory !== false,
-  chainOption: p.chainOption === true,
-  chainCharge: Math.max(0, Number(p.chainCharge) || 0),
-  images: Array.isArray(p.images)
-    ? p.images.filter(Boolean).map((url) => mediaUrl(url, commit))
-    : [],
-  inStock: p.trackInventory === false ? true : Number(p.stock) > 0,
-});
+const normalizeProduct = (p, commit = "") => {
+  const stock = hasStockCount(p) ? Number(p.stock) : 0;
+  return {
+    ...p,
+    id: String(p.id || p.slug || ""),
+    price: Number(p.price) || 0,
+    mrp: Number(p.mrp) || 0,
+    stock,
+    trackInventory: tracksStock(p),
+    chainOption: p.chainOption === true,
+    chainCharge: Math.max(0, Number(p.chainCharge) || 0),
+    images: Array.isArray(p.images)
+      ? p.images.filter(Boolean).map((url) => mediaUrl(url, commit))
+      : [],
+    // Same rule the product card and product page use.
+    inStock: !isSoldOut({ ...p, stock }),
+  };
+};
 
 export const normalizeProducts = (list, commit = "") =>
   (Array.isArray(list) ? list : [])

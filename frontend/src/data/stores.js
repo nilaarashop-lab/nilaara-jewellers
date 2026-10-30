@@ -1,11 +1,13 @@
 // Edit names / addresses / hours here — links are your live Google Maps shops.
+export const STORE_HOURS = "10:30 AM – 9:00 PM, Mon–Sun";
+
 export const STORES = [
   {
     id: "store-1",
     name: "Parinaya Rentals — Store 1",
     area: "Visit us in-store",
     address: "Tap “Get Directions” for exact location • Open all days",
-    hours: "10:30 AM – 9:00 PM, Mon–Sun",
+    hours: STORE_HOURS,
     coords: "9.5917471,76.5259062",
     mapsUrl: "https://maps.app.goo.gl/b5izLruNQbqpM4Q77",
   },
@@ -14,7 +16,7 @@ export const STORES = [
     name: "Parinaya Rentals — Store 2",
     area: "Visit us in-store",
     address: "Tap “Get Directions” for exact location • Open all days",
-    hours: "10:30 AM – 9:00 PM, Mon–Sun",
+    hours: STORE_HOURS,
     coords: "9.617801,76.532909",
     mapsUrl: "https://maps.app.goo.gl/uGBTnD3KChhMhwUz8",
   },

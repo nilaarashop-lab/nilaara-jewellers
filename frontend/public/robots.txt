@@ -1,3 +1,5 @@
 User-agent: *
 Disallow: /admin
 Allow: /
+
+Sitemap: https://nilaara-jewellers.vercel.app/sitemap.xml

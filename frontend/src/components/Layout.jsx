@@ -3,6 +3,9 @@ import { Fragment, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useStore } from "../store/StoreContext";
 import { discountPercent, formatINR } from "../data/products";
 import { categoryLabel, listCategories } from "../data/categories";
+import { freebiesLabel } from "../data/freebies";
+import { isLowStock, isSoldOut } from "../data/inventory";
+import { STORE_HOURS } from "../data/stores";
 import { mediaUrl } from "../data/repo.js";
 import { whatsappChatLink, productEnquiryLink, WHATSAPP_DISPLAY } from "../config";
 import { searchProducts } from "../api/client";
@@ -41,19 +44,23 @@ export function Img({ src, alt = "", ...rest }) {
 
 export function ProductCard({ p }) {
   const { wishlist, toggleWish } = useStore();
+  const saved = wishlist.includes(p.id);
   const off = discountPercent(p.price, p.mrp);
-  // Sold out only when inventory is tracked and none is left. `inStock` comes
-  // from the API; static/demo products without it are treated as available.
-  const soldOut = p.inStock === false || (p.inStock === undefined && p.trackInventory !== false && typeof p.stock === "number" && p.stock <= 0);
-  const low = !soldOut && p.trackInventory !== false && typeof p.stock === "number" && p.stock <= (p.lowStockThreshold ?? 5);
+  const soldOut = isSoldOut(p);
+  const low = isLowStock(p);
   return (
     <div className={`card ${soldOut ? "soldout" : ""}`}>
       <Link to={`/product/${p.id}`} className="card-media">
         <Img src={p.images?.[0]} alt={p.name} />
         <div className="badge">{soldOut ? <i className="o">Sold out</i> : <>{p.customTag ? <i className="g">{p.customTag}</i> : null}</>}</div>
       </Link>
-      <button className={`wish ${wishlist.includes(p.id) ? "on" : ""}`} onClick={() => toggleWish(p.id)} aria-label="wishlist">
-        {wishlist.includes(p.id) ? "♥" : "♡"}
+      <button
+        className={`wish ${saved ? "on" : ""}`}
+        onClick={() => toggleWish(p.id)}
+        aria-label={saved ? `Remove ${p.name} from wishlist` : `Save ${p.name} to wishlist`}
+        aria-pressed={saved}
+      >
+        {saved ? "♥" : "♡"}
       </button>
       <div className="card-body">
         <Link to={`/product/${p.id}`} className="card-title"><h3>{p.name}</h3></Link>
@@ -111,9 +118,11 @@ export function AnnounceBar() {
     const track = [...messages, ...messages]; // duplicate for seamless loop
     return (
       <div className="announce announce-marquee" role="region" aria-label="Store announcements">
-        <div className="marquee-track" aria-hidden="false">
+        <div className="marquee-track">
           {track.map((m, i) => (
-            <span className="marquee-item" key={i}>
+            // The second copy only exists to make the loop seamless; hide it
+            // from screen readers so every message is announced once.
+            <span className="marquee-item" key={i} aria-hidden={i >= messages.length ? "true" : undefined}>
               <span>{m}</span>
               <span className="dot" aria-hidden="true">✦</span>
             </span>
@@ -123,7 +132,7 @@ export function AnnounceBar() {
     );
   }
 
-  // Fallbacks: configured text, then the built-in festive line.
+  // Fallbacks: configured text, then a line built from the freebie setting.
   if (a?.text) {
     return (
       <div className="announce" role="region" aria-label="Store announcement">
@@ -132,10 +141,11 @@ export function AnnounceBar() {
       </div>
     );
   }
+  const fallback = `${freebiesLabel(settings) || "Handcrafted artificial jewellery"} • Order on WhatsApp`;
   return (
     <div className="announce">
-      <span className="announce-full">Freebies over ₹5,000 <span className="dot">•</span> Order on WhatsApp</span>
-      <span className="announce-short">Freebies over ₹5,000 <span className="dot">•</span> Order on WhatsApp</span>
+      <span className="announce-full">{fallback}</span>
+      <span className="announce-short">{fallback}</span>
     </div>
   );
 }
@@ -368,6 +378,12 @@ function SearchBox({ className = "", placeholder = "Search jewellery…" }) {
 
 export function Header() {
   const { wishlist, products } = useStore();
+  // Only count saved pieces that still exist, so the badge never promises more
+  // than the Wishlist page can show after a product is deleted.
+  const savedCount = useMemo(() => {
+    const live = new Set(products.map((p) => p.id));
+    return wishlist.filter((id) => live.has(id)).length;
+  }, [wishlist, products]);
   // Generated from the live catalogue, so a category the owner types in the
   // admin shows up in the menu without a code change.
   const cats = useMemo(() => listCategories(products), [products]);
@@ -415,8 +431,8 @@ export function Header() {
             </Link>
             <SearchBox placeholder="Search temple jewellery, chokers, rings, diamond replica…" />
             <div className="hicons">
-              <Link className="hbtn wish-hbtn" to="/wishlist" aria-label={wishlist.length > 0 ? `Wishlist, ${wishlist.length} saved` : "Wishlist"}>
-                <IconHeart />{wishlist.length > 0 && <span className="count">{wishlist.length}</span>}
+              <Link className="hbtn wish-hbtn" to="/wishlist" aria-label={savedCount > 0 ? `Wishlist, ${savedCount} saved` : "Wishlist"}>
+                <IconHeart />{savedCount > 0 && <span className="count">{savedCount}</span>}
               </Link>
               <a
                 className="hbtn wa-hbtn"
@@ -494,7 +510,7 @@ export function Header() {
                   <IconWhatsApp /> Chat on WhatsApp
                 </a>
                 <Link className="btn btn-ghost" to="/wishlist" onClick={() => setMnav(false)}>
-                  <IconHeart /> Wishlist{wishlist.length > 0 ? ` (${wishlist.length})` : ""}
+                  <IconHeart /> Wishlist{savedCount > 0 ? ` (${savedCount})` : ""}
                 </Link>
               </div>
             </div>
@@ -515,11 +531,11 @@ export function Footer() {
           <div>
             <img className="footer-logo" src="/nilaara-logo.png" alt="Nilaara Jewellers" />
             <p>Premium artificial jewellery — handcrafted in India. Skin-friendly, nickel-safe, made for weddings, festivals & everyday elegance.</p>
-            <p style={{ marginTop: 10 }}>CIN: UXXXXXKA2026PTC000000<br />© 2026 Nilaara Jewellers. All rights reserved.</p>
+            <p style={{ marginTop: 10 }}>© 2026 Nilaara Jewellers. All rights reserved.</p>
           </div>
           <div>
             <h4>Care</h4>
-            <p><a href={whatsappChatLink()} target="_blank" rel="noreferrer">Chat on WhatsApp</a><br /><Link to="/stores">Our 2 Stores + Directions</Link><br /><Link to="/about">Shipping Policy</Link><br /><Link to="/about">Jewellery Care</Link><br /><Link to="/contact">Contact Us</Link></p>
+            <p><a href={whatsappChatLink()} target="_blank" rel="noreferrer">Chat on WhatsApp</a><br /><Link to="/stores">Our 2 Stores + Directions</Link><br /><Link to="/about#shipping">Shipping Policy</Link><br /><Link to="/about#care">Jewellery Care</Link><br /><Link to="/contact">Contact Us</Link></p>
           </div>
           <div>
             <h4>Shop</h4>
@@ -536,7 +552,7 @@ export function Footer() {
             <a className="btn btn-gold news-cta" href={whatsappChatLink()} target="_blank" rel="noreferrer" style={{ marginTop: 4 }}>
               <IconWhatsApp /> Chat with our team
             </a>
-            <p style={{ marginTop: 12 }}>WhatsApp: <a href={whatsappChatLink()} target="_blank" rel="noreferrer">{WHATSAPP_DISPLAY}</a><br />10:30 AM – 5:30 PM, Mon–Sat</p>
+            <p style={{ marginTop: 12 }}>WhatsApp: <a href={whatsappChatLink()} target="_blank" rel="noreferrer">{WHATSAPP_DISPLAY}</a><br />{STORE_HOURS}</p>
           </div>
         </div>
         <div className="copy"><span>Made with care in India • Order on WhatsApp</span><span>Every piece is hand-checked before dispatch • <Link to="/admin/">Staff login</Link></span></div>

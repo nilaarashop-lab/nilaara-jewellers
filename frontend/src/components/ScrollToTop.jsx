@@ -3,12 +3,20 @@ import { useLocation } from "react-router-dom";
 
 // Scroll to top when the page changes. Query-only changes are filter/search
 // updates (typing in the shop search box, sort, category) — jumping to the top
-// on every keystroke would be jarring, so those are left alone.
+// on every keystroke would be jarring, so those are left alone. A hash link
+// (e.g. /about#care from the footer) scrolls to that section instead.
 export function ScrollToTopOnNavigate() {
-  const { pathname } = useLocation();
+  const { pathname, hash } = useLocation();
   useEffect(() => {
+    if (hash) {
+      const target = document.getElementById(hash.slice(1));
+      if (target) {
+        target.scrollIntoView({ behavior: "instant", block: "start" });
+        return;
+      }
+    }
     window.scrollTo({ top: 0, left: 0, behavior: "instant" });
-  }, [pathname]);
+  }, [pathname, hash]);
   return null;
 }
 

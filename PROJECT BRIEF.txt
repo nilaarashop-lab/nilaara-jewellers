@@ -18,7 +18,8 @@ Last updated: 2026-10-30.
 2. STACK / ARCHITECTURE
 - React 19 + Vite 8 static SPA (frontend/), react-router-dom v7, BrowserRouter, plain CSS (src/index.css).
 - Hosting: Vercel, project root = frontend/. Build = "npm run build"; prebuild runs
-  scripts/sync-content.mjs which copies src/content/*.json into public/content/ and stamps "_commit".
+  scripts/sync-content.mjs which copies src/content/*.json into public/content/, stamps "_commit",
+  and writes public/sitemap.xml from the catalogue (static routes + one URL per published product).
 - SPA rewrite: every unknown path serves index.html (so a missing asset returns HTTP 200 + HTML).
 - Catalogue source of truth: frontend/src/content/products.json and settings.json (committed).
 - Runtime freshness: storefront fetches /content/products.json + settings.json (no-store, ?v=timestamp)
@@ -36,8 +37,11 @@ Last updated: 2026-10-30.
                  "Visit us in person — Two stores" rental-invite block.
 /shop            Catalogue with filters/sort/search (details in 5).
 /product/:id     Product detail (details in 5).
-/wishlist        Saved pieces (localStorage, survives reload).
-/about /contact  Brand story / WhatsApp + store contact.
+/wishlist        Saved pieces (localStorage, survives reload); the header badge counts only pieces
+                 that still exist in the catalogue.
+/about           Brand story + "Shipping & delivery" (#shipping) and "Jewellery care" (#care) sections;
+                 the footer's policy links use those anchors and the router scrolls to them.
+/contact         WhatsApp form, hours, care summary with links to the About sections, our 2 stores.
 /stores          Two Google Maps embeds, hours, Get Directions, WhatsApp, "buy online or rent in store" box.
 /admin           Staff control centre (details in 6).
 
@@ -51,7 +55,9 @@ Removed for good in 2026-10: collection, plating, stones, badge, B1G1. Unknown l
 are ignored (never a dead-end page).
 Settings: announcement {active,text,shortText,messages[]}, home.heroSlides[] (max 4),
 home.cards[] (max 4), home.festive banner, home.categoryTiles[] per category slug,
-shipping {freeOver (currently 5,000), fee}.
+shipping {freeOver (currently 5,000)}. freeOver drives every freebie mention in the site through
+freebiesLabel(settings) in src/data/freebies.js; 0 hides the line everywhere. The old shipping fee
+field was removed — shipping is agreed on WhatsApp.
 Categories: 11 built-in sections (temple-jewellery, non-idol-design, white-stone, diamond-replica,
 ring-necklace, choker, earrings, bracelet, bangles, rings, long-necklace). A category typed/added in
 the admin appears in the menu and shop filters automatically; the list must also SHRINK when no
@@ -73,17 +79,27 @@ shipping (dispatch 24 h, delivery 3–5 days) / care accordions, "You may also l
 Stores page: two map iframes (9.5917471,76.5259062 and 9.617801,76.532909), 10:30 AM–9:00 PM daily,
 Get Directions, WhatsApp Store, "Can't visit? Shop online" box.
 Global: announcement bar (marquee, rotating messages, or plain text; hidden when the owner turns it off),
-mobile menu, wishlist counter, back-to-top, scroll restore, reveal animations, freebies-over-₹5,000
-messaging driven by settings.
+mobile menu, wishlist counter, back-to-top, scroll restore, reveal animations.
+Single sources: store hours come from STORE_HOURS in src/data/stores.js (footer, contact, store cards);
+freebie copy comes from settings.shipping.freeOver via src/data/freebies.js (home trust strip, shop
+sidebar, stores box, contact, announcement fallback). Never hardcode either number in a page.
+SEO: every route sets its own title + description + og:title/description/url (src/components/meta.js);
+index.html carries site-wide Open Graph/Twitter tags; robots.txt points at the generated sitemap.
+Sold-out is one rule for cards, product page and normalisation: src/data/inventory.js (a piece with no
+stock number recorded stays on sale).
 
 6. ADMIN (/admin) FUNCTIONS
 Sign-in: "Sign in with GitHub" popup; expired session and missing-write-access errors are explained.
 Dashboard: product count, published vs draft/archived, low stock (at/below lowStockThreshold),
 out of stock, "Needs restocking" table, "Not visible in the shop" table.
 Products tab: search + status filter, Add Product, Edit, Preview (opens /product/:id), Delete
-(confirm dialog; deletion is permanent in the catalogue).
+(confirm dialog; permanent once saved) with an "Undo delete" link that restores the product in its
+old position, and ↑ / ↓ buttons that reorder the catalogue (the order shoppers see on the homepage
+and in the shop; each move is its own commit).
 Product form: every field in 4, category as a real dropdown (with a visible arrow) plus the ability
-to type a new category, duplicate-ID inline warning before save, photo workflow —
+to type a new category, duplicate-ID inline warning before save, a product with no stored stock count
+opens at the new-product default (10) instead of 0 — saving it can never silently make it "Sold out",
+photo workflow —
   • pick up to 6 photos; each opens a CROP dialog: drag to pan, zoom 1–4×, ↻ Rotate 90° (quarter turns;
     four taps return the exact original because every turn is rebuilt from the source photo), ratios
     Shop card 10:11 / Square 1:1 / Portrait 4:5, then "Upload as is" or "Crop & upload".
@@ -95,7 +111,7 @@ to type a new category, duplicate-ID inline warning before save, photo workflow 
     a repeated write is treated as already committed. Errors name GitHub and print its request id.
 Homepage tab: announcement (on/off, rotating messages, desktop + mobile fallback text),
 hero slides (on/off, image, eyebrow, title, highlight, text), promo cards (image, eyebrow, title, text,
-link, label), festive banner, category tile pictures, shipping (Freebies over ₹, standard fee).
+link, label), festive banner, category tile pictures, freebie threshold (Freebies over ₹).
 Every save is a commit on main and goes live without a developer.
 
 7. HARD RULES WHEN COMMITTING AND PUSHING  ← read this before any git command
@@ -106,9 +122,9 @@ A. NEVER commit frontend/src/content/** or frontend/public/uploads/**. They belo
 B. The owner's admin commits land on origin/main constantly. ALWAYS: git fetch origin, then
    git rebase origin/main (never force-push, never reset --hard over their work). Verify afterwards:
    git diff origin/main --stat -- frontend/src/content frontend/public/uploads   → must be EMPTY.
-C. Before committing: run in frontend/ — npm test (42 tests), npm run lint (oxlint: 0 errors; 9 known
+C. Before committing: run in frontend/ — npm test (48 tests), npm run lint (oxlint: 0 errors; 9 known
    react(set-state-in-effect) warnings are pre-existing), npm run build. Commit only source, tests,
-   styles, docs. Never commit dist/, node_modules/, public/content/, .env.
+   styles, docs. Never commit dist/, node_modules/, public/content/, public/sitemap.xml (generated), .env.
 D. Never commit secrets: GitHub OAuth client secret, ImageKit private key, tokens. Admin tokens stay in
    sessionStorage, never in files. Report to the owner if a secret would be needed.
 E. Commit and push are separate actions. Commit when asked to commit; push only when asked to push.
@@ -132,10 +148,16 @@ J. UPDATE THIS FILE in the same commit as any change: sections 3–6 for behavio
    for state. If a feature is removed, delete its lines here — a stale brief is a defect.
 
 8. CURRENT STATE (2026-10-30)
-- Everything below is on main and live via Vercel; /content/products.json "._commit" names the exact
-  commit the live site is serving.
-- Catalogue has 1 product: id w2000, name "test2", added in the admin at ~20:10 IST, after the earlier
-  "white stone" product was deleted. Its two photos were uploaded with the crop tool (the repo files
-  end in "-cropped.webp"). Announcement bar is off; freebies threshold ₹5,000.
+- Unless a bullet says otherwise, everything is on main and live via Vercel; /content/products.json
+  "._commit" names the exact commit the live site is serving.
+- Catalogue has 2 published products, both added by the owner in the admin on 2026-10-30: w2000
+  "test2" (stock 1) and w2001 "test23" (stock 7). Each has two cropped photos (repo files end in
+  "-cropped.webp"). Announcement bar is off; freebies threshold ₹5,000.
 - Shipped and live: photo crop tool, ↻ Rotate 90°, duplicate-ID guard, Parinaya Rentals store names,
   online-sale/offline-rental wording, upload retry on GitHub server errors.
+- AUDIT FIXES, 2026-10-30 (in this code commit): one source for store hours (10:30 AM – 9:00 PM daily)
+  and for the freebie line, placeholder CIN removed, real Shipping Policy + Jewellery Care sections
+  with working footer anchors, dead ₹79 shipping-fee field removed, stock-default guard, wishlist badge
+  counts only live pieces, per-page titles/descriptions + site-wide OG tags + generated sitemap,
+  product-named wishlist labels, marquee duplicate hidden from screen readers, admin undo delete +
+  ↑↓ reorder. Tests: 48 passing.

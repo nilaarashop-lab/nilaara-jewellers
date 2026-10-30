@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { categoryLabel, listCategories, slugify } from "../data/categories";
 import { ProductCard } from "../components/Layout";
+import { usePageMeta } from "../components/meta";
 import { matchesQuery } from "../api/client";
 import { useStore } from "../store/StoreContext";
 
@@ -54,6 +55,12 @@ export default function Shop() {
   const activeCol = useMemo(
     () => [...CURATED, ...labels].find((c) => c.slug === col) || null,
     [col, labels]
+  );
+  const pageTitle = activeCol?.name || (cat ? categoryLabel(cat) : q ? `Search: ${q}` : "Shop All Jewellery");
+  usePageMeta(
+    pageTitle,
+    undefined,
+    `/shop${cat ? `?cat=${cat}` : col ? `?col=${col}` : ""}`
   );
   const activeFilterCount = (cat ? 1 : 0) + (activeCol ? 1 : 0) + (maxPrice != null ? 1 : 0) + (query ? 1 : 0);
   const [filtersOpen, setFiltersOpen] = useState(false);

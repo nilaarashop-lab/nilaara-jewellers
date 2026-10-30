@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { discountPercent, formatINR } from "../data/products";
+import { isLowStock, isSoldOut } from "../data/inventory";
 import { chainChoice, choiceMessageLines } from "../data/options";
 import { ProductCard, Img, IconWhatsApp } from "../components/Layout";
+import { usePageMeta } from "../components/meta";
 import { useStore } from "../store/StoreContext";
 import { productEnquiryLink } from "../config";
 
@@ -13,6 +15,7 @@ export default function Product() {
   const [chain, setChain] = useState("");
   useEffect(() => { setImgI(0); setChain(""); window.scrollTo(0, 0); }, [id]);
   const p = items.find((x) => x.id === id);
+  usePageMeta(p?.name || "Piece not found", p?.desc, p ? `/product/${p.id}` : "/shop");
   if (!p && contentStatus === "loading") {
     return (
       <main className="container">
@@ -49,8 +52,8 @@ export default function Product() {
   const off = discountPercent(p.price, p.mrp);
   const choice = chainChoice(p, chain);
   const shownPrice = choice ? choice.total : p.price;
-  const soldOut = p.inStock === false || (p.inStock === undefined && p.trackInventory !== false && typeof p.stock === "number" && p.stock <= 0);
-  const low = !soldOut && p.trackInventory !== false && typeof p.stock === "number" && p.stock <= (p.lowStockThreshold ?? 5);
+  const soldOut = isSoldOut(p);
+  const low = isLowStock(p);
 
   return (
     <main className="container">
@@ -103,7 +106,14 @@ export default function Product() {
                 <IconWhatsApp /> Buy Now on WhatsApp • {formatINR(shownPrice)}
               </a>
             )}
-            <button className="hbtn pd-wish" onClick={() => toggleWish(p.id)} aria-label="Save to wishlist">{wishlist.includes(p.id) ? "♥" : "♡"}</button>
+            <button
+              className="hbtn pd-wish"
+              onClick={() => toggleWish(p.id)}
+              aria-label={wishlist.includes(p.id) ? `Remove ${p.name} from wishlist` : `Save ${p.name} to wishlist`}
+              aria-pressed={wishlist.includes(p.id)}
+            >
+              {wishlist.includes(p.id) ? "♥" : "♡"}
+            </button>
           </div>
           <p className="pd-hint">Tap <b>Buy Now</b> — WhatsApp opens with this piece's name{p.chainOption ? ", the chain you chose" : ""} and <b>Product ID</b> already filled in. We'll reply there with price, availability, payment and shipping details.</p>
           <details className="acc" open><summary>Product details</summary><div>{specs}</div></details>

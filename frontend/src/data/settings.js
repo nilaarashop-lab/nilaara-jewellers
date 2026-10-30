@@ -65,7 +65,6 @@ export function normalizeSettings(raw, commit = "") {
     },
     shipping: {
       freeOver: Number(source.shipping?.freeOver ?? 5000),
-      fee: Number(source.shipping?.fee ?? 79),
     },
   };
 }

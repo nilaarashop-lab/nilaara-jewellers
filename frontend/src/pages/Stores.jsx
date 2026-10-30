@@ -1,8 +1,14 @@
 import { Link } from "react-router-dom";
 import { STORES, embedUrl } from "../data/stores";
+import { freebiesLabel } from "../data/freebies";
+import { usePageMeta } from "../components/meta";
+import { useStore } from "../store/StoreContext";
 import { WHATSAPP_DISPLAY, whatsappChatLink } from "../config";
 
 export default function Stores() {
+  usePageMeta("Our Stores", "Visit either Parinaya Rentals store to rent bridal & festive jewellery — directions, hours and WhatsApp contact.");
+  const { settings } = useStore();
+  const freebies = freebiesLabel(settings);
   return (
     <main className="container">
       <div className="breadcrumb"><Link to="/">Home</Link> / Our Stores</div>
@@ -36,7 +42,7 @@ export default function Stores() {
       </div>
       <div className="form" style={{ marginTop: 20 }}>
         <h3 className="serif" style={{ margin: 0 }}>Can’t visit? Shop online</h3>
-        <p style={{ color: "var(--ink-soft)" }}>Buy online — or rent the same designs in either store. Order on WhatsApp, freebies over ₹5,000.</p>
+        <p style={{ color: "var(--ink-soft)" }}>Buy online — or rent the same designs in either store. Order on WhatsApp{freebies ? ` — ${freebies.toLowerCase()}` : ""}.</p>
         <div className="cta-row"><Link to="/shop" className="btn btn-gold">Shop Bestsellers →</Link></div>
       </div>
     </main>
