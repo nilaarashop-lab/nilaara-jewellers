@@ -26,7 +26,12 @@
     "categoryTiles": [
       {
         "slug": "jewellery-sets",
-        "image": "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt4cba8-c6f1d7ca3a32.png",
+        "image": "/uploads/1793361940649-fcxw-0002.webp",
+        "alt": ""
+      },
+      {
+        "slug": "necklaces",
+        "image": "/uploads/1793361963896-xy2i-dsc00185.webp",
         "alt": ""
       }
     ]
