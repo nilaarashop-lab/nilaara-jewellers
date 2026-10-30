@@ -660,6 +660,38 @@
       "trackInventory": true,
       "lowStockThreshold": 5,
       "status": "published"
+    },
+    {
+      "id": "n0001",
+      "slug": "n0001",
+      "name": "temple jewellery",
+      "category": "jewellery-sets",
+      "collection": "gold-plated",
+      "plating": "22K Gold Plated",
+      "metal": "",
+      "purity": "",
+      "stones": "",
+      "size": "",
+      "price": 799,
+      "mrp": 1499,
+      "makingCharges": 0,
+      "stock": 1,
+      "lowStockThreshold": 5,
+      "trackInventory": true,
+      "badge": "New",
+      "tag": "",
+      "customTag": "",
+      "bestseller": false,
+      "newArrival": true,
+      "featured": false,
+      "rating": 0,
+      "reviews": 0,
+      "images": [
+        "/uploads/1793353017090-kwdb-0003.webp",
+        "/uploads/1793353023698-ejhy-0003-1.webp"
+      ],
+      "desc": "",
+      "status": "published"
     }
   ]
 }
