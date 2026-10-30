@@ -2,7 +2,7 @@
 
 The deployed site is **only** the Vite frontend plus two small Vercel functions
 for GitHub login. Products and homepage content are committed JSON files; there
-is no content API, database, or Render service in the customer path.
+is no content API or database.
 
 ## Prerequisites
 
@@ -16,8 +16,8 @@ is no content API, database, or Render service in the customer path.
 2. Set **Root Directory → `frontend`**.
 3. Framework preset **Vite**; build `npm run build`; output `dist` (also in
    `frontend/vercel.json`).
-4. Do **not** add `VITE_API_URL`. There is no backend to call. If the variable
-   already exists from the old Render setup, delete it and redeploy.
+4. No API URL, database, or content service is needed. Content is bundled from
+   the committed JSON files at build time.
 
 `frontend/vercel.json` keeps the SPA fallback and marks admin/API responses as
 no-store/noindex.
@@ -116,14 +116,12 @@ This repository is public. Customer names, phone numbers, addresses, and order
 data must never be committed.
 
 The historical orders and promo record were exported to a private folder
-outside this repository. The old `backend/` folder remains for reference only
-and is not deployed or called by the storefront.
+outside this repository and are not part of the deployed site.
 
 ## 7. Pre-launch checklist
 
 - [ ] Vercel Root Directory is `frontend`
 - [ ] `GITHUB_OAUTH_CLIENT_ID` and `GITHUB_OAUTH_CLIENT_SECRET` are set in Vercel
-- [ ] `VITE_API_URL` is deleted from Vercel
 - [ ] GitHub OAuth callback is exactly `https://<domain>/api/callback`
 - [ ] `/admin` opens and GitHub login succeeds
 - [ ] A test admin edit commits to `main` and triggers a Vercel rebuild
@@ -131,7 +129,6 @@ and is not deployed or called by the storefront.
 - [ ] `/product/<id>` hard refresh works
 - [ ] A Buy Now button opens WhatsApp with the product name + ID
 - [ ] No customer/order data exists in `git ls-files`
-- [ ] The old Render service and keep-alive workflow are no longer needed
 
 ## Troubleshooting
 

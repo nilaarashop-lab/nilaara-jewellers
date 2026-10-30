@@ -17,8 +17,8 @@ service, or database.
 5. Create the GitHub OAuth App with callback
    `https://<domain>/api/callback`.
 
-No `VITE_API_URL` is needed. Delete it if it is left over from the Render
-backend. Nothing is proxied to Render.
+No API URL is needed. All content is bundled from the committed JSON files, and
+only the two OAuth functions run on Vercel.
 
 ## Request routing
 

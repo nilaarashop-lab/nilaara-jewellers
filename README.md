@@ -37,8 +37,7 @@ frontend/                       # storefront + staff admin
   api/auth.js                   # GitHub OAuth start (Vercel function)
   api/callback.js               # GitHub OAuth callback (Vercel function)
   vercel.json                   # SPA fallback + admin noindex headers
-backend/                        # legacy Express/MongoDB source; not deployed or called
-docs/                           # deployment notes and archived backend guides
+docs/                           # deployment notes
 ```
 
 The repository folder and some product IDs still use the older `par-…` naming
@@ -126,12 +125,8 @@ checklist, and [docs/VERCEL.md](docs/VERCEL.md) for Vercel-specific notes.
 Retired routes (`/login`, `/register`, `/account`, `/cart`, `/checkout`,
 `/success`, `/orders`, `/track`) redirect to `/` or `/shop`.
 
-## Legacy backend
+## Data and privacy
 
-`backend/` is kept for historical reference only. The deployed storefront does
-not import or call it. The old Render service and keep-alive workflow are no
-longer required, and the Vercel project should not have a `VITE_API_URL`
-environment variable.
-
-Historical order and promo exports are intentionally stored **outside this
-repository** because the repo is public.
+This repository is public. Historical order and promo exports are intentionally
+stored **outside this repository**; customer names, phone numbers, addresses,
+and order data must never be committed.

@@ -170,8 +170,7 @@ function useProductSearch(term, active) {
 
 /**
  * Header search with live results. Desktop and mobile use the same component;
- * results come from the server in API mode (and the local catalogue in demo
- * mode), never from invented data when the backend is down.
+ * results come from the bundled catalogue.
  */
 function SearchBox({ className = "", placeholder = "Search jewellery…" }) {
   const uid = useId().replace(/:/g, "");
