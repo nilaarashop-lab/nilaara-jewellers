@@ -1,39 +1,6 @@
 {
   "products": [
     {
-      "id": "par-kashmiri-jhumka",
-      "slug": "long-kashmiri-jhumkas-with-gold-beads",
-      "name": "Long Kashmiri Jhumkas with Gold Beads",
-      "category": "jhumkas",
-      "collection": "temple",
-      "plating": "22K Gold Plated",
-      "metal": "Brass alloy",
-      "purity": "",
-      "stones": "Pearl • Meenakari",
-      "size": "",
-      "variants": [],
-      "price": 799,
-      "mrp": 1650,
-      "makingCharges": 0,
-      "rating": 4.7,
-      "reviews": 1780,
-      "badge": "Bestseller",
-      "tag": "",
-      "customTag": "",
-      "featured": false,
-      "bestseller": false,
-      "newArrival": false,
-      "images": [
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jhd2-320dd45de74c_VprRPVSSk.jpg",
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jjpx-ab6de39154aa_Jiw1fpMLfN.jpg"
-      ],
-      "desc": "Long festive jhumkas.",
-      "stock": 79,
-      "trackInventory": true,
-      "lowStockThreshold": 5,
-      "status": "published"
-    },
-    {
       "id": "par-emerald-drop-earrings",
       "slug": "royal-green-black-statement-drop-earrings-mvt2jwq6",
       "name": "Royal Green & Black Statement Drop Earrings",
