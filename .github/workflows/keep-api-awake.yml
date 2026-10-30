@@ -1,0 +1,35 @@
+name: Keep API awake
+
+# Render's free web services spin down after ~15 minutes without traffic, and
+# the next request can take 30-60 seconds (or time out through the Vercel
+# proxy). A lightweight ping every five minutes keeps the storefront API warm
+# so it is available whenever a customer opens the site.
+#
+# Runs on GitHub's scheduler, not on anyone's laptop. Public repositories get
+# unlimited Actions minutes, so this costs nothing. You can also run it
+# manually from the Actions tab ("Run workflow").
+
+on:
+  schedule:
+    - cron: "*/5 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: keep-api-awake
+  cancel-in-progress: false
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Ping /api/health
+        run: |
+          curl --fail --silent --show-error \
+            --max-time 120 \
+            --retry 2 \
+            --retry-delay 15 \
+            https://nilaara-jewellers-api.onrender.com/api/health

@@ -54,6 +54,19 @@ Process manager options: PM2 (`pm2 start server.js --name nilaara-api`), Windows
 
 Ensure HTTPS terminates at your proxy/host so `Secure` cookies work end-to-end.
 
+### Render free tier — keep the API awake
+
+On Render's free plan a web service **spins down after ~15 minutes without traffic**. The next request then waits for the instance to boot (30–60 s) and can time out through the Vercel proxy — which looks like "the backend is down".
+
+This repository includes `.github/workflows/keep-api-awake.yml`, which pings `https://nilaara-jewellers-api.onrender.com/api/health` every five minutes from GitHub Actions. It runs in the cloud, not on a laptop. It is enabled automatically on the default branch; you can also trigger it manually from the **Actions → Keep API awake → Run workflow** button.
+
+Notes:
+
+- Public repositories get unlimited GitHub Actions minutes, so the pings are free.
+- GitHub disables scheduled workflows after 60 days without repository activity. If the API starts sleeping again after a long quiet period, open **Actions → Keep API awake** and re-enable the workflow.
+- For extra redundancy, point a free uptime monitor (UptimeRobot, cron-job.org, etc.) at the same `https://nilaara-jewellers-api.onrender.com/api/health` URL.
+- For a guaranteed always-on backend without the cron workaround, upgrade the Render service to a paid instance type.
+
 ## 3. Deploy the frontend
 
 ```powershell
