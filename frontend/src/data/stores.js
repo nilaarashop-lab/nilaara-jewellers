@@ -2,7 +2,7 @@
 export const STORES = [
   {
     id: "store-1",
-    name: "Nilaara Jewellers — Store 1",
+    name: "Parinaya Rentals — Store 1",
     area: "Visit us in-store",
     address: "Tap “Get Directions” for exact location • Open all days",
     hours: "10:30 AM – 9:00 PM, Mon–Sun",
@@ -11,7 +11,7 @@ export const STORES = [
   },
   {
     id: "store-2",
-    name: "Nilaara Jewellers — Store 2",
+    name: "Parinaya Rentals — Store 2",
     area: "Visit us in-store",
     address: "Tap “Get Directions” for exact location • Open all days",
     hours: "10:30 AM – 9:00 PM, Mon–Sun",

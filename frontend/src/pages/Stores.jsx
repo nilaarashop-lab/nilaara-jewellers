@@ -9,7 +9,7 @@ export default function Stores() {
       <div className="sec-head">
         <div>
           <h2>Visit our 2 stores</h2>
-          <p>Try it on in person — weddings, festive & daily wear</p>
+          <p>Rent bridal, festive & daily-wear jewellery — try it on in person</p>
         </div>
       </div>
       <div className="store-grid">

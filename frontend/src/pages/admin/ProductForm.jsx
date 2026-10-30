@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
+import ImageCropper from "../../components/ImageCropper";
 import { previewUrl, uploadImage } from "../../api/github";
 import { listCategories, slugify } from "../../data/categories";
+import { findIdClash, normalizeId } from "../../data/productId";
 
 const PSTATUSES = ["draft", "published", "archived"];
 
@@ -35,14 +37,6 @@ const emptyProduct = () => ({
   images: [],
 });
 
-const normalizeId = (value) =>
-  String(value || "")
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "")
-    .slice(0, 60);
-
 const fromProduct = (product) => {
   // Retired attributes are dropped here as well as in the payload, so an old
   // catalogue entry never carries them back into the form.
@@ -72,10 +66,16 @@ export default function ProductForm({ product, products, onClose, onSave, saving
   const [urlDraft, setUrlDraft] = useState("");
   const [error, setError] = useState("");
   const [flash, setFlash] = useState("");
+  const [cropJob, setCropJob] = useState(null);
+  const idRef = useRef(null);
 
   // Your shop's sections, plus any older category a product still carries so
   // editing that piece never renames it by accident.
   const categoryChoices = listCategories(products);
+
+  // A blank ID is generated from the name, so the clash is tested against what
+  // would actually be saved, not only against what has been typed so far.
+  const idClash = findIdClash(products, form.id || form.name, product?.id);
 
   const set = (patch) => {
     setError("");
@@ -83,27 +83,93 @@ export default function ProductForm({ product, products, onClose, onSave, saving
     setForm((current) => ({ ...current, ...patch }));
   };
 
-  const addFiles = async (files) => {
-    if (!files?.length) return;
+  const addFiles = (files) => {
     const room = Math.max(0, 6 - form.images.length);
-    const chosen = Array.from(files).slice(0, room);
+    const chosen = Array.from(files || []).slice(0, room);
     if (!chosen.length) return;
     setError("");
     setFlash("");
-    setUploading((n) => n + chosen.length);
-    for (const file of chosen) {
-      try {
-        const { url } = await uploadImage(file);
-        setForm((current) => ({
-          ...current,
-          images: [...current.images, url].slice(0, 6),
-        }));
-        setFlash("Image uploaded ✓");
-      } catch (ex) {
-        setError(ex.message);
-      } finally {
-        setUploading((n) => Math.max(0, n - 1));
-      }
+    nextCrop(chosen);
+  };
+
+  /** Puts a finished upload in its slot, or appends it when the slot is blank. */
+  const putPhoto = (url, slot) => {
+    setForm((current) => ({
+      ...current,
+      images:
+        slot == null
+          ? [...current.images, url].slice(0, 6)
+          : current.images.map((image, i) => (i === slot ? url : image)),
+    }));
+  };
+
+  const commitPhoto = async (file, slot, queue = []) => {
+    setUploading((n) => n + 1);
+    try {
+      const { url } = await uploadImage(file);
+      putPhoto(url, slot);
+      setFlash("Image uploaded ✓");
+    } catch (ex) {
+      setError(ex.message);
+    } finally {
+      setUploading((n) => Math.max(0, n - 1));
+    }
+    nextCrop(queue);
+  };
+
+  /**
+   * Opens the crop frame for the next chosen photo. Animated GIFs are passed
+   * straight through because cropping would flatten them to one frame.
+   */
+  const nextCrop = (queue) => {
+    const [file, ...rest] = queue || [];
+    if (!file) {
+      setCropJob(null);
+      return;
+    }
+    if (file.type === "image/gif") {
+      commitPhoto(file, null, rest);
+      return;
+    }
+    setCropJob({ photo: file, queue: rest, slot: null, title: `Crop ${file.name || "photo"}` });
+  };
+
+  const skipCrop = () => {
+    const job = cropJob;
+    if (!job) return;
+    setCropJob(null);
+    // An existing photo left alone is simply not re-uploaded.
+    if (job.slot == null) commitPhoto(job.photo, null, job.queue);
+  };
+
+  const cancelCrop = () => {
+    setCropJob(null);
+    setFlash("");
+  };
+
+  const applyCrop = (file) => {
+    const job = cropJob;
+    setCropJob(null);
+    commitPhoto(file, job?.slot, job?.queue || []);
+  };
+
+  /** Re-frames a photo that is already on the product. */
+  const cropExisting = async (index) => {
+    setError("");
+    const image = form.images[index];
+    try {
+      const response = await fetch(previewUrl(image));
+      if (!response.ok) throw new Error(String(response.status));
+      const blob = await response.blob();
+      const name = String(image).split("/").pop() || `photo-${index + 1}`;
+      setCropJob({
+        photo: new File([blob], name, { type: blob.type || "image/webp" }),
+        queue: [],
+        slot: index,
+        title: `Crop photo ${index + 1}`,
+      });
+    } catch {
+      setError("Couldn't open that photo to crop it. If it is a pasted link, the other site may block downloads.");
     }
   };
 
@@ -152,9 +218,11 @@ export default function ProductForm({ product, products, onClose, onSave, saving
       setError("Enter a product ID using letters and numbers.");
       return;
     }
-    const duplicate = products.some((p) => p.id === id && p.id !== product?.id);
-    if (duplicate) {
-      setError(`Product ID "${id}" is already used by another product.`);
+    if (idClash) {
+      // The reason already sits under the ID field, so bring it into view
+      // instead of repeating it at the bottom of the form.
+      idRef.current?.focus();
+      idRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
       return;
     }
 
@@ -215,8 +283,10 @@ export default function ProductForm({ product, products, onClose, onSave, saving
         <label htmlFor="productId">Product ID — the code customers send on WhatsApp</label>
         <input
           id="productId"
+          ref={idRef}
           value={form.id}
           maxLength={60}
+          aria-invalid={idClash ? "true" : undefined}
           placeholder={product ? "" : "e.g. nl-001 — leave blank to generate from the name"}
           onChange={(e) => set({ id: e.target.value })}
         />
@@ -227,6 +297,11 @@ export default function ProductForm({ product, products, onClose, onSave, saving
             ? " Changing it also changes the product link — old links will stop working."
             : ""}
         </small>
+        {idClash && (
+          <p className="auth-err" style={{ margin: "6px 0 0" }}>
+            Product ID “{idClash}” is already used by another product — pick a different one.
+          </p>
+        )}
 
         <label htmlFor="productCategory">Category — where this piece appears in the shop</label>
         <select id="productCategory" value={form.category} onChange={(e) => set({ category: e.target.value })}>
@@ -319,7 +394,8 @@ export default function ProductForm({ product, products, onClose, onSave, saving
           {form.images.map((image, i) => (
             <span key={`${image}-${i}`} className="photo-thumb">
               <img src={previewUrl(image)} alt={`photo ${i + 1}`} />
-              <button type="button" onClick={() => removeImage(i)} aria-label="remove photo">✕</button>
+              <button type="button" onClick={() => removeImage(i)} aria-label={`remove photo ${i + 1}`}>✕</button>
+              <button type="button" className="crop-btn" onClick={() => cropExisting(i)}>Crop</button>
               {i === 0 && <em>Cover</em>}
             </span>
           ))}
@@ -387,6 +463,15 @@ export default function ProductForm({ product, products, onClose, onSave, saving
           <button type="button" className="btn btn-ghost" onClick={onClose} disabled={saving}>Cancel</button>
         </div>
       </form>
+      {cropJob && (
+        <ImageCropper
+          photo={cropJob.photo}
+          title={cropJob.title}
+          onCancel={cancelCrop}
+          onSkip={skipCrop}
+          onApply={applyCrop}
+        />
+      )}
     </>
   );
 }

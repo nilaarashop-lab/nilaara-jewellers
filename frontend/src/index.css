@@ -465,6 +465,7 @@ h1,h2,h3,h4{color:var(--maroon)}
 .form label{font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:var(--ink-soft);display:block;margin:14px 0 6px}
 .form input,.form textarea,.form select{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-family:inherit;font-size:14.5px;outline:0;background:#FFFDF9;color:var(--ink)}
 .form input::placeholder,.form textarea::placeholder{color:var(--muted)}
+.form input[aria-invalid="true"]{border-color:var(--danger)}
 .form input:focus,.form textarea:focus,.form select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(199,164,92,.14)}
 /* The admin category/status pickers must not read as plain text boxes. */
 .form select{appearance:none;-webkit-appearance:none;cursor:pointer;padding-right:40px;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%237A5B16' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
@@ -543,10 +544,21 @@ table.order th{background:var(--bg-2);color:var(--maroon);font-size:11px;letter-
 .mini-btn.danger:hover{background:rgba(179,38,30,.08);border-color:var(--danger);color:var(--danger)}
 select.status{border:1px solid var(--line);border-radius:999px;padding:7px 12px;font-family:inherit;font-size:12.5px;background:var(--card);color:var(--ink);text-transform:capitalize}
 .admin-modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:95;width:min(640px,94vw);max-height:92vh;overflow:auto;box-shadow:var(--shadow)}
+.crop-modal{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:125;width:min(560px,94vw);max-height:94vh;overflow:auto;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:var(--shadow)}
+.crop-stage{position:relative;height:min(52vh,420px);display:grid;place-items:center;overflow:hidden;border-radius:12px;background:var(--bg-2)}
+.crop-frame{position:relative;overflow:hidden;cursor:grab;touch-action:none;box-shadow:0 0 0 1px var(--gold),0 0 0 100vmax rgba(66,1,5,.45)}
+.crop-frame img{position:absolute;top:50%;left:50%;max-width:none;pointer-events:none;user-select:none;-webkit-user-select:none}
+.crop-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 16px;margin-top:12px}
+.crop-ratios .chip{margin:0;padding:11px 14px;font-size:12px}
+.crop-zoom{display:flex;align-items:center;gap:10px;flex:1;min-width:170px;font-size:11.5px;letter-spacing:1.4px;text-transform:uppercase;color:var(--ink-soft);margin:0}
+.crop-zoom input{flex:1;accent-color:var(--gold);width:auto}
+.crop-actions{display:flex;flex-wrap:wrap;gap:8px;justify-content:flex-end;margin-top:14px}
+.crop-loading{font-size:13px;color:var(--muted)}
 .photo-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:6px}
 .photo-thumb{position:relative;border:1px solid var(--line);border-radius:10px;overflow:hidden;background:var(--bg-2)}
 .photo-thumb img{width:100%;aspect-ratio:1;object-fit:cover}
 .photo-thumb button{position:absolute;top:6px;right:6px;width:26px;height:26px;border-radius:50%;border:1px solid var(--gold-line);background:var(--card);color:var(--maroon);cursor:pointer;font-size:12px}
+.photo-thumb .crop-btn{left:6px;right:auto;width:auto;height:26px;border-radius:999px;padding:0 9px;font-size:10px;letter-spacing:1px;text-transform:uppercase}
 .photo-thumb em{position:absolute;left:6px;bottom:6px;font-style:normal;font-size:10px;letter-spacing:1px;text-transform:uppercase;background:var(--maroon);color:#FFF3D6;border-radius:999px;padding:3px 8px}
 .upload-tile{border:1.5px dashed var(--gold);border-radius:10px;aspect-ratio:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;cursor:pointer;background:var(--gold-soft);color:var(--maroon)}
 .upload-tile b{font-size:30px;line-height:1}
