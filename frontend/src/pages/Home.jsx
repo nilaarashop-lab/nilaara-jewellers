@@ -168,7 +168,7 @@ export default function Home() {
       <Hero slides={slides} />
 
       <div className="trust container" style={{ width: "100%" }}>
-        {[["✦", "Nickel-Safe Bases", "Hypoallergenic & skin-friendly"], ["◈", "Order on WhatsApp", "We confirm availability in chat"], ["✦", "Handcrafted in India", "Quality-checked pieces"], ["❖", "Freebies over ₹4,000", "On every order"]].map(([icon, b, s]) => (
+        {[["✦", "Nickel-Safe Bases", "Hypoallergenic & skin-friendly"], ["◈", "Order on WhatsApp", "We confirm availability in chat"], ["✦", "Handcrafted in India", "Quality-checked pieces"], ["❖", "Freebies over ₹5,000", "On every order"]].map(([icon, b, s]) => (
           <div key={b}><span style={{ fontSize: 22, color: "var(--gold)" }}>{icon}</span><span><b>{b}</b><small>{s}</small></span></div>
         ))}
       </div>

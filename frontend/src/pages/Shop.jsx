@@ -125,7 +125,7 @@ export default function Shop() {
     window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
-  const freebiesOver = Number(settings?.shipping?.freeOver ?? 4000);
+  const freebiesOver = Number(settings?.shipping?.freeOver ?? 5000);
   const colName = activeCol?.name || "";
   const heading = colName || (cat ? categoryLabel(cat) : "Shop All Jewellery");
 

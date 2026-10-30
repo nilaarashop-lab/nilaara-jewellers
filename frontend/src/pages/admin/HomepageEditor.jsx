@@ -80,7 +80,7 @@ const normalize = (raw) => ({
       : [],
   },
   shipping: {
-    freeOver: Number(raw?.shipping?.freeOver ?? 4000),
+    freeOver: Number(raw?.shipping?.freeOver ?? 5000),
     fee: Number(raw?.shipping?.fee ?? 79),
   },
 });

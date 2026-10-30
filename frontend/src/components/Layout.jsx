@@ -134,8 +134,8 @@ export function AnnounceBar() {
   }
   return (
     <div className="announce">
-      <span className="announce-full">Freebies over ₹4,000 <span className="dot">•</span> Order on WhatsApp</span>
-      <span className="announce-short">Freebies over ₹4,000 <span className="dot">•</span> Order on WhatsApp</span>
+      <span className="announce-full">Freebies over ₹5,000 <span className="dot">•</span> Order on WhatsApp</span>
+      <span className="announce-short">Freebies over ₹5,000 <span className="dot">•</span> Order on WhatsApp</span>
     </div>
   );
 }
