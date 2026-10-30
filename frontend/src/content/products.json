@@ -100,7 +100,7 @@
     {
       "id": "par-rose-gold-bracelet",
       "slug": "american-diamond-zirconia-rose-gold-bracelet",
-      "name": "American Diamond Zirconia Rose-Gold Bracelet",
+      "name": "test4",
       "category": "bangles",
       "collection": "american-diamond",
       "plating": "Rose Gold Plated",
@@ -121,8 +121,7 @@
       "bestseller": false,
       "newArrival": false,
       "images": [
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jkvt-0c272a1de1c8_83NAGDxWh.jpg",
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jm0p-f3268521ef33_9_ddpxVIF.jpg"
+        "/uploads/1793346312894-64ge-12.webp"
       ],
       "desc": "Demi-fine bracelet.",
       "stock": 60,
