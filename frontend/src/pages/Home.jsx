@@ -1,6 +1,6 @@
 import { Link } from "react-router-dom";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { SIDE_IMGS, FESTIVE_IMG } from "../data/products";
+import { SIDE_IMGS, FESTIVE_IMG, HERO_PHOTO } from "../data/products";
 import { imageKitUrl } from "../data/repo.js";
 import { listCategories } from "../data/categories";
 import { freebiesLabel } from "../data/freebies";
@@ -21,7 +21,7 @@ const prefersReducedMotion = () =>
  */
 const DEFAULT_SLIDE = {
   image: {
-    url: "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt1xjp6-82ebd4529631.png",
+    url: HERO_PHOTO,
     alt: "Nilaara kundan necklace set",
   },
   eyebrow: "Festive Edit • Flat 25% off",

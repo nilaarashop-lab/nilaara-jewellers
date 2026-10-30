@@ -15,6 +15,7 @@ import {
 } from "../api/github";
 import AdminLogin from "./admin/AdminLogin";
 import HomepageEditor from "./admin/HomepageEditor";
+import PhotosTab from "./admin/PhotosTab";
 import ProductForm from "./admin/ProductForm";
 
 const STATUSES = ["published", "draft", "archived"];
@@ -272,6 +273,7 @@ export default function Admin() {
           ["dashboard", "Dashboard"],
           ["products", `Products (${products.length})`],
           ["homepage", "Homepage"],
+          ["photos", "Photos"],
         ].map(([key, label]) => (
           <button
             key={key}
@@ -492,6 +494,8 @@ export default function Admin() {
       )}
 
       {!loading && tab === "homepage" && <HomepageEditor />}
+
+      {!loading && tab === "photos" && <PhotosTab catalogue={catalogue} token={session.token} />}
 
       {editing !== null && (
         <ProductForm

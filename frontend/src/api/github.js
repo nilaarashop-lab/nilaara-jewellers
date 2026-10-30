@@ -399,6 +399,39 @@ async function imageKitAuth(token) {
   }
 }
 
+/** Calls on the photo service that are not uploads: listing and deleting. */
+async function imageKitRequest(body, token) {
+  if (!token) throw new GitHubError("Sign in with GitHub again to manage photos.");
+  let res;
+  try {
+    res = await fetch("/api/imagekit", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+  } catch {
+    throw new GitHubError("Couldn't reach the photo service. Check your internet connection and try again.");
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok) {
+    throw new GitHubError(data?.message || `The photo service returned ${res.status}.`, res.status, data);
+  }
+  return data;
+}
+
+/** Photos in the storefront folder, or null when ImageKit is not configured. */
+export async function listImageKitPhotos(token = getToken()) {
+  const data = await imageKitRequest({ action: "list" }, token);
+  if (!data?.configured) return null;
+  return Array.isArray(data.files) ? data.files : [];
+}
+
+export async function deleteImageKitPhoto(filePath, token = getToken()) {
+  const data = await imageKitRequest({ action: "delete", filePath }, token);
+  if (!data?.configured) throw new GitHubError("Photo cleanup needs the ImageKit keys in Vercel.");
+  return data.deleted;
+}
+
 export async function uploadToImageKit(file, auth) {
   const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}-${slugify(file.name)}.${extensionFor(file)}`;
   const body = new FormData();

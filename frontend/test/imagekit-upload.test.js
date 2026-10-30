@@ -1,6 +1,12 @@
 import assert from "node:assert/strict";
 import { afterEach, test } from "node:test";
-import { IMAGEKIT_FOLDER, IMAGEKIT_UPLOAD_URL, uploadToImageKit } from "../src/api/github.js";
+import {
+  IMAGEKIT_FOLDER,
+  IMAGEKIT_UPLOAD_URL,
+  deleteImageKitPhoto,
+  listImageKitPhotos,
+  uploadToImageKit,
+} from "../src/api/github.js";
 
 const realFetch = globalThis.fetch;
 afterEach(() => {
@@ -56,4 +62,41 @@ test("a dropped connection reports the network error", async () => {
     throw new TypeError("fetch failed");
   };
   await assert.rejects(uploadToImageKit(photo(), auth), /Couldn't reach ImageKit/);
+});
+
+test("lists photos through the photo service", async () => {
+  let seen = null;
+  globalThis.fetch = async (url, init) => {
+    seen = { url, init };
+    return jsonResponse({ configured: true, files: [{ path: "/nilaara/products/a.png" }] });
+  };
+
+  const files = await listImageKitPhotos("tok123");
+
+  assert.equal(seen.url, "/api/imagekit");
+  assert.equal(seen.init.headers.Authorization, "Bearer tok123");
+  assert.deepEqual(JSON.parse(seen.init.body), { action: "list" });
+  assert.deepEqual(files, [{ path: "/nilaara/products/a.png" }]);
+});
+
+test("an unconfigured photo service has no photo list", async () => {
+  globalThis.fetch = async () => jsonResponse({ configured: false });
+  assert.equal(await listImageKitPhotos("tok123"), null);
+});
+
+test("deletes a photo by path and reports the server's refusal", async () => {
+  let seen = null;
+  globalThis.fetch = async (url, init) => {
+    seen = { url, init };
+    return jsonResponse({ configured: true, deleted: "/nilaara/products/a.png" });
+  };
+  assert.equal(await deleteImageKitPhoto("/nilaara/products/a.png", "tok123"), "/nilaara/products/a.png");
+  assert.deepEqual(JSON.parse(seen.init.body), { action: "delete", filePath: "/nilaara/products/a.png" });
+
+  globalThis.fetch = async () => jsonResponse({ message: "File not found" }, 502);
+  await assert.rejects(deleteImageKitPhoto("/nilaara/products/a.png", "tok123"), /File not found/);
+});
+
+test("photo management needs a GitHub session", async () => {
+  await assert.rejects(listImageKitPhotos(""), /Sign in with GitHub/);
 });

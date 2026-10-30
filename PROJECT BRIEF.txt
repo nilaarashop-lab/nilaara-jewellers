@@ -35,6 +35,10 @@ Last updated: 2026-10-30.
   adds ?tr=w-<n>,q-<n> so each slot downloads a copy sized for it (cards 600, gallery 1200/200,
   hero 1200, tiles 400, promos 800). A 1454 px photo drops from ~228 KB to ~49 KB on a card and
   ~6 KB as a thumbnail; non-ImageKit URLs are left untouched.
+  The same endpoint (action "list" / "delete") lists and deletes photos in that folder for the admin
+  Photos tab, behind the same GitHub push gate. Only paths starting /nilaara/products/ can be deleted.
+  Photo references that live in code (the hero fallback / og:image in HERO_PHOTO, src/data/products.js)
+  count as used and are never offered for deletion.
 - Analytics: @vercel/analytics, injected in src/main.jsx with history mode so each SPA route change
   counts once. Cookieless, no consent banner, no personal data. It only collects after the owner
   turns Web Analytics on in the Vercel project (until then the script 404s silently).
@@ -126,6 +130,11 @@ photo workflow —
 Homepage tab: announcement (on/off, rotating messages, desktop + mobile fallback text),
 hero slides (on/off, image, eyebrow, title, highlight, text), promo cards (image, eyebrow, title, text,
 link, label), festive banner, category tile pictures, freebie threshold (Freebies over ₹).
+Photos tab: "Check for unused photos" lists ImageKit photos in /nilaara/products that no product or
+homepage block mentions (hidden/inactive blocks still count as use; code-owned art counts as use;
+photos uploaded in the last 24 hours are skipped). Each row shows a thumbnail, size and upload date;
+Delete asks for confirmation, "Delete all" deletes the whole list. Deletion is permanent — there is no
+undo. When ImageKit is not configured the tab says so instead of offering a delete.
 Every save is a commit on main and goes live without a developer.
 
 7. HARD RULES WHEN COMMITTING AND PUSHING  ← read this before any git command
@@ -136,7 +145,7 @@ A. NEVER commit frontend/src/content/** or frontend/public/uploads/**. They belo
 B. The owner's admin commits land on origin/main constantly. ALWAYS: git fetch origin, then
    git rebase origin/main (never force-push, never reset --hard over their work). Verify afterwards:
    git diff origin/main --stat -- frontend/src/content frontend/public/uploads   → must be EMPTY.
-C. Before committing: run in frontend/ — npm test (57 tests), npm run lint (oxlint: 0 errors; 9 known
+C. Before committing: run in frontend/ — npm test (79 tests), npm run lint (oxlint: 0 errors; 9 known
    react(set-state-in-effect) warnings are pre-existing), npm run build. Commit only source, tests,
    styles, docs. Never commit dist/, node_modules/, public/content/, public/sitemap.xml (generated), .env.
 D. Never commit secrets: GitHub OAuth client secret, ImageKit private key/public key, tokens. They live
@@ -180,7 +189,15 @@ J. UPDATE THIS FILE in the same commit as any change: sections 3–6 for behavio
 - IMAGEKIT, live since 4258813 (2026-10-30): uploads go through the signed endpoint
   frontend/api/imagekit.js to the nilaara/products folder, with the GitHub commit as automatic
   fallback. Keys are set in Vercel; the owner's test7 save proved it (only products.json changed,
-  no upload commit). Photos uploaded before that stay in the repo (4 /uploads files).
-- FASTER PHOTOS + ANALYTICS (code in this commit): ImageKit images now request a width fit for their
+  no upload commit). Photos uploaded before that stay in the repo (6 /uploads files, all in use).
+- FASTER PHOTOS + ANALYTICS (in commit 00db9e8): ImageKit images now request a width fit for their
   slot (see section 2), and @vercel/analytics is installed and injected. Analytics stays dark until
-  the owner enables Web Analytics once in the Vercel dashboard and redeploys. Tests: 57 passing.
+  the owner enables Web Analytics once in the Vercel dashboard and redeploys.
+- PHOTO CLEANUP (in this code commit): three /uploads photos that no product referenced were deleted
+  from the repo (git history still has them). The new admin Photos tab lists and deletes unused ImageKit
+  photos; the owner runs it after this deploys. Unused photos still on ImageKit at the time of writing:
+  14 demo files from the old site (~0.84 MB) plus nil-mvt4cba8, which already 404s. (Earlier the list
+  was 17; three of those now return 404 on their own.) Known dead reference, harmless for now:
+  home.festive.image points at nil-mvt4bb7q (404), but the festive banner is switched off, so the
+  homepage shows nothing broken. Upload a picture in Homepage → Festive before switching it on, or
+  clear the image to use the built-in festive art. Tests: 79 passing.

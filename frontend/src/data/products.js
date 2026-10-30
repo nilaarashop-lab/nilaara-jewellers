@@ -37,6 +37,13 @@ export const SIDE_IMGS = [
 ];
 export const FESTIVE_IMG = img("photo-1584302179602-e4c3d3fd629d", 900);
 
+/**
+ * ImageKit art baked into the site itself: the hero fallback and the social
+ * preview in index.html. Photo cleanup must never offer these for deletion.
+ */
+export const HERO_PHOTO = "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt1xjp6-82ebd4529631.png";
+export const SITE_PHOTOS = [HERO_PHOTO];
+
 export const formatINR = (n) => "₹" + Number(n).toLocaleString("en-IN");
 
 /**
