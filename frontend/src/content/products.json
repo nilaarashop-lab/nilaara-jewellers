@@ -1,39 +1,6 @@
 {
   "products": [
     {
-      "id": "par-vintage-danglers",
-      "slug": "elegant-pearl-stone-vintage-filigree-danglers-mvt2jxfn",
-      "name": "Elegant Pearl & Stone Vintage Filigree Danglers",
-      "category": "earrings",
-      "collection": "pearl",
-      "plating": "Gold Plated",
-      "metal": "Brass alloy",
-      "purity": "",
-      "stones": "Pearl • Crystal",
-      "size": "",
-      "variants": [],
-      "price": 649,
-      "mrp": 1311,
-      "makingCharges": 0,
-      "rating": 4.3,
-      "reviews": 510,
-      "badge": "New",
-      "tag": "",
-      "customTag": "",
-      "featured": false,
-      "bestseller": false,
-      "newArrival": false,
-      "images": [
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jn4t-33fe22e06fcc_c7pg_3dm_.jpg",
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2ju4x-ab15d49b8ef9_-E3K5aRSm.jpg"
-      ],
-      "desc": "Filigree danglers, vintage charm, wedding-guest favourite.",
-      "stock": 25,
-      "trackInventory": true,
-      "lowStockThreshold": 5,
-      "status": "published"
-    },
-    {
       "id": "par-pearl-festive-choker",
       "slug": "pearl-glow-kundan-festive-choker-set-mvt2jxhq",
       "name": "Pearl Glow Kundan Festive Choker Set",
