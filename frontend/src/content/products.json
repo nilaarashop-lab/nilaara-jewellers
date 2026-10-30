@@ -26,6 +26,32 @@
       ],
       "desc": "",
       "status": "published"
+    },
+    {
+      "id": "test-nath-1",
+      "slug": "test-nath-1",
+      "name": "TEST Nath - delete me",
+      "category": "naths",
+      "metal": "",
+      "purity": "",
+      "size": "",
+      "price": 299,
+      "mrp": 599,
+      "makingCharges": 0,
+      "stock": 0,
+      "lowStockThreshold": 5,
+      "trackInventory": true,
+      "customTag": "",
+      "bestseller": false,
+      "newArrival": false,
+      "featured": false,
+      "rating": 0,
+      "reviews": 0,
+      "images": [
+        "/uploads/1793346718376-1qfv-8.webp"
+      ],
+      "desc": "Temporary test product added to check that a new category appears in the menus. Safe to delete.",
+      "status": "published"
     }
   ]
 }
