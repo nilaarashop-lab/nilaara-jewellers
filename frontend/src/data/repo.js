@@ -2,8 +2,8 @@
  * Public repository coordinates for live content.
  *
  * The storefront reads the same JSON files the admin writes. Fetching them from
- * GitHub's raw host means a save is visible on the next page load, without
- * waiting for a Vercel rebuild. The bundled copies remain the offline fallback.
+ * GitHub's raw host means a save is visible on the next fetch, without waiting
+ * for a Vercel rebuild. The bundled copies remain the offline fallback.
  */
 export const REPO = "nilaarashop-lab/nilaara-jewellers";
 export const BRANCH = "main";

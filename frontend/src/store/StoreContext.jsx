@@ -29,8 +29,8 @@ const save = (k, v) => {
  * homepage settings.
  *
  * The JSON files are bundled so the first paint is instant and offline-safe,
- * then refreshed from the repository in the background. That makes an admin
- * save visible on the next page load without waiting for a Vercel rebuild.
+ * then refreshed from the repository in the background and on a short poll.
+ * An admin save updates the page in place — no reload and no Vercel rebuild.
  */
 export function StoreProvider({ children }) {
   const location = useLocation();

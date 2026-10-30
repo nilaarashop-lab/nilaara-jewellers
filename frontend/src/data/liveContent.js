@@ -9,7 +9,7 @@ async function fetchJson(url) {
   const timer = setTimeout(() => controller.abort(), TIMEOUT_MS);
   try {
     // A fresh query string bypasses GitHub's five-minute raw cache, so a save
-    // is visible on the very next page load.
+    // is visible on the very next fetch (page load or background poll).
     const res = await fetch(`${url}?v=${Date.now()}`, {
       cache: "no-store",
       headers: { Accept: "application/json" },

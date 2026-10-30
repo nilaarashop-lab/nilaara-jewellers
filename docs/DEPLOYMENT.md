@@ -129,7 +129,7 @@ outside this repository and are not part of the deployed site.
 - [ ] `GITHUB_OAUTH_CLIENT_ID` and `GITHUB_OAUTH_CLIENT_SECRET` are set in Vercel
 - [ ] GitHub OAuth callback is exactly `https://<domain>/api/callback`
 - [ ] `/admin` opens and GitHub login succeeds
-- [ ] A test admin edit commits to `main` and appears on the next storefront load
+- [ ] A test admin edit commits to `main` and appears on open storefront pages without a reload
 - [ ] `/shop` shows only published products
 - [ ] `/product/<id>` hard refresh works
 - [ ] A Buy Now button opens WhatsApp with the product name + ID
