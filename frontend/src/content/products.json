@@ -1,39 +1,6 @@
 {
   "products": [
     {
-      "id": "par-pearl-oval-choker",
-      "slug": "pearl-oval-link-gold-choker-necklace-set-mvt2jx9l",
-      "name": "Pearl Oval-Link Gold Choker Necklace Set",
-      "category": "necklaces",
-      "collection": "pearl",
-      "plating": "22K Gold Plated",
-      "metal": "Brass alloy",
-      "purity": "",
-      "stones": "Pearl • CZ",
-      "size": "",
-      "variants": [],
-      "price": 799,
-      "mrp": 2664,
-      "makingCharges": 0,
-      "rating": 4.4,
-      "reviews": 890,
-      "badge": "Trending",
-      "tag": "",
-      "customTag": "",
-      "featured": false,
-      "bestseller": false,
-      "newArrival": false,
-      "images": [
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jij4-e8deca99b0d6_q5DK3yLjL.jpg",
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jpj1-1216f0279abe_5FGgGKYCQ.jpg"
-      ],
-      "desc": "Modern oval-link choker, layers beautifully with chains.",
-      "stock": 25,
-      "trackInventory": true,
-      "lowStockThreshold": 5,
-      "status": "published"
-    },
-    {
       "id": "par-green-kundan-set",
       "slug": "radiant-green-kundan-pearl-necklace-set-mvt2jxbn",
       "name": "Radiant Green Kundan Pearl Necklace Set",
