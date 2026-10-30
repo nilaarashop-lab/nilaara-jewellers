@@ -1,34 +1,6 @@
 {
   "products": [
     {
-      "id": "par-ethnic-kundan-choker",
-      "slug": "rajwadi-kundan-pearl-choker-necklace-set",
-      "name": "Rajwadi Kundan Pearl Choker Necklace Set",
-      "category": "jewellery-sets",
-      "metal": "Brass alloy",
-      "purity": "",
-      "size": "",
-      "variants": [],
-      "price": 1149,
-      "mrp": 3475,
-      "makingCharges": 0,
-      "rating": 4.6,
-      "reviews": 2314,
-      "customTag": "",
-      "featured": false,
-      "bestseller": true,
-      "newArrival": false,
-      "images": [
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jdlf-3b78ae2e8091_svO01POVK.jpg",
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jf06-ca7e6786de83_3qSFEcb4v.jpg"
-      ],
-      "desc": "Handcrafted festive choker with kundan polki and pearls.",
-      "stock": 50,
-      "trackInventory": true,
-      "lowStockThreshold": 5,
-      "status": "published"
-    },
-    {
       "id": "par-temple-lakshmi-bangle",
       "slug": "divine-lakshmi-temple-bangles-set-of-2",
       "name": "Divine Lakshmi Temple Bangles — Set of 2",
