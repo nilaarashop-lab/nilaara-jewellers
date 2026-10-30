@@ -9,7 +9,7 @@ export default function Stores() {
       <div className="sec-head">
         <div>
           <h2>Visit our 2 stores</h2>
-          <p>Rent bridal, festive & daily-wear jewellery — try it on in person</p>
+          <p>Rent bridal, festive & daily-wear jewellery in store — try it on in person</p>
         </div>
       </div>
       <div className="store-grid">
@@ -36,7 +36,7 @@ export default function Stores() {
       </div>
       <div className="form" style={{ marginTop: 20 }}>
         <h3 className="serif" style={{ margin: 0 }}>Can’t visit? Shop online</h3>
-        <p style={{ color: "var(--ink-soft)" }}>Same designs, same prices — order on WhatsApp, freebies over ₹5,000.</p>
+        <p style={{ color: "var(--ink-soft)" }}>Buy online — or rent the same designs in either store. Order on WhatsApp, freebies over ₹5,000.</p>
         <div className="cta-row"><Link to="/shop" className="btn btn-gold">Shop Bestsellers →</Link></div>
       </div>
     </main>

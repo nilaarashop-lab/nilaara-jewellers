@@ -91,3 +91,66 @@ test("uploaded images preview from the committed repository path", () => {
   assert.equal(previewUrl("https://ik.imagekit.io/x/y.jpg"), "https://ik.imagekit.io/x/y.jpg");
   assert.equal(previewUrl(""), "");
 });
+
+const withHeaders = (data, status = 200, requestId = "") => ({
+  ...jsonResponse(data, status),
+  headers: { get: (name) => (name.toLowerCase() === "x-github-request-id" ? requestId : null) },
+});
+
+test("a 500 from GitHub is retried and the retry result is used", async () => {
+  let calls = 0;
+  globalThis.fetch = async () => {
+    calls += 1;
+    return calls === 1
+      ? withHeaders({ message: "Server Error" }, 500, "ABC123")
+      : withHeaders({ ok: true });
+  };
+
+  const result = await githubRequest("/repos/x/y/contents/a", { token: "t", attempts: 3 });
+
+  assert.deepEqual(result, { ok: true });
+  assert.equal(calls, 2);
+});
+
+test("a 500 with no retries left names GitHub and the request id", async () => {
+  globalThis.fetch = async () => withHeaders({ message: "Server Error" }, 500, "REQ-9001");
+
+  await assert.rejects(() => githubRequest("/user", { token: "t" }), (error) => {
+    assert.equal(error.status, 500);
+    assert.match(error.message, /temporary server error \(500\)/);
+    assert.match(error.message, /REQ-9001/);
+    assert.equal(error.details.requestId, "REQ-9001");
+    return true;
+  });
+});
+
+test("a dropped connection is retried, then reported as a connection problem", async () => {
+  let calls = 0;
+  globalThis.fetch = async () => {
+    calls += 1;
+    if (calls === 1) throw new TypeError("Failed to fetch");
+    return jsonResponse({ ok: true });
+  };
+  assert.deepEqual(await githubRequest("/user", { token: "t", attempts: 2 }), { ok: true });
+  assert.equal(calls, 2);
+
+  globalThis.fetch = async () => {
+    throw new TypeError("Failed to fetch");
+  };
+  await assert.rejects(() => githubRequest("/user", { token: "t", attempts: 2 }), (error) => {
+    assert.equal(error.status, 0);
+    assert.match(error.message, /Couldn't reach GitHub/);
+    return true;
+  });
+});
+
+test("auth failures are never retried", async () => {
+  let calls = 0;
+  globalThis.fetch = async () => {
+    calls += 1;
+    return jsonResponse({ message: "Bad credentials" }, 401);
+  };
+
+  await assert.rejects(() => githubRequest("/user", { token: "t", attempts: 3 }));
+  assert.equal(calls, 1);
+});

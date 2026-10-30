@@ -234,7 +234,7 @@ export default function Home() {
           <div style={{ position: "relative", zIndex: 1 }}>
             <small className="eyebrow">Visit us in person</small>
             <h2>Two stores. Same sparkle.</h2>
-            <p>Rent bridal & festive jewellery for your occasion — try it on in person.</p>
+            <p>Rent bridal & festive jewellery in either store — try it on in person.</p>
             <div className="cta-row"><Link to="/stores" className="btn btn-gold">Our 2 Stores + Directions →</Link></div>
           </div>
           <img src={SIDE_IMGS[0]} alt="Nilaara store" style={{ height: 220 }} loading="lazy" />

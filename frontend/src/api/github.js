@@ -58,37 +58,71 @@ export const clearToken = () => {
 
 const encodedPath = (path) => path.split("/").map(encodeURIComponent).join("/");
 
-const errorMessage = (status, data) => {
+export const NETWORK_ERROR = "Couldn't reach GitHub. Check your internet connection and try again.";
+
+const errorMessage = (status, data, requestId = "") => {
+  const ref = requestId ? ` GitHub reference: ${requestId}.` : "";
   if (status === 401) return "Your GitHub session expired. Please sign in again.";
   if (status === 403) return "GitHub refused the change. Check that this account has write access to the repository.";
   if (status === 404) return "The content file was not found in the repository.";
   if (status === 409) return "Someone else changed this content since you loaded it. Refresh and try again.";
   if (status === 422) return "GitHub rejected the change. Refresh the page and try again.";
+  if (status >= 500) {
+    return `GitHub had a temporary server error (${status}) — this is on GitHub's side, not your photo. Wait a minute and try again.${ref}`;
+  }
   return data?.message || `GitHub returned ${status}.`;
 };
 
-export async function githubRequest(path, { method = "GET", body, token = getToken() } = {}) {
-  if (!token) throw new GitHubError("Sign in with GitHub to continue.", 401);
-
-  const res = await fetch(`${API_ROOT}${path}`, {
-    method,
-    headers: {
-      Accept: "application/vnd.github+json",
-      Authorization: `Bearer ${token}`,
-      "X-GitHub-Api-Version": "2022-11-28",
-      ...(body ? { "Content-Type": "application/json" } : {}),
-    },
-    body: body ? JSON.stringify(body) : undefined,
-  });
+const sendRequest = async (path, { method, body, token }) => {
+  let res;
+  try {
+    res = await fetch(`${API_ROOT}${path}`, {
+      method,
+      headers: {
+        Accept: "application/vnd.github+json",
+        Authorization: `Bearer ${token}`,
+        "X-GitHub-Api-Version": "2022-11-28",
+        ...(body ? { "Content-Type": "application/json" } : {}),
+      },
+      body: body ? JSON.stringify(body) : undefined,
+    });
+  } catch {
+    throw new GitHubError(NETWORK_ERROR, 0);
+  }
 
   if (res.status === 204) return null;
 
   const data = await res.json().catch(() => ({}));
   if (!res.ok) {
+    const requestId = res.headers?.get?.("x-github-request-id") || "";
     if (res.status === 401) clearToken();
-    throw new GitHubError(errorMessage(res.status, data), res.status, data.errors || null);
+    throw new GitHubError(errorMessage(res.status, data, requestId), res.status, {
+      errors: data.errors || null,
+      requestId,
+    });
   }
   return data;
+};
+
+/** Delay before retry N; also makes the wait injectable for tests. */
+export const retryDelay = (attempt) => 700 * attempt;
+
+/**
+ * `attempts` > 1 retries server errors and dropped connections. Only pass it
+ * for writes that are safe to repeat (uploads use a unique path per call).
+ */
+export async function githubRequest(path, { method = "GET", body, token = getToken(), attempts = 1 } = {}) {
+  if (!token) throw new GitHubError("Sign in with GitHub to continue.", 401);
+
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      return await sendRequest(path, { method, body, token });
+    } catch (ex) {
+      const temporary = ex instanceof GitHubError && (ex.status === 0 || ex.status >= 500);
+      if (!temporary || attempt >= attempts) throw ex;
+      await new Promise((resolve) => setTimeout(resolve, retryDelay(attempt)));
+    }
+  }
 }
 
 /* ── Base64 (UTF-8 safe) ──────────────────────────────────────────────── */
@@ -359,16 +393,29 @@ export async function uploadImage(file, token = getToken()) {
   const name = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}-${slugify(prepared.name)}.${ext}`;
   const path = `${UPLOADS_DIR}/${name}`;
   const content = await blobToBase64(prepared);
+  const contentPath = `/repos/${REPO}/contents/${encodedPath(path)}`;
 
-  await githubRequest(`/repos/${REPO}/contents/${encodedPath(path)}`, {
-    method: "PUT",
-    token,
-    body: {
-      message: `Admin: upload ${name}`,
-      content,
-      branch: BRANCH,
-    },
-  });
+  try {
+    await githubRequest(contentPath, {
+      method: "PUT",
+      token,
+      attempts: 3,
+      body: {
+        message: `Admin: upload ${name}`,
+        content,
+        branch: BRANCH,
+      },
+    });
+  } catch (ex) {
+    // A retried write can arrive after the first attempt actually committed,
+    // in which case GitHub answers 422 because the path now exists.
+    if (ex instanceof GitHubError && ex.status === 422) {
+      const existing = await githubRequest(`${contentPath}?ref=${encodeURIComponent(BRANCH)}`, { token });
+      if (!existing?.content) throw ex;
+    } else {
+      throw ex;
+    }
+  }
 
   return { url: `/uploads/${name}`, path, name };
 }
