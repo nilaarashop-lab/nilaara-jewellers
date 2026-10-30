@@ -1,34 +1,6 @@
 {
   "products": [
     {
-      "id": "par-temple-lakshmi-bangle",
-      "slug": "divine-lakshmi-temple-bangles-set-of-2",
-      "name": "Divine Lakshmi Temple Bangles — Set of 2",
-      "category": "bangles",
-      "metal": "Brass alloy",
-      "purity": "",
-      "size": "",
-      "variants": [],
-      "price": 1299,
-      "mrp": 2569,
-      "makingCharges": 0,
-      "rating": 4.4,
-      "reviews": 1180,
-      "customTag": "",
-      "featured": false,
-      "bestseller": true,
-      "newArrival": false,
-      "images": [
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jg6t-7b6fea78be8a_6Tf-TZfXg.jpg",
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jhd2-320dd45de74c_VprRPVSSk.jpg"
-      ],
-      "desc": "Temple-work bangles with Lakshmi motif.",
-      "stock": 39,
-      "trackInventory": true,
-      "lowStockThreshold": 5,
-      "status": "published"
-    },
-    {
       "id": "par-tribal-necklace-set",
       "slug": "tribal-magic-green-red-necklace-set",
       "name": "Tribal Magic Green & Red Necklace Set",
