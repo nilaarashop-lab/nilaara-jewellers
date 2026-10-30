@@ -405,7 +405,21 @@ export function Header() {
   const { wishlist } = useStore();
   const [mnav, setMnav] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const { pathname } = useLocation();
+  const { pathname, search } = useLocation();
+  // All shop/category links share the /shop path, so NavLink's default
+  // pathname-only matching would mark every one of them active at once.
+  // Match the query parameters too (extra filters like sort don't break it).
+  const isNavActive = (to) => {
+    const [path, query] = to.split("?");
+    if (pathname !== path) return false;
+    if (!query) return true;
+    const want = new URLSearchParams(query);
+    const have = new URLSearchParams(search);
+    return [...want].every(([k, v]) => have.get(k) === v);
+  };
+  const navLink = (to, label) => (
+    <NavLink key={to} to={to} className={() => (isNavActive(to) ? "active" : "")}>{label}</NavLink>
+  );
   // Header compacts and lifts (shadow) once the page scrolls — a quiet luxury cue.
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -450,18 +464,18 @@ export function Header() {
           </div>
           <SearchBox className="m" placeholder="Search jewellery…" />
           <nav className="nav">
-            <NavLink to="/shop?col=new">New Launches</NavLink>
-            <NavLink to="/shop?col=best-sellers">Best Sellers</NavLink>
-            <NavLink to="/shop?cat=jewellery-sets">Jewellery Sets</NavLink>
-            <NavLink to="/shop?cat=necklaces">Necklaces</NavLink>
-            <NavLink to="/shop?cat=earrings">Earrings</NavLink>
-            <NavLink to="/shop?cat=jhumkas">Jhumkas</NavLink>
-            <NavLink to="/shop?cat=bangles">Bangles</NavLink>
-            <NavLink to="/shop?cat=rings">Rings</NavLink>
-            <NavLink to="/shop?col=kundan">Kundan</NavLink>
-            <NavLink to="/shop?col=temple">Temple</NavLink>
-            <NavLink to="/stores">Our Stores</NavLink>
-            <NavLink to="/about">Our Craft</NavLink>
+            {navLink("/shop?col=new", "New Launches")}
+            {navLink("/shop?col=best-sellers", "Best Sellers")}
+            {navLink("/shop?cat=jewellery-sets", "Jewellery Sets")}
+            {navLink("/shop?cat=necklaces", "Necklaces")}
+            {navLink("/shop?cat=earrings", "Earrings")}
+            {navLink("/shop?cat=jhumkas", "Jhumkas")}
+            {navLink("/shop?cat=bangles", "Bangles")}
+            {navLink("/shop?cat=rings", "Rings")}
+            {navLink("/shop?col=kundan", "Kundan")}
+            {navLink("/shop?col=temple", "Temple")}
+            {navLink("/stores", "Our Stores")}
+            {navLink("/about", "Our Craft")}
           </nav>
         </div>
       </header>

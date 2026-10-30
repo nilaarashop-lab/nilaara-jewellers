@@ -289,6 +289,10 @@ export default function Admin() {
               sub={hasAPI ? "MongoDB live" : "browser demo data"}
             />
           </div>
+          <p className="co-note">
+            New orders now arrive on WhatsApp. The order and revenue figures above cover orders placed through the
+            retired online checkout.
+          </p>
           {stats.lowStock?.length > 0 && (
             <div className="form" style={{ marginTop: 18 }}>
               <h3 className="serif" style={{ margin: 0, fontSize: 22 }}>Low stock</h3>
