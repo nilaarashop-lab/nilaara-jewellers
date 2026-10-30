@@ -132,7 +132,7 @@
     {
       "id": "par-kashmiri-jhumka",
       "slug": "long-kashmiri-jhumkas-with-gold-beads",
-      "name": "Long Kashmiri Jhumkas with Gold Beads",
+      "name": "test5",
       "category": "jhumkas",
       "collection": "temple",
       "plating": "22K Gold Plated",
@@ -153,8 +153,7 @@
       "bestseller": false,
       "newArrival": false,
       "images": [
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jhd2-320dd45de74c_VprRPVSSk.jpg",
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jjpx-ab6de39154aa_Jiw1fpMLfN.jpg"
+        "/uploads/1793346536295-cm1c-10.webp"
       ],
       "desc": "Long festive jhumkas.",
       "stock": 79,
