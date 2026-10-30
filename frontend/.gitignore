@@ -23,7 +23,7 @@ dist-ssr
 *.sln
 *.sw?
 
-# Local env (VITE_API_URL etc.)
+# Local env (not required for the static storefront)
 .env
 .env.*
 !.env.example

@@ -3,7 +3,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { useStore } from "../store/StoreContext";
 import { COLLECTIONS, discountPercent, formatINR } from "../data/products";
 import { whatsappChatLink, productEnquiryLink, WHATSAPP_DISPLAY } from "../config";
-import { searchProducts, hasAPI } from "../api/client";
+import { searchProducts } from "../api/client";
 
 /* ── Icon set (single stroke style, currentColor — inherits hover states) ── */
 const svgProps = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.7, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true, focusable: false };
@@ -79,62 +79,19 @@ export function ProductCard({ p }) {
 }
 
 /**
- * Placeholder grid while the catalogue loads. Shown only in API mode — the
- * built-in demo catalogue is used synchronously when no backend is configured.
- */
-export function ProductGridSkeleton({ count = 4, className = "" }) {
-  return (
-    <div className={`grid ${className}`.trim()} aria-hidden="true">
-      {Array.from({ length: count }, (_, i) => (
-        <div className="sk-card" key={i}>
-          <div className="sk sk-media" />
-          <div className="sk-body">
-            <span className="sk sk-eyebrow" />
-            <span className="sk sk-title" />
-            <span className="sk sk-title short" />
-            <span className="sk sk-price" />
-            <span className="sk sk-btn" />
-          </div>
-        </div>
-      ))}
-    </div>
-  );
-}
-
-/**
- * Shown instead of products when the backend is configured but unreachable.
- * Deliberately never falls back to the demo catalogue: showing invented
- * prices and stock on a live store is worse than showing nothing.
- */
-export function ProductsUnavailable({ onRetry }) {
-  return (
-    <div className="unavailable" role="alert" aria-live="polite">
-      <span className="eyebrow">Connection interrupted</span>
-      <h3 className="serif">Our collection is temporarily unavailable</h3>
-      <p>We couldn’t load the latest pieces just now. Please try again in a moment — or message us on WhatsApp and we’ll help you find the piece.</p>
-      {onRetry && <button type="button" className="btn btn-gold" onClick={onRetry}>Try again</button>}
-    </div>
-  );
-}
-
-/**
  * Announcement / marquee bar.
- *  - Backend settings can provide scrolling `messages` → animated marquee
+ *  - Settings can provide scrolling `messages` → animated marquee
  *    (duplicated track for a seamless loop; pauses on hover/focus).
  *  - Otherwise falls back to the settings text, then to the built-in festive
- *    copy (demo mode / before settings load).
- *  - `announcement: null` from the backend means the bar is switched OFF.
+ *    copy.
+ *  - `announcement: null` in the CMS means the bar is switched OFF.
  */
 export function AnnounceBar() {
-  const { settings, settingsStatus } = useStore();
+  const { settings } = useStore();
   const a = settings?.announcement;
   const messages = (a?.messages || []).filter(Boolean);
 
-  // First visit, no cached settings yet: don't paint the built-in line and then
-  // hide it a moment later when the server says the announcement is off.
-  if (hasAPI && settingsStatus === "loading") return null;
-
-  // Server explicitly turned the bar off.
+  // CMS explicitly turned the bar off.
   if (settings && a === null) return null;
 
   if (messages.length > 0) {
@@ -590,7 +547,7 @@ export function Footer() {
             <p style={{ marginTop: 12 }}>WhatsApp: <a href={whatsappChatLink()} target="_blank" rel="noreferrer">{WHATSAPP_DISPLAY}</a><br />10:30 AM – 5:30 PM, Mon–Sat</p>
           </div>
         </div>
-        <div className="copy"><span>Made with care in India • Order on WhatsApp • Easy 7-day exchange</span><span>Every piece is hand-checked before dispatch</span></div>
+        <div className="copy"><span>Made with care in India • Order on WhatsApp • Easy 7-day exchange</span><span>Every piece is hand-checked before dispatch • <Link to="/admin/">Staff login</Link></span></div>
       </div>
     </footer>
   );

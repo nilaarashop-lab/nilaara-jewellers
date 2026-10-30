@@ -1,117 +1,134 @@
-# Deployment Guide
+# Deployment Guide — static catalogue + Git CMS
+
+The deployed site is **only** the Vite frontend. Products and homepage content
+are committed JSON files; there is no API, database, or Render service in the
+customer path.
 
 ## Prerequisites
 
 - Node.js 18+ (tested on Node 24)
-- A **MongoDB Atlas** cluster (free tier works) — production refuses to boot against `localhost`
-- A **Cloudinary** account ([setup guide](CLOUDINARY.md))
-- Your frontend hosted separately (Vercel / Netlify / any static host) or served behind the same domain
+- A Vercel account connected to the GitHub repository
+- A GitHub OAuth App for the staff CMS
 
-## 1. Backend environment
+## 1. Vercel project
 
-Production validation (`config/env.js`) **fails fast** — the server exits with a clear message instead of starting insecurely. Required in production:
+1. Import `nilaarashop-lab/nilaara-jewellers` into Vercel.
+2. Set **Root Directory → `frontend`**.
+3. Framework preset **Vite**; build `npm run build`; output `dist` (also in
+   `frontend/vercel.json`).
+4. Do **not** add `VITE_API_URL`. There is no backend to call.
+
+`frontend/vercel.json` keeps the SPA fallback, redirects `/admin` to `/admin/`,
+and marks admin/API responses as no-store/noindex.
+
+## 2. Staff CMS login (GitHub OAuth)
+
+The CMS uses Decap CMS with the GitHub backend. Authentication is handled by two
+Vercel functions under `frontend/api/`.
+
+### Create the GitHub OAuth App
+
+GitHub → Settings → Developer settings → OAuth Apps → **New OAuth App**:
+
+| Field | Value |
+| --- | --- |
+| Application name | Nilaara Admin |
+| Homepage URL | `https://nilaara-jewellers.vercel.app` |
+| Authorization callback URL | `https://nilaara-jewellers.vercel.app/api/callback` |
+
+Copy the **Client ID**, then generate a **Client Secret**.
+
+If the production domain changes, update both the OAuth App callback URL and
+`base_url` in `frontend/public/admin/config.yml`.
+
+### Vercel environment variables
+
+Project → Settings → Environment Variables (Production, and Preview if needed):
 
 | Variable | Value |
-|---|---|
-| `NODE_ENV` | `production` |
-| `MONGO_URI` | Atlas connection string (localhost is rejected) |
-| `STORAGE_DRIVER` | `cloudinary` (local disk is rejected) |
-| `CLOUDINARY_CLOUD_NAME` / `CLOUDINARY_API_KEY` / `CLOUDINARY_API_SECRET` | from the Cloudinary dashboard |
-| `FRONTEND_URL` | the exact origin(s) of your React app, comma-separated — CORS allows only these, with credentials. Must be `https://` origins in production (trailing slashes are stripped) |
-| `COOKIE_SECURE` | `true` (forced in production; sessions are httpOnly) |
-| `COOKIE_SAMESITE` | `none` when the storefront and the API are on different sites (default in production, needs `COOKIE_SECURE=true`); `lax` when both share one registrable domain |
+| --- | --- |
+| `GITHUB_OAUTH_CLIENT_ID` | OAuth App Client ID |
+| `GITHUB_OAUTH_CLIENT_SECRET` | OAuth App Client Secret |
+| `SITE_URL` | optional; defaults to the request origin. Set to `https://nilaara-jewellers.vercel.app` if using a custom domain/proxy |
 
-Optional:
+The secret stays in the Vercel function and is never included in the browser
+bundle.
 
-```
-PUBLIC_BASE_URL=https://api.nilaara.com    # absolute API URL
-RAZORPAY_KEY_ID=…  RAZORPAY_KEY_SECRET=…  RAZORPAY_WEBHOOK_SECRET=…
-SESSION_TTL_DAYS=7  BCRYPT_ROUNDS=12  LOGIN_MAX_ATTEMPTS=5  LOGIN_WINDOW_MIN=15
-COOKIE_SAMESITE=lax                         # only when the storefront and API share a registrable domain
-MAX_UPLOAD_MB=5  MAX_UPLOAD_FILES=6
-ALLOWED_IMAGE_HOSTS=                        # empty in production: new images must come from uploads
-TRUST_PROXY=1                               # behind a reverse proxy / load balancer
-PORT=5000
-```
+Redeploy after adding the variables.
 
-The API secret and Razorpay secrets live **only** here — never in the frontend, never in a `VITE_*` variable.
+### Who can edit
 
-## 2. Deploy the backend
+Only GitHub accounts with write access to the repository can publish. There is
+no separate admin password list to maintain. Remove someone's repository access
+to remove CMS access.
 
-```powershell
-cd backend
-npm ci                       # reproducible install from package-lock.json
-npm run create-admin -- --email=you@example.com --password=… --name="…"
-npm start                    # node server.js — validates env, connects MongoDB, listens
-```
+## 3. Editing flow
 
-Process manager options: PM2 (`pm2 start server.js --name nilaara-api`), Windows NSSM, or a container. The server:
+1. Open `https://nilaara-jewellers.vercel.app/admin/`.
+2. Sign in with GitHub.
+3. Edit **Products** or **Homepage & announcement**.
+4. Publish.
 
-- exits non-zero on invalid config or a failed MongoDB connection (no "runs without DB" silent mode),
-- sets security headers via Helmet,
-- restricts CORS to `FRONTEND_URL` with credentials enabled,
-- serves legacy `backend/uploads/` images read-only so old records keep working — nothing new is ever written there.
+Decap commits to `main`; Vercel detects the commit and rebuilds. The new content
+is live when the deployment finishes.
 
-Ensure HTTPS terminates at your proxy/host so `Secure` cookies work end-to-end.
+New uploads go to `frontend/public/uploads/` and are served from `/uploads/…`.
+Existing ImageKit URLs remain valid and can be kept.
 
-### Render free tier — keep the API awake
+## 4. Content files
 
-On Render's free plan a web service **spins down after ~15 minutes without traffic**. The next request then waits for the instance to boot (30–60 s) and can time out through the Vercel proxy — which looks like "the backend is down".
+| File | Purpose |
+| --- | --- |
+| `frontend/src/content/products.json` | Product catalogue (`products` array) |
+| `frontend/src/content/settings.json` | Announcement, hero slides, cards, festive banner, category tiles, free-shipping threshold |
+| `frontend/public/admin/config.yml` | CMS fields |
+| `frontend/public/uploads/` | CMS image uploads |
 
-This repository includes `.github/workflows/keep-api-awake.yml`, which pings `https://nilaara-jewellers-api.onrender.com/api/health` every five minutes from GitHub Actions. It runs in the cloud, not on a laptop. It is enabled automatically on the default branch; you can also trigger it manually from the **Actions → Keep API awake → Run workflow** button.
+A product is visible only when `status` is `published`. `draft` and `archived`
+are hidden from the storefront and search. The product `id` is used in the
+`/product/<id>` URL and in the WhatsApp Buy Now message, so it must be unique.
 
-Notes:
-
-- Public repositories get unlimited GitHub Actions minutes, so the pings are free.
-- GitHub disables scheduled workflows after 60 days without repository activity. If the API starts sleeping again after a long quiet period, open **Actions → Keep API awake** and re-enable the workflow.
-- For extra redundancy, point a free uptime monitor (UptimeRobot, cron-job.org, etc.) at the same `https://nilaara-jewellers-api.onrender.com/api/health` URL.
-- For a guaranteed always-on backend without the cron workaround, upgrade the Render service to a paid instance type.
-
-## 3. Deploy the frontend
+## 5. Local development
 
 ```powershell
 cd frontend
 npm ci
-npm run build        # → dist/
+npm run dev      # http://localhost:5173
+npm run build    # dist/
 ```
 
-Set the build-time variable:
+The local React app reads the same JSON files. CMS login is only available on
+the deployed Vercel site because GitHub OAuth needs the callback URL.
 
-```
-VITE_API_URL=https://api.nilaara.com
-```
+## 6. Historical data
 
-Host `dist/` on Vercel/Netlify/etc. Notes:
+This repository is public. Customer names, phone numbers, addresses, and order
+data must never be committed.
 
-- `VITE_API_URL` must be set at **build** time (Vite inlines it). Without it the app runs in demo mode — never deploy the storefront without it.
-- Production builds request `/api/*` from their own origin; on Vercel the rewrite in `frontend/vercel.json` proxies those requests to `VITE_API_URL`'s host. Keep the two in sync — the same-origin hop is what keeps the session cookie first-party for Safari/iOS. Other hosts (Netlify) need an equivalent proxy.
-- The API's `FRONTEND_URL` must exactly match the deployed origin (scheme + host, no trailing slash) or cookie-authenticated requests will be blocked by CORS.
+The historical orders and promo record were exported to a private folder
+outside this repository. The old `backend/` folder remains for reference only
+and is not deployed.
 
-## 4. Migrate existing images (one-time)
+## 7. Pre-launch checklist
 
-```powershell
-cd backend
-npm run migrate-images -- --dry-run
-npm run migrate-images -- --import-external
-```
+- [ ] Vercel Root Directory is `frontend`
+- [ ] `GITHUB_OAUTH_CLIENT_ID` and `GITHUB_OAUTH_CLIENT_SECRET` are set in Vercel
+- [ ] GitHub OAuth callback is exactly `https://<domain>/api/callback`
+- [ ] `/admin/` opens and GitHub login succeeds
+- [ ] A test CMS edit commits to `main` and triggers a Vercel rebuild
+- [ ] `/shop` shows only published products
+- [ ] `/product/<id>` hard refresh works
+- [ ] A Buy Now button opens WhatsApp with the product name + ID
+- [ ] No customer/order data exists in `git ls-files`
+- [ ] The old Render service and keep-alive workflow are no longer needed
 
-See [CLOUDINARY.md](CLOUDINARY.md#migrating-existing-images) — the script backs up every product first, is safe to re-run, writes a report, and never deletes originals.
+## Troubleshooting
 
-## 5. Razorpay go-live (optional)
-
-1. Add the three Razorpay variables and restart.
-2. Set the dashboard webhook URL to `https://api.nilaara.com/api/payments/razorpay/webhook` with the same `RAZORPAY_WEBHOOK_SECRET`.
-3. Test with Razorpay test cards first; only verified signatures (checkout verify or webhook HMAC) mark an order paid, and webhook processing is idempotent.
-4. Until configured, payment routes return `503` (no fake success); the storefront takes orders on WhatsApp instead.
-
-## 6. Pre-launch checklist
-
-- [ ] `npm test` passes in `backend/` (43 tests)
-- [ ] `npm run build` succeeds in `frontend/`
-- [ ] Production env validation passes (server starts, logs `storage: cloudinary`)
-- [ ] `npm run create-admin` was run; you can log in at `/admin`
-- [ ] `.env` is git-ignored and contains no real secrets in git history
-- [ ] Cloudinary migration report shows 0 failed / 0 manual-attention products
-- [ ] Test the WhatsApp flow end-to-end: open a product → Buy Now → WhatsApp opens with the product name + ID
-- [ ] Unauthorized upload attempt returns 401 (`curl -X POST https://api…/api/upload`)
-- [ ] HTTPS everywhere; `Set-Cookie` shows `HttpOnly` (+ `Secure`)
+| Symptom | Check |
+| --- | --- |
+| `/admin/` loads but login says not configured | `GITHUB_OAUTH_CLIENT_ID` / `GITHUB_OAUTH_CLIENT_SECRET` in Vercel; redeploy |
+| GitHub returns `redirect_uri_mismatch` | OAuth App callback must match `/api/callback` exactly, including https |
+| Login state did not match | Cookies blocked, or `SITE_URL`/domain changed between auth and callback |
+| CMS publishes but site does not change | Vercel Git integration / deployment status; the commit must reach `main` |
+| New image is broken | Check `frontend/public/uploads/…` was committed and the Vercel build finished |
+| Product is missing | Its `status` is not `published`, or the product ID is blank/duplicated |

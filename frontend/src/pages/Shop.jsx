@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { CATEGORIES, COLLECTIONS, PRODUCTS } from "../data/products";
-import { ProductCard, ProductGridSkeleton, ProductsUnavailable } from "../components/Layout";
-import { fetchProducts, hasAPI, matchesQuery } from "../api/client";
+import { ProductCard } from "../components/Layout";
+import { matchesQuery } from "../api/client";
 import { useStore } from "../store/StoreContext";
 
 // Curated lists driven by the admin's Best Seller / New toggles.
@@ -16,8 +16,7 @@ const slugifyLabel = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").
 export default function Shop() {
   const { settings } = useStore();
   const [params, setParams] = useSearchParams();
-  const [items, setItems] = useState(() => (hasAPI ? [] : PRODUCTS));
-  const [status, setStatus] = useState(hasAPI ? "loading" : "ready");
+  const items = PRODUCTS;
   const cat = params.get("cat") || "";
   const col = params.get("col") || "";
   const sort = params.get("sort") || "featured";
@@ -35,11 +34,6 @@ export default function Shop() {
   const [draftCol, setDraftCol] = useState(col);
   const [draftPrice, setDraftPrice] = useState(null);
 
-  const load = useCallback(() => {
-    setStatus(hasAPI ? "loading" : "ready");
-    fetchProducts().then((list) => { setItems(list); setStatus("ready"); }).catch(() => setStatus("error"));
-  }, []);
-  useEffect(() => { load(); }, [load]);
   useEffect(() => setQuery(q), [q]);
   // Keep the drafts in sync when filters come from a link (e.g. /shop?cat=jhumkas).
   useEffect(() => { setDraftCat(cat); setDraftCol(col); }, [cat, col]);
@@ -118,7 +112,7 @@ export default function Shop() {
   return (
     <main className="container">
       <div className="breadcrumb">Home / Shop {cat && `/ ${cat}`} {col && `/ ${colName}`}</div>
-      <div className="sec-head"><div><h2>{heading}</h2><p>{status === "loading" ? "Loading designs…" : status === "error" ? "Temporarily unavailable" : `${filtered.length} designs`} • artificial & gold-plated</p></div></div>
+      <div className="sec-head"><div><h2>{heading}</h2><p>{`${filtered.length} designs`} • artificial & gold-plated</p></div></div>
       <div className="shop-layout">
         <div className="filters-bar">
           <button
@@ -177,9 +171,7 @@ export default function Shop() {
               )}
             </div>
           </div>
-          {status === "loading" ? <ProductGridSkeleton count={6} className="grid-3" />
-            : status === "error" ? <ProductsUnavailable onRetry={load} />
-            : filtered.length === 0 ? <div className="empty">No designs match. Try clearing filters.</div>
+          {filtered.length === 0 ? <div className="empty">No designs match. Try clearing filters.</div>
             : <div className="grid grid-3">{filtered.map((p) => <ProductCard key={p.id} p={p} />)}</div>}
         </div>
       </div>

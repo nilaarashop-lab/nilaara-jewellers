@@ -1,109 +1,73 @@
-# Deploying & updating on Vercel
+# Vercel deployment
 
-Vercel hosts the **storefront only** (`frontend/`). The Express API in `backend/` runs on a
-separate host — Vercel serverless functions are not a fit for this server (persistent sessions,
-ImageKit uploads, long-lived MongoDB connection).
+Vercel hosts the **whole site** now: the Vite storefront plus two small Node
+functions for the staff CMS login. There is no separate API host.
 
-## One-time project setup
+## One-time setup
 
-1. **Import the repository** `nilaarashop-lab/nilaara-jewellers` into Vercel.
-2. On the import screen set **Root Directory → `frontend`**. There is no root `package.json`,
-   so importing the repo root fails to build.
-3. Framework preset **Vite** (auto-detected). Build `npm run build`, output `dist` — these come
-   from [frontend/vercel.json](../frontend/vercel.json), which also rewrites every path to
-   `/index.html` so a hard refresh on `/admin` or `/product/...` doesn't 404.
-4. **Project → Settings → Environment Variables** — add for *Production* (and *Preview* if you
-   want previews to talk to the API):
+1. Import `nilaarashop-lab/nilaara-jewellers` into Vercel.
+2. Set **Root Directory → `frontend`**. The repository root has no
+   `package.json` for the frontend.
+3. Framework preset **Vite**. Build `npm run build`, output `dist`.
+4. Add the CMS environment variables:
+   - `GITHUB_OAUTH_CLIENT_ID`
+   - `GITHUB_OAUTH_CLIENT_SECRET`
+   - optional `SITE_URL` (the deployed origin)
+5. Create the GitHub OAuth App with callback
+   `https://<domain>/api/callback`.
 
-   ```
-   VITE_API_URL = https://api.your-domain.com
-   ```
+No `VITE_API_URL` is needed. Nothing is proxied to Render.
 
-   Vite inlines this at **build** time. Without it the build runs in demo mode (built-in
-   catalogue, no login); pointed at `http://localhost:5000` every product page shows the
-   "temporarily unavailable" panel, because the visitor's browser cannot reach your machine.
-   `frontend/.env` is git-ignored and is never uploaded — the dashboard value is the one that
-   ships. It must be the same origin as the `/api/*` rewrite destination in
-   [frontend/vercel.json](../frontend/vercel.json) (that file is where the browser actually
-   sends API traffic — see below).
+## Request routing
 
-## How the browser reaches the API
+`frontend/vercel.json` handles four things:
 
-The deployed storefront never calls the API host directly. `frontend/vercel.json` proxies
-`/api/*` to the API, and production builds talk to `/api` on their own origin
-([client.js](../frontend/src/api/client.js)). That keeps the session cookie **first-party**,
-which is what Safari and every iOS browser require — they reject a cookie set by another site
-even when it is marked `SameSite=None; Secure`. Chrome, Edge and Firefox were fine with the
-cross-site cookie; iPhones were not.
+- `/admin` redirects to `/admin/`.
+- `/admin/` serves the static Decap CMS page from `public/admin/`.
+- `/api/auth` and `/api/callback` are Vercel functions in `frontend/api/`.
+- Every other path falls back to `index.html` for client-side routing.
 
-If the API moves, update the rewrite `destination` in `frontend/vercel.json` and redeploy.
-Do not point `VITE_API_URL` at the API host and expect cookies to work on iOS again.
+The admin and API responses are marked `no-store`; the admin page is also
+`noindex, nofollow`.
 
-## Backend prerequisites
+## Publishing content
 
-The API must be publicly reachable over HTTPS, and in its environment:
+Every CMS publish creates a commit on `main`. The connected Vercel project
+rebuilds automatically, bundling the new JSON files.
 
-| Variable | Value |
-|---|---|
-| `NODE_ENV` | `production` |
-| `MONGO_URI` | MongoDB Atlas connection string |
-| `STORAGE_DRIVER` | `imagekit` (or `cloudinary`) |
-| `FRONTEND_URL` | exact storefront origin(s), comma-separated, no trailing slash — e.g. `https://shop.your-domain.com,https://your-app.vercel.app` |
-| `COOKIE_SECURE` | `true` |
-| `COOKIE_SAMESITE` | leave unset (defaults to `lax`); only a client calling the API cross-site directly needs `none` |
+The CMS files are:
 
-`COOKIE_SAMESITE=none` left over from an older cross-site deployment must be removed — it makes
-Safari discard the session cookie even though the request is now same-origin.
+- `frontend/src/content/products.json`
+- `frontend/src/content/settings.json`
+- uploads in `frontend/public/uploads/`
 
-## Deploying an update
-
-### Connected to Git (the normal path)
-
-Every push to the production branch (`main`) triggers a build:
-
-```powershell
-cd D:\parinaya-jewels
-git add -A
-git commit -m "Describe the change"
-git push origin main
-```
-
-Watch **Project → Deployments**; a build takes about a minute. Commits on other branches and
-pull requests get their own preview URL and never touch production.
-
-### Without a Git connection
+## Deploying manually
 
 ```powershell
 npm i -g vercel
-cd D:\parinaya-jewels\frontend
-vercel link          # link to the existing project
-vercel --prod        # build + promote to production
+cd frontend
+vercel link
+vercel --prod
 ```
 
-### After changing an environment variable
+Environment variables are set in the Vercel dashboard, not in `.env`.
 
-Redeploy from **Deployments → ⋯ → Redeploy** and untick *Use existing build cache* — the old
-bundle still contains the previous `VITE_API_URL`.
+## Post-deploy checks
 
-## Post-deploy check
-
-- [ ] `/shop` lists the real database catalogue (not the demo products, not the retry panel)
-- [ ] `/admin` loads for an admin account; the Admin pill is in the navbar
-- [ ] Login survives a refresh (no cookie dropped)
-- [ ] Login from an iPhone (Safari **and** Chrome for iOS) survives a refresh — the iOS cookie check
-- [ ] Hard refresh on a product URL does not 404
-- [ ] Image uploads in the admin return an ImageKit URL
+- [ ] `/shop` shows only published products from the repository
+- [ ] Hard refresh on `/product/<id>` returns the app, not a 404
+- [ ] `/admin/` loads the CMS
+- [ ] GitHub login completes and returns to the CMS
+- [ ] A test publish commits to `main` and starts a deployment
 - [ ] A Buy Now button opens WhatsApp with the product name + ID
 
 ## Troubleshooting
 
 | Symptom | Cause |
-|---|---|
-| Gold "Our collection is temporarily unavailable" panel | API unreachable, CORS/`FRONTEND_URL` mismatch, or `VITE_API_URL` wrong at build time |
-| Demo products on the live site | `VITE_API_URL` missing in the Vercel build — the app deliberately runs in demo mode only when no API is configured |
-| 404 after refresh / shared deep link | `frontend/vercel.json` missing, or the project's Root Directory isn't `frontend` |
-| Login works, then you're logged out | cookie rejected: `COOKIE_SECURE` must be `true`, `COOKIE_SAMESITE` must be `lax` (not `none`), and `FRONTEND_URL` must list the exact storefront origin |
-| Register succeeds but the form says the browser didn't keep the sign-in | the `Set-Cookie` never landed. On an iPhone this is the cross-site cookie: check that `/api/*` is served by the rewrite in `frontend/vercel.json`, not by the API host directly, and that the deployed build is the one from after that change |
-| Old version still served after a push | check the commit hash on the deployment; redeploy without build cache |
-
-See also [DEPLOYMENT.md](DEPLOYMENT.md) for the full production checklist.
+| --- | --- |
+| Build fails at repo root | Vercel Root Directory is not `frontend` |
+| `/admin/` 404s | `public/admin/` was not included in the build, or the project was not redeployed |
+| Login says not configured | Missing GitHub OAuth env vars, or deployment predates them |
+| `redirect_uri_mismatch` | OAuth App callback URL differs from `/api/callback` |
+| CMS commits but site is stale | Vercel Git integration is disconnected, or the commit went to another branch |
+| Old products still show | The deployment has not finished, or the product was edited outside the CMS and not pushed |

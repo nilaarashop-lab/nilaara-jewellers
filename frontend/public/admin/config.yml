@@ -1,0 +1,174 @@
+backend:
+  name: github
+  repo: nilaarashop-lab/nilaara-jewellers
+  branch: main
+  # Self-hosted OAuth endpoints (Vercel functions in frontend/api/).
+  base_url: https://nilaara-jewellers.vercel.app
+  auth_endpoint: api/auth
+  auth_scope: public_repo
+  commit_messages:
+    create: "CMS: create {{collection}} “{{slug}}”"
+    update: "CMS: update {{collection}} “{{slug}}”"
+    delete: "CMS: delete {{collection}} “{{slug}}”"
+    uploadMedia: "CMS: upload {{path}}"
+    deleteMedia: "CMS: delete {{path}}"
+
+site_url: https://nilaara-jewellers.vercel.app
+display_url: https://nilaara-jewellers.vercel.app
+logo_url: https://nilaara-jewellers.vercel.app/nilaara-logo.png
+publish_mode: simple
+
+# New uploads are committed to the repo and deployed by Vercel.
+media_folder: frontend/public/uploads
+public_folder: /uploads
+
+collections:
+  - name: catalogue
+    label: Catalogue
+    label_singular: Product
+    description: Products appear on the storefront when their status is Published.
+    files:
+      - name: products
+        label: Products
+        file: frontend/src/content/products.json
+        fields:
+          - label: Products
+            name: products
+            widget: list
+            collapsed: true
+            summary: "{{fields.name}} — {{fields.id}}"
+            fields:
+              - label: Product ID
+                name: id
+                widget: string
+                required: true
+                hint: "Shown on the product page and sent in the WhatsApp Buy Now message. Must be unique. Changing it changes the product URL."
+                pattern:
+                  - "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                  - "Use lowercase letters, numbers and single dashes only."
+              - { label: Name, name: name, widget: string, required: true }
+              - { label: Slug, name: slug, widget: string, required: false, hint: "Optional internal URL slug. Leave unchanged unless you know it is needed." }
+              - label: Status
+                name: status
+                widget: select
+                default: published
+                options: [published, draft, archived]
+              - label: Category
+                name: category
+                widget: select
+                options: [jewellery-sets, necklaces, earrings, jhumkas, bangles, rings]
+              - label: Collection
+                name: collection
+                widget: select
+                required: false
+                options: [gold-plated, american-diamond, kundan, temple, oxidised, pearl]
+              - { label: Plating, name: plating, widget: string, required: false }
+              - { label: Stones, name: stones, widget: string, required: false }
+              - { label: Metal, name: metal, widget: string, required: false }
+              - { label: Size, name: size, widget: string, required: false }
+              - { label: Price (₹), name: price, widget: number, value_type: int, min: 0 }
+              - { label: MRP (₹), name: mrp, widget: number, value_type: int, min: 0, required: false }
+              - { label: Badge, name: badge, widget: string, required: false, hint: "For example Bestseller, New, Festive." }
+              - { label: Tag, name: tag, widget: string, required: false }
+              - { label: Custom edit label, name: customTag, widget: string, required: false, hint: "Optional collection label shown on the product card." }
+              - { label: Description, name: desc, widget: text, required: false }
+              - label: Images
+                name: images
+                widget: image
+                multiple: true
+                required: false
+                hint: "The first image is the card/thumbnail. Upload a new image or keep an existing ImageKit URL."
+              - { label: In stock, name: trackInventory, widget: boolean, default: true, hint: "Turn off to sell without tracking stock." }
+              - { label: Stock quantity, name: stock, widget: number, value_type: int, min: 0, required: false }
+              - { label: Low-stock warning at, name: lowStockThreshold, widget: number, value_type: int, min: 0, default: 5, required: false }
+              - { label: Best seller, name: bestseller, widget: boolean, default: false, required: false }
+              - { label: New arrival, name: newArrival, widget: boolean, default: false, required: false }
+              - { label: Featured, name: featured, widget: boolean, default: false, required: false }
+              - { label: Rating, name: rating, widget: number, value_type: float, min: 0, max: 5, required: false }
+              - { label: Review count, name: reviews, widget: number, value_type: int, min: 0, required: false }
+              - label: Variants
+                name: variants
+                widget: list
+                required: false
+                fields:
+                  - { label: Name, name: name, widget: string }
+                  - { label: Price, name: price, widget: number, value_type: int, required: false }
+                  - { label: MRP, name: mrp, widget: number, value_type: int, required: false }
+                  - { label: Stock, name: stock, widget: number, value_type: int, required: false }
+
+  - name: homepage
+    label: Homepage
+    files:
+      - name: settings
+        label: Homepage & announcement
+        file: frontend/src/content/settings.json
+        fields:
+          - label: Announcement bar
+            name: announcement
+            widget: object
+            fields:
+              - { label: Show announcement bar, name: active, widget: boolean, default: false }
+              - { label: Full text, name: text, widget: string, required: false }
+              - { label: Short text (mobile), name: shortText, widget: string, required: false }
+              - label: Scrolling messages
+                name: messages
+                widget: list
+                required: false
+                field: { label: Message, name: message, widget: string }
+                hint: "Optional. One message is shown statically; several scroll as a marquee."
+          - label: Homepage sections
+            name: home
+            widget: object
+            fields:
+              - label: Hero slides
+                name: heroSlides
+                widget: list
+                required: false
+                summary: "{{fields.title}}"
+                fields:
+                  - { label: Show slide, name: active, widget: boolean, default: true }
+                  - { label: Image, name: image, widget: image, required: false, hint: "Upload a new image or keep the existing ImageKit URL." }
+                  - { label: Image alt text, name: alt, widget: string, required: false }
+                  - { label: Eyebrow, name: eyebrow, widget: string, required: false }
+                  - { label: Title, name: title, widget: string, required: false }
+                  - { label: Highlighted line, name: highlight, widget: string, required: false }
+                  - { label: Supporting text, name: text, widget: text, required: false }
+              - label: Promo cards
+                name: cards
+                widget: list
+                required: false
+                summary: "{{fields.title}}"
+                fields:
+                  - { label: Show card, name: active, widget: boolean, default: true }
+                  - { label: Image, name: image, widget: image, required: false }
+                  - { label: Image alt text, name: alt, widget: string, required: false }
+                  - { label: Eyebrow, name: eyebrow, widget: string, required: false }
+                  - { label: Title, name: title, widget: string, required: false }
+                  - { label: Text, name: text, widget: string, required: false }
+                  - { label: Link, name: to, widget: string, default: /shop, required: false }
+                  - { label: Link label, name: linkLabel, widget: string, default: Shop now, required: false }
+              - label: Festive banner
+                name: festive
+                widget: object
+                fields:
+                  - { label: Show festive banner, name: active, widget: boolean, default: false }
+                  - { label: Image, name: image, widget: image, required: false }
+                  - { label: Image alt text, name: alt, widget: string, required: false }
+              - label: Category tile images
+                name: categoryTiles
+                widget: list
+                required: false
+                summary: "{{fields.slug}}"
+                fields:
+                  - label: Category
+                    name: slug
+                    widget: select
+                    options: [jewellery-sets, necklaces, earrings, jhumkas, bangles, rings]
+                  - { label: Image, name: image, widget: image, required: true }
+                  - { label: Image alt text, name: alt, widget: string, required: false }
+          - label: Shipping
+            name: shipping
+            widget: object
+            fields:
+              - { label: Free shipping over (₹), name: freeOver, widget: number, value_type: int, min: 0 }
+              - { label: Standard shipping fee (₹), name: fee, widget: number, value_type: int, min: 0, required: false }

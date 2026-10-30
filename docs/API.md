@@ -1,6 +1,6 @@
 # Nilaara API Reference
 
-> **Storefront status:** the website is now a **catalogue with WhatsApp ordering**. The React app only uses the product, settings, upload, staff-auth and admin endpoints. The customer auth / cart / checkout / order / Razorpay endpoints below still exist (for existing data, the admin panel and the test suite) but are **not called by the storefront UI**.
+> **Legacy reference only.** The deployed storefront is now fully static: products and settings are JSON files edited through the Git CMS, and no customer-facing page calls a backend. This API document is kept for the archived `backend/` folder and historical data reference. It is not part of the deployed site.
 
 Base URL: whatever you set as the backend origin (e.g. `http://localhost:5000`). All endpoints are JSON unless noted.
 

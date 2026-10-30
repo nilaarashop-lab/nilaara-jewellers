@@ -1,39 +1,27 @@
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import { PRODUCTS, discountPercent, formatINR } from "../data/products";
-import { ProductCard, ProductsUnavailable, Img, IconWhatsApp } from "../components/Layout";
+import { ProductCard, Img, IconWhatsApp } from "../components/Layout";
 import { useStore } from "../store/StoreContext";
 import { productEnquiryLink } from "../config";
-import { fetchProducts, hasAPI } from "../api/client";
 
 export default function Product() {
   const { id } = useParams();
   const { toggleWish, wishlist } = useStore();
-  const [items, setItems] = useState(() => (hasAPI ? [] : PRODUCTS));
-  const [status, setStatus] = useState(hasAPI ? "loading" : "ready");
+  const items = PRODUCTS;
   const [imgI, setImgI] = useState(0);
-  const load = useCallback(() => {
-    setStatus(hasAPI ? "loading" : "ready");
-    fetchProducts().then((list) => { setItems(list); setStatus("ready"); }).catch(() => setStatus("error"));
-  }, []);
-  useEffect(() => { load(); setImgI(0); window.scrollTo(0, 0); }, [id, load]);
+  useEffect(() => { setImgI(0); window.scrollTo(0, 0); }, [id]);
   const p = items.find((x) => x.id === id);
   if (!p) {
     return (
       <main className="container">
         <div className="breadcrumb">Home / Shop</div>
-        {status === "error" ? <ProductsUnavailable onRetry={load} /> : (
-          <div className="empty">
-            {status === "loading" ? "Loading…" : (
-              <>
-                <h2 className="serif" style={{ fontSize: 30 }}>This piece isn't in our collection</h2>
-                <p>It may have been renamed or is no longer available.</p>
-                <br />
-                <Link to="/shop" className="btn btn-gold">Browse the Shop</Link>
-              </>
-            )}
-          </div>
-        )}
+        <div className="empty">
+          <h2 className="serif" style={{ fontSize: 30 }}>This piece isn't in our collection</h2>
+          <p>It may have been renamed or is no longer available.</p>
+          <br />
+          <Link to="/shop" className="btn btn-gold">Browse the Shop</Link>
+        </div>
       </main>
     );
   }

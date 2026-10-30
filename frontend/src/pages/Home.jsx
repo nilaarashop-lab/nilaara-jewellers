@@ -1,20 +1,19 @@
 import { Link } from "react-router-dom";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { CATEGORIES, PRODUCTS, SIDE_IMGS, FESTIVE_IMG } from "../data/products";
-import { ProductCard, ProductGridSkeleton, ProductsUnavailable, Img } from "../components/Layout";
+import { ProductCard, Img } from "../components/Layout";
 import { useStore } from "../store/StoreContext";
-import { fetchProducts, hasAPI } from "../api/client";
 
 /** True when the visitor prefers reduced motion (autoplay/parallax off). */
 const prefersReducedMotion = () =>
   typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
 /*
- * Permanent hero. This mirrors the admin-configured hero exactly (same image
- * URL and copy), so the very first paint — before /api/settings resolves —
- * already shows the real design instead of a different placeholder. Because
- * the URL matches, React does not remount the image when settings arrive, so
- * there is no swap or blank frame. Admin slides can still override it later.
+ * Permanent hero. This mirrors the CMS hero exactly (same image URL and copy),
+ * so the very first paint — before settings are read — already shows the real
+ * design instead of a different placeholder. Because the URL matches, React
+ * does not remount the image when settings arrive, so there is no swap or blank
+ * frame. CMS slides can still override it.
  */
 const DEFAULT_SLIDE = {
   image: {
@@ -68,7 +67,7 @@ function Reveal({ className = "", children }) {
 }
 
 /**
- * Auto-rotating hero. Uses admin-configured slides (via /api/settings) when
+ * Auto-rotating hero. Uses CMS-configured slides when present, otherwise the
  * present, otherwise the built-in festive hero. Autoplay pauses on hover/focus
  * and is disabled entirely for reduced-motion visitors (dots still work).
  */
@@ -140,14 +139,8 @@ function Hero({ slides }) {
 
 export default function Home() {
   const { settings } = useStore();
-  const [items, setItems] = useState(() => (hasAPI ? [] : PRODUCTS));
-  const [status, setStatus] = useState(hasAPI ? "loading" : "ready");
-  const load = useCallback(() => {
-    setStatus(hasAPI ? "loading" : "ready");
-    fetchProducts().then((list) => { setItems(list); setStatus("ready"); }).catch(() => setStatus("error"));
-  }, []);
-  useEffect(() => { load(); }, [load]);
-  // Admin-flagged Best Sellers lead; the rest stay in catalogue order.
+  const items = PRODUCTS;
+  // Best Seller flags lead; the rest stay in catalogue order.
   const best = [...items].sort((a, b) => Number(Boolean(b.bestseller)) - Number(Boolean(a.bestseller))).slice(0, 8);
 
   // Admin-configured content, falling back to the built-in defaults.
@@ -210,9 +203,7 @@ export default function Home() {
 
       <section className="sec">
         <div className="sec-head"><div><h2>Our Best Sellers</h2><p>Most-loved picks, ready to ship</p></div><Link to="/shop?col=best-sellers" className="link">View all</Link></div>
-        {status === "loading" ? <ProductGridSkeleton count={4} />
-          : status === "error" ? <ProductsUnavailable onRetry={load} />
-          : <div className="grid">{best.map((p) => <ProductCard key={p.id} p={p} />)}</div>}
+        <div className="grid">{best.map((p) => <ProductCard key={p.id} p={p} />)}</div>
       </section>
 
       {festive && (

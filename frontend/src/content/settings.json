@@ -1,0 +1,38 @@
+{
+  "announcement": {
+    "active": false,
+    "text": "Flat 25% off with code FLAT25 over ₹1000 • Free shipping over ₹999",
+    "shortText": "FLAT25: 25% off over ₹1000 • Free shipping over ₹999",
+    "messages": []
+  },
+  "home": {
+    "heroSlides": [
+      {
+        "active": true,
+        "image": "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt1xjp6-82ebd4529631.png",
+        "alt": "",
+        "eyebrow": "Festive Edit • Flat 25% off",
+        "title": "Heirlooms,",
+        "highlight": "without the heirloom price.",
+        "text": "Handcrafted kundan & gold-plated jewellery — bridal-ready, skin-friendly, tarnish-resistant."
+      }
+    ],
+    "cards": [],
+    "festive": {
+      "active": false,
+      "image": "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt4bb7q-8469aa3eb32f.png",
+      "alt": ""
+    },
+    "categoryTiles": [
+      {
+        "slug": "jewellery-sets",
+        "image": "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt4cba8-c6f1d7ca3a32.png",
+        "alt": ""
+      }
+    ]
+  },
+  "shipping": {
+    "freeOver": 999,
+    "fee": 79
+  }
+}

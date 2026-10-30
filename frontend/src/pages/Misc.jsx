@@ -1,28 +1,18 @@
-import { useCallback, useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useStore } from "../store/StoreContext";
 import { PRODUCTS } from "../data/products";
 import { STORES } from "../data/stores";
-import { ProductCard, ProductGridSkeleton, ProductsUnavailable, Img, IconWhatsApp } from "../components/Layout";
+import { ProductCard, Img, IconWhatsApp } from "../components/Layout";
 import { whatsappChatLink, whatsappLink, WHATSAPP_DISPLAY } from "../config";
-import { fetchProducts, hasAPI } from "../api/client";
 
 export function Wishlist() {
   const { wishlist } = useStore();
-  const [items, setItems] = useState(() => (hasAPI ? [] : PRODUCTS));
-  const [status, setStatus] = useState(hasAPI ? "loading" : "ready");
-  const load = useCallback(() => {
-    setStatus(hasAPI ? "loading" : "ready");
-    fetchProducts().then((list) => { setItems(list); setStatus("ready"); }).catch(() => setStatus("error"));
-  }, []);
-  useEffect(() => { load(); }, [load]);
-  const list = items.filter((p) => wishlist.includes(p.id));
+  const list = PRODUCTS.filter((p) => wishlist.includes(p.id));
   return (
     <main className="container"><div className="breadcrumb">Home / Wishlist</div>
       <div className="sec-head"><h2>Wishlist ({list.length})</h2></div>
-      {status === "error" ? <ProductsUnavailable onRetry={load} />
-        : status === "loading" ? <ProductGridSkeleton count={4} />
-        : list.length === 0 ? <div className="empty">Nothing saved yet.<br /><br /><Link to="/shop" className="btn btn-gold">Discover jewellery</Link></div>
+      {list.length === 0 ? <div className="empty">Nothing saved yet.<br /><br /><Link to="/shop" className="btn btn-gold">Discover jewellery</Link></div>
         : <div className="grid">{list.map((p) => <ProductCard key={p.id} p={p} />)}</div>}
     </main>
   );
