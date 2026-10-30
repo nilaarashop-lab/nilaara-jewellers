@@ -36,7 +36,7 @@ test("uploads the signed form to ImageKit and returns its URL", async () => {
   assert.equal(form.get("token"), "tok123");
   assert.equal(form.get("expire"), "1700000600");
   assert.equal(form.get("signature"), "sig456");
-  assert.match(form.get("fileName"), /^\d+-[a-z0-9]{4}-gold-ring$/);
+  assert.match(form.get("fileName"), /^\d+-[a-z0-9]{4}-gold-ring\.webp$/);
   assert.equal(form.get("file").type, "image/webp");
 
   assert.deepEqual(result, {

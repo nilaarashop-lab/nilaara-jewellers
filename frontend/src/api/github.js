@@ -400,7 +400,7 @@ async function imageKitAuth(token) {
 }
 
 export async function uploadToImageKit(file, auth) {
-  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}-${slugify(file.name)}`;
+  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}-${slugify(file.name)}.${extensionFor(file)}`;
   const body = new FormData();
   body.append("file", file, file.name || `${fileName}.webp`);
   body.append("fileName", fileName);

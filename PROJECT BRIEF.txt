@@ -158,9 +158,10 @@ J. UPDATE THIS FILE in the same commit as any change: sections 3–6 for behavio
 8. CURRENT STATE (2026-10-30)
 - Unless a bullet says otherwise, everything is on main and live via Vercel; /content/products.json
   "._commit" names the exact commit the live site is serving.
-- Catalogue has 2 published products, both added by the owner in the admin on 2026-10-30: w2000
-  "test2" (stock 1) and w2001 "test23" (stock 7). Each has two cropped photos (repo files end in
-  "-cropped.webp"). Announcement bar is off; freebies threshold ₹5,000.
+- Catalogue has 3 published products, all added by the owner in the admin on 2026-10-30: w2000
+  "test2" (stock 1) and w2001 "test23" (stock 7) with their two cropped photos committed to the repo
+  (files end in "-cropped.webp"), and w2002 "test7" (stock 10, commit 8647f6b) whose two photos are
+  on ImageKit. Announcement bar is off; freebies threshold ₹5,000.
 - Shipped and live: photo crop tool, ↻ Rotate 90°, duplicate-ID guard, Parinaya Rentals store names,
   online-sale/offline-rental wording, upload retry on GitHub server errors.
 - AUDIT FIXES, 2026-10-30 (in this code commit): one source for store hours (10:30 AM – 9:00 PM daily)
@@ -169,7 +170,8 @@ J. UPDATE THIS FILE in the same commit as any change: sections 3–6 for behavio
   counts only live pieces, per-page titles/descriptions + site-wide OG tags + generated sitemap,
   product-named wishlist labels, marquee duplicate hidden from screen readers, admin undo delete +
   ↑↓ reorder. Tests: 48 passing.
-- IMAGEKIT, 2026-10-30 (code only, not yet live): uploads prefer ImageKit via the new signed endpoint
-  frontend/api/imagekit.js, with the GitHub commit as automatic fallback. Waiting on the owner to add
-  IMAGEKIT_PRIVATE_KEY + IMAGEKIT_PUBLIC_KEY in Vercel and redeploy; until then nothing changes for
-  them. The 4 existing /uploads photos stay where they are. Tests: 55 passing.
+- IMAGEKIT, live since 4258813 (2026-10-30): uploads go through the signed endpoint
+  frontend/api/imagekit.js to the nilaara/products folder, with the GitHub commit as automatic
+  fallback. Keys are set in Vercel; the owner's test7 save proved it (only products.json changed,
+  no upload commit). Photos uploaded before that stay in the repo (4 /uploads files). Tests: 55
+  passing.
