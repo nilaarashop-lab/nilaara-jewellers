@@ -465,7 +465,9 @@ h1,h2,h3,h4{color:var(--maroon)}
 .form label{font-size:12px;letter-spacing:1.4px;text-transform:uppercase;color:var(--ink-soft);display:block;margin:14px 0 6px}
 .form input,.form textarea,.form select{width:100%;border:1px solid var(--line);border-radius:10px;padding:12px 14px;font-family:inherit;font-size:14.5px;outline:0;background:#FFFDF9;color:var(--ink)}
 .form input::placeholder,.form textarea::placeholder{color:var(--muted)}
-.form input:focus,.form textarea:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(199,164,92,.14)}
+.form input:focus,.form textarea:focus,.form select:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(199,164,92,.14)}
+/* The admin category/status pickers must not read as plain text boxes. */
+.form select{appearance:none;-webkit-appearance:none;cursor:pointer;padding-right:40px;background-image:url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='9' viewBox='0 0 14 9'%3E%3Cpath d='M1 1l6 6 6-6' fill='none' stroke='%237A5B16' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center}
 .form input[type="radio"],.form input[type="checkbox"]{accent-color:var(--maroon)}
 .paybox{border:1px dashed var(--gold);background:var(--gold-soft);border-radius:12px;padding:14px;margin-top:12px;font-size:14px;color:var(--ink-soft)}
 
