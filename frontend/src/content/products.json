@@ -1,39 +1,6 @@
 {
   "products": [
     {
-      "id": "par-gold-spiral-pendant",
-      "slug": "gold-toned-spiral-motif-round-pendant-with-chain-mvt2jxdn",
-      "name": "Gold-Toned Spiral Motif Round Pendant with Chain",
-      "category": "necklaces",
-      "collection": "gold-plated",
-      "plating": "Gold Plated",
-      "metal": "Brass alloy",
-      "purity": "",
-      "stones": "—",
-      "size": "",
-      "variants": [],
-      "price": 649,
-      "mrp": 1248,
-      "makingCharges": 0,
-      "rating": 4,
-      "reviews": 320,
-      "badge": "Demi-Fine",
-      "tag": "",
-      "customTag": "",
-      "featured": false,
-      "bestseller": false,
-      "newArrival": false,
-      "images": [
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jjpx-ab6de39154aa_Jiw1fpMLfN.jpg",
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jij4-e8deca99b0d6_q5DK3yLjL.jpg"
-      ],
-      "desc": "Minimal everyday pendant, 18-inch chain with extender.",
-      "stock": 25,
-      "trackInventory": true,
-      "lowStockThreshold": 5,
-      "status": "published"
-    },
-    {
       "id": "par-vintage-danglers",
       "slug": "elegant-pearl-stone-vintage-filigree-danglers-mvt2jxfn",
       "name": "Elegant Pearl & Stone Vintage Filigree Danglers",
