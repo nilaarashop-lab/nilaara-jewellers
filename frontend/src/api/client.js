@@ -7,18 +7,9 @@
  * GitHub-backed admin at /admin.
  */
 import { PRODUCTS } from "../data/products";
+import { matchesQuery } from "../data/search.js";
 
-const searchable = (p) =>
-  [p.name, p.category, p.customTag]
-    .filter(Boolean)
-    .join(" ")
-    .toLowerCase();
-
-/** Case-insensitive substring match shared by the shop page and header search. */
-export function matchesQuery(p, q) {
-  const needle = String(q || "").trim().toLowerCase();
-  return !needle || searchable(p).includes(needle);
-}
+export { matchesQuery };
 
 export async function searchProducts(q, limit = 6, products = PRODUCTS) {
   const query = String(q || "").trim();

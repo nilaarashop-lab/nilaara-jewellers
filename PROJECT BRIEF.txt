@@ -79,8 +79,10 @@ the admin appears in the menu and shop filters automatically; the list must also
 product uses it (except the 11 built-ins, which always show with fallback art).
 
 5. STOREFRONT FUNCTIONS
-Search: header search with live suggestions (name/category/customTag), loading, "no results",
-and "temporarily unavailable + retry" states; shop has search-within-results. Filters:
+Search: header search with live suggestions (name/category/customTag/product ID), loading, "no results",
+and "temporarily unavailable + retry" states; shop has search-within-results. The matcher lives in
+src/data/search.js and also matches the product ID (w2000, or just 2000) and slug, so a shopper who was
+given an ID on WhatsApp can type it and land on the piece. Filters:
 category chips, Highlights (New Launches, Best Sellers), Edits (from customTag), max-price slider
 (starts at 500, grows with the catalogue, at max = no cap), Apply button; mobile filter drawer.
 Sort: Featured / Price low→high / Price high→low. Every filter is in the URL (?cat ?col ?max ?q ?sort),
@@ -145,7 +147,7 @@ A. NEVER commit frontend/src/content/** or frontend/public/uploads/**. They belo
 B. The owner's admin commits land on origin/main constantly. ALWAYS: git fetch origin, then
    git rebase origin/main (never force-push, never reset --hard over their work). Verify afterwards:
    git diff origin/main --stat -- frontend/src/content frontend/public/uploads   → must be EMPTY.
-C. Before committing: run in frontend/ — npm test (79 tests), npm run lint (oxlint: 0 errors; 9 known
+C. Before committing: run in frontend/ — npm test (83 tests), npm run lint (oxlint: 0 errors; 9 known
    react(set-state-in-effect) warnings are pre-existing), npm run build. Commit only source, tests,
    styles, docs. Never commit dist/, node_modules/, public/content/, public/sitemap.xml (generated), .env.
 D. Never commit secrets: GitHub OAuth client secret, ImageKit private key/public key, tokens. They live
@@ -200,4 +202,4 @@ J. UPDATE THIS FILE in the same commit as any change: sections 3–6 for behavio
   was 17; three of those now return 404 on their own.) Known dead reference, harmless for now:
   home.festive.image points at nil-mvt4bb7q (404), but the festive banner is switched off, so the
   homepage shows nothing broken. Upload a picture in Homepage → Festive before switching it on, or
-  clear the image to use the built-in festive art. Tests: 79 passing.
+  clear the image to use the built-in festive art. Tests: 83 passing.
