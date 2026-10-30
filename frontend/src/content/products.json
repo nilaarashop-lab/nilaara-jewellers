@@ -11,7 +11,7 @@
       "price": 799,
       "mrp": 1499,
       "makingCharges": 0,
-      "stock": 0,
+      "stock": 1,
       "lowStockThreshold": 5,
       "trackInventory": true,
       "customTag": "",
