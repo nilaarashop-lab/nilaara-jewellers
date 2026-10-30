@@ -20,22 +20,28 @@ export default function Shop() {
   const col = params.get("col") || "";
   const sort = params.get("sort") || "featured";
   const q = params.get("q") || "";
+  const max = params.get("max") || "";
   const [query, setQuery] = useState(q);
-  // Price cap grows with the catalogue (capped slider hid pricier pieces);
-  // null means "no cap" — the slider sits at its maximum.
+  // Price cap grows with the catalogue (capped slider hid pricier pieces).
+  // The applied cap lives in the URL like the other filters, so following a
+  // category link does not carry a stale cap into the next listing.
   const priceCap = Math.max(500, Math.ceil(Math.max(...items.map((p) => p.price), 0) / 50) * 50);
-  const [maxPrice, setMaxPrice] = useState(null);
+  const maxPrice = Number(max) > 0 && Number(max) < priceCap ? Number(max) : null;
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [sortOpen, setSortOpen] = useState(false);
   const sortRef = useRef(null);
   // Left-panel filter drafts — applied only when the user clicks Apply.
   const [draftCat, setDraftCat] = useState(cat);
   const [draftCol, setDraftCol] = useState(col);
-  const [draftPrice, setDraftPrice] = useState(null);
+  const [draftPrice, setDraftPrice] = useState(maxPrice);
 
   useEffect(() => setQuery(q), [q]);
   // Keep the drafts in sync when filters come from a link (e.g. /shop?cat=jhumkas).
-  useEffect(() => { setDraftCat(cat); setDraftCol(col); }, [cat, col]);
+  useEffect(() => {
+    setDraftCat(cat);
+    setDraftCol(col);
+    setDraftPrice(maxPrice);
+  }, [cat, col, maxPrice]);
   // Close the sort menu on outside click / Escape.
   useEffect(() => {
     if (!sortOpen) return;
@@ -98,8 +104,10 @@ export default function Shop() {
     const n = new URLSearchParams(params);
     if (!draftCat) n.delete("cat"); else n.set("cat", draftCat);
     if (!draftCol) n.delete("col"); else n.set("col", draftCol);
+    // A cap at the slider maximum means "no cap" — keep the URL clean.
+    if (draftPrice == null || draftPrice >= priceCap) n.delete("max");
+    else n.set("max", String(draftPrice));
     setParams(n);
-    setMaxPrice(draftPrice);
     setFiltersOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
   };

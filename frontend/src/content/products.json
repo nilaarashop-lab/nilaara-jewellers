@@ -3,7 +3,7 @@
     {
       "id": "par-ethnic-kundan-choker",
       "slug": "rajwadi-kundan-pearl-choker-necklace-set",
-      "name": "test",
+      "name": "Rajwadi Kundan Pearl Choker Necklace Set",
       "category": "jewellery-sets",
       "collection": "kundan",
       "plating": "22K Gold Plated",
@@ -22,12 +22,13 @@
       "customTag": "",
       "featured": false,
       "bestseller": false,
-      "newArrival": true,
+      "newArrival": false,
       "images": [
-        "/uploads/1793346718376-1qfv-8.webp"
+        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jdlf-3b78ae2e8091_svO01POVK.jpg",
+        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jf06-ca7e6786de83_3qSFEcb4v.jpg"
       ],
       "desc": "Handcrafted festive choker with kundan polki and pearls.",
-      "stock": 1,
+      "stock": 50,
       "trackInventory": true,
       "lowStockThreshold": 5,
       "status": "published"
@@ -35,7 +36,7 @@
     {
       "id": "par-temple-lakshmi-bangle",
       "slug": "divine-lakshmi-temple-bangles-set-of-2",
-      "name": "test2",
+      "name": "Divine Lakshmi Temple Bangles — Set of 2",
       "category": "bangles",
       "collection": "temple",
       "plating": "24K Gold Plated",
@@ -56,8 +57,8 @@
       "bestseller": false,
       "newArrival": false,
       "images": [
-        "/uploads/1793344378548-y2hn-2.webp",
-        "/uploads/1793344388581-0r9c-5.webp"
+        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jg6t-7b6fea78be8a_6Tf-TZfXg.jpg",
+        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jhd2-320dd45de74c_VprRPVSSk.jpg"
       ],
       "desc": "Temple-work bangles with Lakshmi motif.",
       "stock": 39,
@@ -68,7 +69,7 @@
     {
       "id": "par-tribal-necklace-set",
       "slug": "tribal-magic-green-red-necklace-set",
-      "name": "test3",
+      "name": "Tribal Magic Green & Red Necklace Set",
       "category": "necklaces",
       "collection": "oxidised",
       "plating": "Antique Gold Oxidised",
@@ -89,7 +90,8 @@
       "bestseller": false,
       "newArrival": false,
       "images": [
-        "/uploads/1793345683765-zt8s-15.webp"
+        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jij4-e8deca99b0d6_q5DK3yLjL.jpg",
+        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jjpx-ab6de39154aa_Jiw1fpMLfN.jpg"
       ],
       "desc": "Oxidised tribal set.",
       "stock": 35,
@@ -100,7 +102,7 @@
     {
       "id": "par-rose-gold-bracelet",
       "slug": "american-diamond-zirconia-rose-gold-bracelet",
-      "name": "test4",
+      "name": "American Diamond Zirconia Rose-Gold Bracelet",
       "category": "bangles",
       "collection": "american-diamond",
       "plating": "Rose Gold Plated",
@@ -121,7 +123,8 @@
       "bestseller": false,
       "newArrival": false,
       "images": [
-        "/uploads/1793346312894-64ge-12.webp"
+        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jkvt-0c272a1de1c8_83NAGDxWh.jpg",
+        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jm0p-f3268521ef33_9_ddpxVIF.jpg"
       ],
       "desc": "Demi-fine bracelet.",
       "stock": 60,
@@ -132,7 +135,7 @@
     {
       "id": "par-kashmiri-jhumka",
       "slug": "long-kashmiri-jhumkas-with-gold-beads",
-      "name": "test5",
+      "name": "Long Kashmiri Jhumkas with Gold Beads",
       "category": "jhumkas",
       "collection": "temple",
       "plating": "22K Gold Plated",
@@ -153,7 +156,8 @@
       "bestseller": false,
       "newArrival": false,
       "images": [
-        "/uploads/1793346536295-cm1c-10.webp"
+        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jhd2-320dd45de74c_VprRPVSSk.jpg",
+        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jjpx-ab6de39154aa_Jiw1fpMLfN.jpg"
       ],
       "desc": "Long festive jhumkas.",
       "stock": 79,

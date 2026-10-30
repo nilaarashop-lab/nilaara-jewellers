@@ -1,4 +1,5 @@
 import catalogue from "../content/products.json";
+import { mediaUrl } from "./repo.js";
 
 const img = (id, w = 800) =>
   `https://images.unsplash.com/${id}?q=80&w=${w}&auto=format&fit=crop`;
@@ -22,21 +23,23 @@ export const COLLECTIONS = [
 ];
 
 /** Published products from the Git-managed catalogue (frontend/src/content/products.json). */
-const normalizeProduct = (p) => ({
+const normalizeProduct = (p, commit = "") => ({
   ...p,
   id: String(p.id || p.slug || ""),
   price: Number(p.price) || 0,
   mrp: Number(p.mrp) || 0,
   stock: Number.isFinite(Number(p.stock)) ? Number(p.stock) : 0,
   trackInventory: p.trackInventory !== false,
-  images: Array.isArray(p.images) ? p.images.filter(Boolean) : [],
+  images: Array.isArray(p.images)
+    ? p.images.filter(Boolean).map((url) => mediaUrl(url, commit))
+    : [],
   inStock: p.trackInventory === false ? true : Number(p.stock) > 0,
 });
 
-export const normalizeProducts = (list) =>
+export const normalizeProducts = (list, commit = "") =>
   (Array.isArray(list) ? list : [])
     .filter((p) => p && p.status === "published")
-    .map(normalizeProduct);
+    .map((p) => normalizeProduct(p, commit));
 
 export const PRODUCTS = normalizeProducts(catalogue.products);
 

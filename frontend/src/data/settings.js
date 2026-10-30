@@ -7,17 +7,18 @@ import { mediaUrl } from "./repo.js";
  * the editor shape into the exact shape the storefront components use.
  */
 
-const imageRef = (url, alt = "") => (url ? { url: mediaUrl(url), alt } : null);
+const imageRef = (url, alt = "", commit = "") =>
+  url ? { url: mediaUrl(url, commit), alt } : null;
 const list = (value) => (Array.isArray(value) ? value : []);
 
-export function normalizeSettings(raw) {
+export function normalizeSettings(raw, commit = "") {
   const source = raw && typeof raw === "object" ? raw : {};
 
   const heroSlides = list(source.home?.heroSlides)
     .filter((s) => s.active !== false && (s.title || s.image))
     .slice(0, 4)
     .map((s) => ({
-      image: imageRef(s.image, s.alt),
+      image: imageRef(s.image, s.alt, commit),
       eyebrow: s.eyebrow || "",
       title: s.title || "",
       highlight: s.highlight || "",
@@ -28,7 +29,7 @@ export function normalizeSettings(raw) {
     .filter((c) => c.active !== false && (c.title || c.image))
     .slice(0, 4)
     .map((c) => ({
-      image: imageRef(c.image, c.alt),
+      image: imageRef(c.image, c.alt, commit),
       eyebrow: c.eyebrow || "",
       title: c.title || "",
       text: c.text || "",
@@ -38,7 +39,7 @@ export function normalizeSettings(raw) {
 
   const categoryTiles = list(source.home?.categoryTiles)
     .filter((t) => t.slug && t.image)
-    .map((t) => ({ slug: t.slug, url: mediaUrl(t.image), alt: t.alt || "" }));
+    .map((t) => ({ slug: t.slug, url: mediaUrl(t.image, commit), alt: t.alt || "" }));
 
   const festive = source.home?.festive;
 
@@ -58,7 +59,7 @@ export function normalizeSettings(raw) {
       cards,
       festive:
         festive?.active
-          ? { url: mediaUrl(festive.image || ""), alt: festive.alt || "", active: true }
+          ? { url: mediaUrl(festive.image || "", commit), alt: festive.alt || "", active: true }
           : null,
       categoryTiles,
     },

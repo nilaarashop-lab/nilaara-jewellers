@@ -84,7 +84,9 @@ export function StoreProvider({ children }) {
 
   const applyCommitContent = useCallback((live, commit) => {
     if (live.products) {
-      const next = normalizeProducts(live.products.products);
+      // Pin upload URLs to this commit: raw branch URLs can serve a cached
+      // copy for a few minutes, which would hide a just-uploaded photo.
+      const next = normalizeProducts(live.products.products, commit);
       const key = JSON.stringify(next);
       if (key !== productsKey.current) {
         productsKey.current = key;
@@ -92,7 +94,7 @@ export function StoreProvider({ children }) {
       }
     }
     if (live.settings) {
-      const next = normalizeSettings(live.settings);
+      const next = normalizeSettings(live.settings, commit);
       const key = JSON.stringify(next);
       if (key !== settingsKey.current) {
         settingsKey.current = key;

@@ -52,10 +52,11 @@ export function readContentUpdate() {
  * Resolve an admin-uploaded `/uploads/...` path to the committed file.
  * Existing ImageKit and other absolute URLs pass through unchanged.
  */
-export function mediaUrl(url) {
+export function mediaUrl(url, commit = "") {
   const value = String(url || "");
   if (value.startsWith("/uploads/")) {
-    return `${RAW_ROOT}/frontend/public${value}`;
+    const root = commit ? commitRawRoot(commit) : RAW_ROOT;
+    return `${root}/frontend/public${value}`;
   }
   return value;
 }
