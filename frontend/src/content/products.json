@@ -1,32 +1,3 @@
 {
-  "products": [
-    {
-      "id": "par-nath-nose-pin",
-      "slug": "floral-enamel-nath-nose-pin-with-pearl-mvt2jxlx",
-      "name": "Floral Enamel Nath Nose Pin with Pearl",
-      "category": "rings",
-      "metal": "Brass alloy",
-      "purity": "",
-      "size": "",
-      "variants": [],
-      "price": 799,
-      "mrp": 1571,
-      "makingCharges": 0,
-      "rating": 4.4,
-      "reviews": 430,
-      "customTag": "",
-      "featured": false,
-      "bestseller": false,
-      "newArrival": false,
-      "images": [
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jqnc-3f2e141ed606_eQnvOwtTH.jpg",
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jvbe-da9ca2b43238_EHS_-zzcn.jpg"
-      ],
-      "desc": "Traditional nath with pierced + non-pierced options.",
-      "stock": 24,
-      "trackInventory": true,
-      "lowStockThreshold": 5,
-      "status": "published"
-    }
-  ]
+  "products": []
 }
