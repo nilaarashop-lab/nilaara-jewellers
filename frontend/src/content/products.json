@@ -1,34 +1,6 @@
 {
   "products": [
     {
-      "id": "par-rose-gold-bracelet",
-      "slug": "american-diamond-zirconia-rose-gold-bracelet",
-      "name": "American Diamond Zirconia Rose-Gold Bracelet",
-      "category": "bangles",
-      "metal": "Brass alloy",
-      "purity": "",
-      "size": "",
-      "variants": [],
-      "price": 1249,
-      "mrp": 2429,
-      "makingCharges": 0,
-      "rating": 4.5,
-      "reviews": 1932,
-      "customTag": "",
-      "featured": false,
-      "bestseller": true,
-      "newArrival": false,
-      "images": [
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jkvt-0c272a1de1c8_83NAGDxWh.jpg",
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jm0p-f3268521ef33_9_ddpxVIF.jpg"
-      ],
-      "desc": "Demi-fine bracelet.",
-      "stock": 60,
-      "trackInventory": true,
-      "lowStockThreshold": 5,
-      "status": "published"
-    },
-    {
       "id": "par-kashmiri-jhumka",
       "slug": "long-kashmiri-jhumkas-with-gold-beads",
       "name": "Long Kashmiri Jhumkas with Gold Beads",
