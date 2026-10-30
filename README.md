@@ -6,7 +6,7 @@ A premium light-theme **catalogue storefront** — customers browse the collecti
 
 There is no customer account, cart or checkout. Each product card and product page has a **Buy Now** button that opens WhatsApp with a short pre-filled message containing the product name and **product ID**. Your WhatsApp Business auto-reply then shares price, availability, payment and shipping details, and the team books the order in chat.
 
-- The WhatsApp number lives in **one place**: `frontend/src/config.js` (`WHATSAPP_NUMBER` / `WHATSAPP_DISPLAY`). Change it there before launch — the placeholder is `+91 98XXXXXXXX`.
+- The WhatsApp number lives in **one place**: `frontend/src/config.js` (`WHATSAPP_NUMBER` / `WHATSAPP_DISPLAY`) — currently `+91 96331 36081`.
 - The wishlist is a local "save for later" list (`localStorage`), no sign-in needed.
 - Staff still sign in at `/admin` to manage products, images, homepage content and orders.
 
@@ -159,8 +159,8 @@ Customers never sign in. The panel at `/admin` uses one server-side session (htt
 To change the number, edit **only** `frontend/src/config.js`:
 
 ```js
-export const WHATSAPP_NUMBER = "919800000000"; // digits only, country code first
-export const WHATSAPP_DISPLAY = "+91 98XXXXXXXX";
+export const WHATSAPP_NUMBER = "919633136081"; // digits only, country code first
+export const WHATSAPP_DISPLAY = "+91 96331 36081";
 ```
 
 ## Migrating existing product images

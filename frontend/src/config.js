@@ -1,13 +1,12 @@
 /**
  * Storefront-wide settings.
  *
- * ⚠️ WhatsApp number: replace WHATSAPP_NUMBER with the real business number
- * (country code first, digits only — e.g. 919876543210). Every "Buy Now",
- * header, footer and contact link reads from this one constant, so this is the
- * only place you need to change when the real number is ready.
+ * WhatsApp Business number: +91 96331 36081.
+ * Every "Buy Now", header, footer and contact link reads from this one constant,
+ * so this is the only place to change if the number changes.
  */
-export const WHATSAPP_NUMBER = "919800000000"; // TODO: real Nilaara WhatsApp number
-export const WHATSAPP_DISPLAY = "+91 98XXXXXXXX";
+export const WHATSAPP_NUMBER = "919633136081"; // Nilaara WhatsApp Business number
+export const WHATSAPP_DISPLAY = "+91 96331 36081";
 
 /** A wa.me deep link with the message pre-filled for the customer. */
 export const whatsappLink = (message) =>

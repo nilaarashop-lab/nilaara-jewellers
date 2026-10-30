@@ -23,11 +23,11 @@ Every **Buy Now** button, header icon, footer link and contact button reads from
 
 ```
 src/config.js
-  WHATSAPP_NUMBER   # digits only, country code first — currently a placeholder 919800000000
-  WHATSAPP_DISPLAY  # what visitors see — currently +91 98XXXXXXXX
+  WHATSAPP_NUMBER   # digits only, country code first — 919633136081
+  WHATSAPP_DISPLAY  # what visitors see — +91 96331 36081
 ```
 
-Replace both values before launch. `productEnquiryMessage(product)` builds the short pre-filled text — "I'd like to buy this product" + product name + product ID — which the WhatsApp Business auto-reply picks up (price, availability, payment, shipping).
+`productEnquiryMessage(product)` builds the short pre-filled text — "I'd like to buy this product" + product name + product ID — which the WhatsApp Business auto-reply picks up (price, availability, payment, shipping).
 
 Product IDs are set per product in the admin panel (*Add / Edit product → Product ID*) and are also the `/product/<id>` URL; the backend normalises them to lower-case-with-dashes and rejects duplicates.
 
