@@ -1,39 +1,6 @@
 {
   "products": [
     {
-      "id": "par-pearl-festive-choker",
-      "slug": "pearl-glow-kundan-festive-choker-set-mvt2jxhq",
-      "name": "Pearl Glow Kundan Festive Choker Set",
-      "category": "jewellery-sets",
-      "collection": "kundan",
-      "plating": "Gold Plated",
-      "metal": "Brass alloy",
-      "purity": "",
-      "stones": "Kundan • Pearls",
-      "size": "",
-      "variants": [],
-      "price": 749,
-      "mrp": 1371,
-      "makingCharges": 0,
-      "rating": 4.6,
-      "reviews": 1120,
-      "badge": "Festive",
-      "tag": "",
-      "customTag": "",
-      "featured": false,
-      "bestseller": false,
-      "newArrival": false,
-      "images": [
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jdlf-3b78ae2e8091_svO01POVK.jpg",
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jpj1-1216f0279abe_5FGgGKYCQ.jpg"
-      ],
-      "desc": "Soft-glow festive choker, photographs beautifully.",
-      "stock": 25,
-      "trackInventory": true,
-      "lowStockThreshold": 5,
-      "status": "published"
-    },
-    {
       "id": "par-cascade-earrings",
       "slug": "golden-strands-cascade-earrings-mvt2jxju",
       "name": "Golden Strands Cascade Earrings",
