@@ -1,30 +1,23 @@
 import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useEffect, useId, useRef, useState } from "react";
 import { useStore } from "../store/StoreContext";
-import { useAuth } from "../store/AuthContext";
 import { COLLECTIONS, formatINR } from "../data/products";
-import { hasAPI, searchProducts } from "../api/client";
+import { whatsappChatLink, productEnquiryLink, WHATSAPP_DISPLAY } from "../config";
+import { searchProducts } from "../api/client";
 
 /* ── Icon set (single stroke style, currentColor — inherits hover states) ── */
 const svgProps = { viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.7, strokeLinecap: "round", strokeLinejoin: "round", "aria-hidden": true, focusable: false };
 export const IconSearch = () => (<svg {...svgProps}><circle cx="11" cy="11" r="7" /><path d="m20 20-3.6-3.6" /></svg>);
 export const IconHeart = () => (<svg {...svgProps}><path d="M20.8 8.6c0 4.3-8.8 9.8-8.8 9.8S3.2 12.9 3.2 8.6a4.6 4.6 0 0 1 8.8-1.8 4.6 4.6 0 0 1 8.8 1.8Z" /></svg>);
-export const IconCart = () => (<svg {...svgProps}><circle cx="8" cy="21" r="1" /><circle cx="19" cy="21" r="1" /><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12" /></svg>);
 
-export const IconUser = () => (<svg {...svgProps}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>);
+/** WhatsApp brand glyph — filled, so it reads as a chat/order button. */
+export const IconWhatsApp = () => (
+  <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true" focusable="false">
+    <path d="M19.05 4.91A9.82 9.82 0 0 0 12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.25-1.38a9.9 9.9 0 0 0 4.74 1.21h.01c5.46 0 9.9-4.45 9.9-9.91 0-2.65-1.03-5.14-2.9-7.01Zm-7.01 15.24h-.01a8.2 8.2 0 0 1-4.19-1.15l-.3-.18-3.12.82.83-3.04-.2-.31a8.21 8.21 0 0 1-1.26-4.38c0-4.54 3.7-8.24 8.25-8.24 2.2 0 4.27.86 5.82 2.42a8.18 8.18 0 0 1 2.41 5.83c0 4.54-3.7 8.23-8.24 8.23Zm4.52-6.16c-.25-.12-1.47-.72-1.69-.81-.23-.08-.39-.12-.56.13-.16.24-.64.8-.79.97-.14.16-.29.18-.54.06-.25-.13-1.05-.39-2-1.23-.74-.66-1.24-1.47-1.38-1.72-.15-.25-.02-.38.11-.51.11-.11.25-.29.37-.43.13-.15.17-.25.25-.41.08-.17.04-.31-.02-.43-.06-.12-.56-1.34-.76-1.84-.2-.48-.4-.42-.56-.43h-.48c-.17 0-.43.06-.66.31-.22.25-.86.85-.86 2.07 0 1.22.89 2.4 1.01 2.56.12.17 1.75 2.67 4.23 3.74.59.26 1.05.41 1.41.52.59.19 1.13.16 1.56.1.48-.07 1.47-.6 1.68-1.18.21-.58.21-1.07.14-1.18-.06-.1-.23-.16-.48-.29Z" />
+  </svg>
+);
 
-export const IconUserPlus = () => (<svg {...svgProps}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /><path d="M19 8v6M22 11h-6" /></svg>);
 export const IconMenu = () => (<svg {...svgProps}><path d="M4 7h16M4 12h16M4 17h16" /></svg>);
-export const IconBox = () => (<svg {...svgProps}><path d="M4 8.5 12 4l8 4.5v7L12 20l-8-4.5v-7Z" /><path d="m4 8.5 8 4.5 8-4.5M12 13v7" /></svg>);
-export const IconShield = () => (<svg {...svgProps}><path d="M12 3l7 3v6c0 4.2-2.9 7.6-7 9-4.1-1.4-7-4.8-7-9V6l7-3Z" /><path d="m9.2 12.2 2 2 3.6-3.7" /></svg>);
-export const IconLogout = () => (<svg {...svgProps}><path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3" /><path d="M10 17l-5-5 5-5M5 12h10" /></svg>);
-
-/** Two-letter avatar initials for the signed-in customer. */
-const initialsOf = (user) => {
-  const src = (user?.name || user?.email || user?.phone || "U").trim();
-  return src.split(/\s+/).map((w) => w[0]).slice(0, 2).join("").toUpperCase() || "U";
-};
-
 /**
  * Product image with a branded fallback — a missing or broken image shows the
  * Nilaara mark instead of a broken icon or an unrelated picture.
@@ -45,12 +38,8 @@ export function Img({ src, alt = "", ...rest }) {
 }
 
 export function ProductCard({ p }) {
-  const { addToCart, wishlist, toggleWish, settings } = useStore();
+  const { wishlist, toggleWish } = useStore();
   const off = Math.round((1 - p.price / p.mrp) * 100);
-  // The "flat 25% off" line is only true when the legacy FLAT25 promo is
-  // enabled in settings AND this item alone meets its minimum subtotal.
-  const flat25 = settings?.coupons?.flat25;
-  const flat25Live = flat25?.enabled !== false && p.price >= Number(flat25?.minSubtotal ?? 1000);
   // Sold out only when inventory is tracked and none is left. `inStock` comes
   // from the API; static/demo products without it are treated as available.
   const soldOut = p.inStock === false || (p.inStock === undefined && p.trackInventory !== false && typeof p.stock === "number" && p.stock <= 0);
@@ -68,10 +57,21 @@ export function ProductCard({ p }) {
         <div className="plating">{p.plating}</div>
         <Link to={`/product/${p.id}`} className="card-title"><h3>{p.name}</h3></Link>
         <div className="pr"><b>{formatINR(p.price)}</b><s>{formatINR(p.mrp)}</s><em>{off}% off</em></div>
-        {flat25Live && <div className="off25">With code FLAT25 • {formatINR(Math.round(p.price * 0.75))}</div>}
         {!soldOut && low && <div className="stock low">Only {p.stock} left</div>}
         <div className="card-actions">
-          <button className="add" disabled={soldOut} onClick={() => addToCart(p)}>{soldOut ? "Sold Out" : "Add to Bag"}</button>
+          {soldOut ? (
+            <button className="add" disabled>Sold Out</button>
+          ) : (
+            <a
+              className="add add-wa"
+              href={productEnquiryLink(p)}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={`Buy ${p.name} on WhatsApp`}
+            >
+              <IconWhatsApp /> Buy Now
+            </a>
+          )}
         </div>
       </div>
     </div>
@@ -111,55 +111,8 @@ export function ProductsUnavailable({ onRetry }) {
     <div className="unavailable" role="alert" aria-live="polite">
       <span className="eyebrow">Connection interrupted</span>
       <h3 className="serif">Our collection is temporarily unavailable</h3>
-      <p>We couldn’t load the latest pieces just now. Your bag and account are safe — please try again in a moment.</p>
+      <p>We couldn’t load the latest pieces just now. Please try again in a moment — or message us on WhatsApp and we’ll help you find the piece.</p>
       {onRetry && <button type="button" className="btn btn-gold" onClick={onRetry}>Try again</button>}
-    </div>
-  );
-}
-
-/**
- * Promo-code selector: active codes as tappable chips + a text input for
- * typing any code. The SERVER re-validates every code at checkout; this UI
- * only carries the selection.
- */
-export function PromoInput() {
-  const { coupon, setCoupon, promos } = useStore();
-  const [draft, setDraft] = useState("");
-  const apply = () => {
-    const c = draft.trim().toUpperCase();
-    if (!c) return;
-    setCoupon(c);
-    setDraft("");
-  };
-  const active = promos.find((p) => String(p.code).toUpperCase() === String(coupon || "").toUpperCase());
-  if (!promos.length && !coupon) return null;
-  return (
-    <div className="promo-box">
-      {promos.length > 0 && (
-        <div>
-          {promos.map((p) => (
-            <button
-              key={p.code}
-              type="button"
-              className={`chip ${coupon === p.code ? "on" : ""}`}
-              title={p.description || `${p.percent}% off${p.minSubtotal > 0 ? ` over ₹${p.minSubtotal}` : ""}`}
-              onClick={() => setCoupon(coupon === p.code ? "" : p.code)}
-            >
-              {p.code} −{p.percent}%{p.minSubtotal > 0 ? ` • min ₹${p.minSubtotal}` : ""}
-            </button>
-          ))}
-        </div>
-      )}
-      <div className="promo-row">
-        <input value={draft} maxLength={20} placeholder="Enter promo code" aria-label="Promo code" onChange={(e) => setDraft(e.target.value.toUpperCase())} onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), apply())} />
-        <button type="button" className="mini-btn" onClick={apply} disabled={!draft.trim()}>Apply</button>
-        {coupon && <button type="button" className="mini-btn danger" onClick={() => setCoupon("")} aria-label="Remove promo code">✕</button>}
-      </div>
-      {coupon && (
-        <small className="promo-note">
-          {active ? `${coupon} applied — ${active.percent}% off${active.minSubtotal > 0 ? ` over ₹${active.minSubtotal}` : ""}.` : `Code "${coupon}" will be checked on our server at checkout.`}
-        </small>
-      )}
     </div>
   );
 }
@@ -390,7 +343,7 @@ function SearchBox({ className = "", placeholder = "Search jewellery…" }) {
           ) : status === "error" ? (
             <div className="sq-state" role="alert">
               <b>Search is temporarily unavailable</b>
-              <span>We couldn’t reach the store just now — your bag and account are safe.</span>
+              <span>We couldn’t reach the store just now — please try again.</span>
               <button type="button" onClick={retry}>Try again</button>
             </div>
           ) : status === "loading" && !results.length ? (
@@ -449,16 +402,10 @@ function SearchBox({ className = "", placeholder = "Search jewellery…" }) {
 }
 
 export function Header() {
-  const { totals, setCartOpen, wishlist } = useStore();
-  const { user, logout } = useAuth();
-  const isAdmin = ["admin", "staff"].includes(user?.role);
-  const [menu, setMenu] = useState(false);
+  const { wishlist } = useStore();
   const [mnav, setMnav] = useState(false);
   const [scrolled, setScrolled] = useState(false);
-  const menuRef = useRef(null);
-  const nav = useNavigate();
-  const { pathname, search } = useLocation();
-  const nextParam = pathname + search;
+  const { pathname } = useLocation();
   // Header compacts and lifts (shadow) once the page scrolls — a quiet luxury cue.
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8);
@@ -466,29 +413,13 @@ export function Header() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-  // Login links remember where the visitor was headed (?next=… is validated server-side/redirect-side).
-  const loginHref = (pathname === "/login" || pathname === "/register") ? "/login" : `/login?next=${encodeURIComponent(nextParam)}`;
-  const signupHref = (pathname === "/login" || pathname === "/register") ? "/register" : `/register?next=${encodeURIComponent(nextParam)}`;
-  useEffect(() => { setMenu(false); setMnav(false); }, [pathname]);
+  useEffect(() => { setMnav(false); }, [pathname]);
   useEffect(() => {
     if (!mnav) return;
     const onKey = (e) => { if (e.key === "Escape") setMnav(false); };
     document.addEventListener("keydown", onKey);
     return () => document.removeEventListener("keydown", onKey);
   }, [mnav]);
-  useEffect(() => {
-    if (!menu) return;
-    const onDoc = (e) => { if (menuRef.current && !menuRef.current.contains(e.target)) setMenu(false); };
-    const onKey = (e) => { if (e.key === "Escape") setMenu(false); };
-    document.addEventListener("mousedown", onDoc);
-    document.addEventListener("touchstart", onDoc);
-    document.addEventListener("keydown", onKey);
-    return () => {
-      document.removeEventListener("mousedown", onDoc);
-      document.removeEventListener("touchstart", onDoc);
-      document.removeEventListener("keydown", onKey);
-    };
-  }, [menu]);
   return (
     <>
       <AnnounceBar />
@@ -505,59 +436,16 @@ export function Header() {
               <Link className="hbtn wish-hbtn" to="/wishlist" aria-label={wishlist.length > 0 ? `Wishlist, ${wishlist.length} saved` : "Wishlist"}>
                 <IconHeart />{wishlist.length > 0 && <span className="count">{wishlist.length}</span>}
               </Link>
-              {user ? (
-                <span className="acct-hbtn" ref={menuRef}>
-                  <button
-                    className="hbtn avatar"
-                    onClick={() => setMenu((v) => !v)}
-                    aria-haspopup="menu"
-                    aria-expanded={menu}
-                    aria-label={`Account menu${user.name ? ` for ${user.name}` : ""}`}
-                    title={user.name || "Account"}
-                  >
-                    <span aria-hidden="true">{initialsOf(user)}</span>
-                  </button>
-                  {menu && (
-                    <span className="acct-menu" role="menu" aria-label="Account">
-                      <span className="acct-menu-head">
-                        <b>{user.name}</b>
-                        <small>{user.email || user.phone || ""}</small>
-                      </span>
-                      <Link role="menuitem" to="/account" onClick={() => setMenu(false)}><IconUser /> Profile</Link>
-                      <Link role="menuitem" to="/orders" onClick={() => setMenu(false)}><IconBox /> My Orders</Link>
-                      <Link role="menuitem" to="/wishlist" onClick={() => setMenu(false)}><IconHeart /> Wishlist</Link>
-                      {isAdmin && <Link role="menuitem" className="acct-admin" to="/admin" onClick={() => setMenu(false)}><IconShield /> Admin Panel</Link>}
-                      <button role="menuitem" onClick={() => { setMenu(false); logout(); nav("/"); }}><IconLogout /> Log out</button>
-                    </span>
-                  )}
-                </span>
-              ) : (
-                <span className="auth-btns">
-                  <Link className="hbtn auth-btn auth-login" to={loginHref} aria-label="Log in to your account" title="Log in">
-                    <IconUser /><span className="auth-label">Log in</span>
-                  </Link>
-                  <Link
-                    className="hbtn auth-btn auth-signup"
-                    to={signupHref}
-                    aria-label="Create a new account"
-                    title="Sign up"
-                  >
-                    <IconUserPlus /><span className="auth-label">Sign up</span>
-                  </Link>
-                </span>
-              )}
-              {isAdmin && (
-                <Link className="hbtn admin-hbtn" to="/admin" aria-label="Admin panel" title="Admin panel">
-                  <IconShield /><span className="admin-label">Admin</span>
-                </Link>
-              )}
-              <button
-                className="hbtn cart-hbtn"
-                onClick={() => setCartOpen(true)}
-                aria-label={totals.count > 0 ? `Shopping cart, ${totals.count} items` : "Shopping cart, empty"}
+              <a
+                className="hbtn wa-hbtn"
+                href={whatsappChatLink()}
+                target="_blank"
+                rel="noreferrer"
+                aria-label="Order or ask on WhatsApp"
+                title="Order on WhatsApp"
               >
-                <IconCart />{totals.count > 0 && <span className="count">{totals.count}</span>}
-              </button>
+                <IconWhatsApp />
+              </a>
             </div>
           </div>
           <SearchBox className="m" placeholder="Search jewellery…" />
@@ -630,7 +518,6 @@ export function Header() {
                     Wishlist{wishlist.length > 0 && <span className="mnav-count">{wishlist.length}</span>}
                   </Link>
                   {[
-                    ["Track Order", "/track"],
                     ["Our Stores", "/stores"],
                     ["Our Craft", "/about"],
                     ["Contact Us", "/contact"],
@@ -641,29 +528,15 @@ export function Header() {
               </div>
             </div>
             <div className="mnav-foot">
-              {user ? (
-                <>
-                  <small>Signed in as <b>{user.name}</b></small>
-                  <div className="mnav-acct">
-                    <Link className="btn btn-ghost" to="/account" onClick={() => setMnav(false)}><IconUser /> Profile</Link>
-                    <Link className="btn btn-ghost" to="/orders" onClick={() => setMnav(false)}><IconBox /> Orders</Link>
-                    <Link className="btn btn-ghost" to="/wishlist" onClick={() => setMnav(false)}><IconHeart /> Wishlist</Link>
-                  </div>
-                  {isAdmin && (
-                    <Link className="btn btn-gold mnav-admin" to="/admin" onClick={() => setMnav(false)}>
-                      <IconShield /> Admin Panel
-                    </Link>
-                  )}
-                  <button className="btn btn-ghost mnav-logout" onClick={() => { logout(); setMnav(false); nav("/"); }}>
-                    <IconLogout /> Log out
-                  </button>
-                </>
-              ) : (
-                <div className="mnav-auth">
-                  <Link className="btn btn-gold" to={loginHref} onClick={() => setMnav(false)}>Log in</Link>
-                  <Link className="btn btn-ghost" to={signupHref} onClick={() => setMnav(false)}>Sign up</Link>
-                </div>
-              )}
+              <small>Questions about a piece? Message us — we'll help you pick and book it.</small>
+              <div className="mnav-auth">
+                <a className="btn btn-gold" href={whatsappChatLink()} target="_blank" rel="noreferrer" onClick={() => setMnav(false)}>
+                  <IconWhatsApp /> Chat on WhatsApp
+                </a>
+                <Link className="btn btn-ghost" to="/wishlist" onClick={() => setMnav(false)}>
+                  <IconHeart /> Wishlist{wishlist.length > 0 ? ` (${wishlist.length})` : ""}
+                </Link>
+              </div>
             </div>
           </aside>
         </>
@@ -672,68 +545,7 @@ export function Header() {
   );
 }
 
-export function CartDrawer() {
-  const { cartOpen, setCartOpen, cart, updateQty, removeItem, totals, requireLogin, settings } = useStore();
-  const { user } = useAuth();
-  const nav = useNavigate();
-  const goCheckout = () => {
-    setCartOpen(false);
-    if (hasAPI && !user) {
-      requireLogin(
-        { type: "checkout" },
-        "Log in to check out",
-        "Your bag stays exactly as it is — we'll bring you back to checkout right after you sign in."
-      );
-      return;
-    }
-    nav("/checkout");
-  };
-  if (!cartOpen) return null;
-  const freeOver = Number(settings?.shipping?.freeOver ?? 999);
-  const need = Math.max(0, freeOver - (totals.sub - totals.couponOff));
-  return (
-    <>
-      <div className="overlay" onClick={() => setCartOpen(false)} />
-      <aside className="drawer">
-        <div className="drawer-head"><h3>Your Bag ({totals.count})</h3><button className="hbtn" onClick={() => setCartOpen(false)}>✕</button></div>
-        <div className="drawer-body">
-          <div style={{ background: "var(--card)", border: "1px solid var(--line)", borderRadius: 14, padding: 12 }}>
-            <small style={{ letterSpacing: 1 }}>OFFERS • FREE SHIPPING OVER {formatINR(freeOver)}</small>
-            <PromoInput />
-            <div className="progress"><i style={{ width: `${Math.min(100, ((totals.sub - totals.couponOff) / freeOver) * 100)}%` }} /></div>
-            <small>{need > 0 ? <>Add products worth {formatINR(need)} more for free shipping</> : <>You've unlocked free shipping ✦</>}</small>
-          </div>
-          {cart.length === 0 && <div className="empty">Your bag is empty.<br /><Link to="/shop" onClick={() => setCartOpen(false)} className="link">Continue shopping</Link></div>}
-          {cart.map((i) => (
-            <div className="mini" key={i.id}>
-              <Img src={i.image} alt={i.name} />
-              <div><b>{i.name}</b><small style={{ color: "var(--muted)" }}>{i.plating}</small>
-                <div className="qty">
-                  <button onClick={() => updateQty(i.id, i.qty - 1)}>−</button><span>{i.qty}</span><button onClick={() => updateQty(i.id, i.qty + 1)}>+</button>
-                  <b style={{ marginLeft: 8 }}>{formatINR(i.price * i.qty)}</b>
-                </div>
-              </div>
-              <button className="hbtn" onClick={() => removeItem(i.id)}>✕</button>
-            </div>
-          ))}
-        </div>
-        <div className="drawer-foot">
-          <div className="row"><span>Subtotal</span><span>{formatINR(totals.sub)}</span></div>
-          <div className="row"><span>Discount (MRP + offers)</span><span>−{formatINR(totals.discount + totals.couponOff)}</span></div>
-          <div className="row"><span>Shipping</span><span>{totals.shipping === 0 ? "FREE" : formatINR(totals.shipping)}</span></div>
-          <div className="row total"><span>Total</span><span>{formatINR(totals.total)}</span></div>
-          <button type="button" className="btn btn-gold" style={{ width: "100%", justifyContent: "center", marginTop: 10 }} onClick={goCheckout}>
-            {user || !hasAPI ? `Checkout • ${formatINR(totals.total)}` : "Log in to checkout"}
-          </button>
-        </div>
-      </aside>
-    </>
-  );
-}
-
 export function Footer() {
-  const [email, setEmail] = useState("");
-  const [ok, setOk] = useState(false);
   return (
     <footer className="footer">
       <div className="container">
@@ -745,24 +557,22 @@ export function Footer() {
           </div>
           <div>
             <h4>Care</h4>
-            <p><Link to="/track">Track Your Order</Link><br /><Link to="/stores">Our 2 Stores + Directions</Link><br /><Link to="/about">Shipping Policy</Link><br /><Link to="/about">Return & Exchange</Link><br /><Link to="/about">Jewellery Care</Link><br /><Link to="/contact">Contact Us</Link></p>
+            <p><a href={whatsappChatLink()} target="_blank" rel="noreferrer">Chat on WhatsApp</a><br /><Link to="/stores">Our 2 Stores + Directions</Link><br /><Link to="/about">Shipping Policy</Link><br /><Link to="/about">Return & Exchange</Link><br /><Link to="/about">Jewellery Care</Link><br /><Link to="/contact">Contact Us</Link></p>
           </div>
           <div>
             <h4>Shop</h4>
             <p><Link to="/shop?cat=jewellery-sets">Jewellery Sets</Link><br /><Link to="/shop?cat=jhumkas">Jhumkas</Link><br /><Link to="/shop?cat=bangles">Bangles</Link><br /><Link to="/shop?col=kundan">Kundan</Link><br /><Link to="/shop?col=temple">Temple</Link></p>
           </div>
           <div>
-            <h4>Sign up and save</h4>
-            <p>Special offers, new drops & once-in-a-lifetime deals.</p>
-            <form className="news" onSubmit={(e) => { e.preventDefault(); setOk(true); }}>
-              <input placeholder="Enter your email" value={email} onChange={(e) => setEmail(e.target.value)} />
-              <button>Join</button>
-            </form>
-            {ok && <p style={{ color: "var(--gold)" }}>Welcome to the Nilaara family ✦</p>}
-            <p style={{ marginTop: 12 }}>WhatsApp: +91-98XXXXXXXX<br />10:30 AM – 5:30 PM, Mon–Sat</p>
+            <h4>Order on WhatsApp</h4>
+            <p>Pick any piece, tap Buy Now and send us the product ID with a screenshot. We'll confirm availability and book it in chat.</p>
+            <a className="btn btn-gold news-cta" href={whatsappChatLink()} target="_blank" rel="noreferrer" style={{ marginTop: 4 }}>
+              <IconWhatsApp /> Chat with our team
+            </a>
+            <p style={{ marginTop: 12 }}>WhatsApp: <a href={whatsappChatLink()} target="_blank" rel="noreferrer">{WHATSAPP_DISPLAY}</a><br />10:30 AM – 5:30 PM, Mon–Sat</p>
           </div>
         </div>
-        <div className="copy"><span>Made with care in India • COD available • Razorpay coming soon</span><span>Secure payments • Easy 7-day exchange</span></div>
+        <div className="copy"><span>Made with care in India • Order on WhatsApp • Easy 7-day exchange</span><span>Every piece is hand-checked before dispatch</span></div>
       </div>
     </footer>
   );

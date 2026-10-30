@@ -346,6 +346,16 @@ h1,h2,h3,h4{color:var(--maroon)}
 .off25{font-size:11.5px;letter-spacing:.2px;color:var(--green);margin-top:2px}
 .card-actions{margin-top:auto;padding-top:12px}
 .add{width:100%;border-radius:999px;padding:12px;border:1px solid rgba(199,164,92,.7);background:linear-gradient(180deg,#FFFDF8,#FBF3E3);color:var(--maroon);cursor:pointer;font-size:10.5px;letter-spacing:2px;text-transform:uppercase;font-weight:600;box-shadow:0 2px 8px rgba(74,1,6,.05);transition:background .25s,color .25s,border-color .25s,box-shadow .25s,transform .25s}
+/* WhatsApp buy button — same luxury palette as the rest of the store. */
+.add.add-wa{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:linear-gradient(135deg,var(--maroon),var(--maroon-deep));border-color:var(--maroon);color:var(--gold-bright);box-shadow:0 4px 14px rgba(101,1,8,.18);letter-spacing:1.4px}
+.add.add-wa:hover{background:linear-gradient(135deg,#EBD49A,#D5B064);border-color:#D5B064;color:var(--maroon-deep);transform:translateY(-1px);box-shadow:0 10px 20px rgba(101,1,8,.18)}
+.add.add-wa svg{width:15px;height:15px;flex-shrink:0}
+.wa-hbtn:hover{border-color:var(--maroon);background:var(--maroon);color:var(--gold-bright)}
+.pd-id{font-size:12.5px;color:var(--muted);letter-spacing:.5px;margin:6px 0 0}
+.pd-id code{font-size:12px;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:2px 7px;color:var(--maroon)}
+.pd-buy-row{display:flex;gap:10px;margin-top:16px;align-items:center}
+.pd-buy{flex:1;justify-content:center;gap:8px;text-align:center}
+.pd-hint{font-size:12.5px;color:var(--ink-soft);line-height:1.65;margin:10px 0 0;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
 .add:hover{background:linear-gradient(135deg,#EBD49A,#D5B064);border-color:#D5B064;color:var(--maroon-deep);box-shadow:0 12px 24px rgba(101,1,8,.16);transform:translateY(-1px)}
 .add:disabled{border-color:var(--line);background:var(--card-2);color:var(--muted);cursor:not-allowed;letter-spacing:1.4px;box-shadow:none;transform:none}
 .stock{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;margin-top:2px}
@@ -382,6 +392,8 @@ h1,h2,h3,h4{color:var(--maroon)}
 .news input{flex:1;background:transparent;border:0;outline:0;color:#FFF3D6;padding:10px 14px;font-family:inherit}
 .news input::placeholder{color:rgba(230,207,162,.7)}
 .news button{background:var(--gold-bright);border:0;border-radius:999px;padding:10px 18px;cursor:pointer;color:var(--maroon-deep);font-weight:600;font-size:12px;letter-spacing:1.4px;text-transform:uppercase}
+.footer .news-cta{margin-top:14px;padding:11px 20px;font-size:11px;letter-spacing:1.3px;gap:8px}
+.footer .news-cta svg{width:16px;height:16px;flex-shrink:0}
 .copy{border-top:1px solid rgba(250,223,132,.18);padding:16px 0;display:flex;justify-content:space-between;gap:12px;font-size:12.5px;color:rgba(230,207,162,.85);flex-wrap:wrap}
 
 /* drawer */

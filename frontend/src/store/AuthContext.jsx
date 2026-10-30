@@ -14,28 +14,15 @@ const read = () => {
 };
 
 /**
- * Auth state mirrors the server session. The session token itself lives in an
+ * Staff session mirrored from the server. The session token itself lives in an
  * httpOnly cookie — nothing sensitive is stored in the browser.
+ *
+ * Customers never sign in on this site, so the session is only checked when the
+ * admin panel calls `refresh()`; catalogue pages make no auth request at all.
  */
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(read);
-  const [checking, setChecking] = useState(!hasAPI);
-
-  // Validate the session cookie against the backend when the app boots.
-  useEffect(() => {
-    if (!hasAPI) return;
-    let alive = true;
-    authMe()
-      .then((u) => {
-        if (!alive) return;
-        setUser(u);
-        setChecking(false);
-      })
-      .catch(() => alive && setChecking(false));
-    return () => {
-      alive = false;
-    };
-  }, []);
+  const [checking, setChecking] = useState(false);
 
   useEffect(() => {
     try {
@@ -51,6 +38,17 @@ export function AuthProvider({ children }) {
     setUnauthorizedHandler(() => setUser(null));
   }, []);
 
+  /** Confirms the cookie session with the backend (used by /admin on mount). */
+  const refresh = async () => {
+    if (!hasAPI) return;
+    setChecking(true);
+    try {
+      setUser(await authMe());
+    } finally {
+      setChecking(false);
+    }
+  };
+
   const logout = async () => {
     try {
       await authLogout();
@@ -59,28 +57,5 @@ export function AuthProvider({ children }) {
     }
   };
 
-  /**
-   * Persists a just-authenticated user only if the browser actually kept the
-   * session cookie. When the storefront and the API sit on different sites the
-   * cookie can be dropped (SameSite / third-party cookie rules) — the account is
-   * created but the visitor is not signed in, which looks like a broken signup.
-   * Returns false so the caller can explain that instead of navigating away.
-   */
-  const startSession = async (nextUser) => {
-    if (!hasAPI) {
-      setUser(nextUser);
-      return true;
-    }
-    const confirmed = await authMe();
-    if (!confirmed) {
-      console.error(
-        "[auth] the session cookie was not accepted — check that FRONTEND_URL lists this origin and that the API sets a cookie the browser allows cross-site (COOKIE_SAMESITE=none, COOKIE_SECURE=true)."
-      );
-      return false;
-    }
-    setUser(confirmed);
-    return true;
-  };
-
-  return <AuthCtx.Provider value={{ user, setUser, startSession, logout, checking }}>{children}</AuthCtx.Provider>;
+  return <AuthCtx.Provider value={{ user, setUser, refresh, logout, checking }}>{children}</AuthCtx.Provider>;
 }

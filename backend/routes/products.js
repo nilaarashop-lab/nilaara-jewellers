@@ -27,6 +27,19 @@ const slugify = (s) =>
     .replace(/^-+|-+$/g, "")
     .slice(0, 120);
 
+/**
+ * Product ID typed in the admin panel (e.g. "NL-001"). It is quoted by customers
+ * on WhatsApp and used as the product URL (/product/:id), so it is normalised to
+ * a URL-safe, lower-case slug. Empty input means "auto-generate".
+ */
+const normalizeProductId = (s) =>
+  String(s || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60);
+
 /** Legacy products (created before statuses existed) remain visible. */
 const PUBLISHED = { $or: [{ status: "published" }, { status: { $exists: false } }] };
 
@@ -36,6 +49,8 @@ const imageField = z
   .optional();
 
 const productSchema = z.object({
+  // Admin-assigned product ID — quoted on WhatsApp, also the /product/:id URL.
+  id: z.string().max(60).optional(),
   name: z.string().min(2).max(200),
   slug: z.string().max(200).optional(),
   sku: z.string().max(80).optional(),
@@ -139,7 +154,15 @@ router.post(
     const body = req.body;
     const { images, rejected } = normalizeImages(body.images || []);
     if (rejected.length) fail(400, "One or more image URLs are not from an approved source. Please upload images first.", { rejected });
-    const id = `nilaara-${Date.now().toString(36)}`;
+
+    // Admin can choose the product ID (quoted on WhatsApp); otherwise one is generated.
+    const wantedId = normalizeProductId(body.id);
+    if (body.id && String(body.id).trim() && !wantedId) fail(400, "Product ID can only contain letters, numbers and dashes (e.g. nl-001).");
+    if (wantedId) {
+      const clash = await Product.findOne({ $or: [{ id: wantedId }, { slug: wantedId }] });
+      if (clash) fail(409, `The product ID "${wantedId}" is already used by "${clash.name}". Please choose another.`);
+    }
+    const id = wantedId || `nilaara-${Date.now().toString(36)}`;
     const doc = await Product.create({
       id,
       slug: body.slug ? slugify(body.slug) : slugify(body.name) + "-" + Date.now().toString(36),
@@ -194,6 +217,20 @@ router.put(
     const patch = { ...req.body };
     if (patch.name && !patch.slug) delete patch.slug; // never silently rename slugs on edit
     if (patch.slug) patch.slug = slugify(patch.slug);
+
+    // Admin-editable product ID: validate + keep it unique (it is the URL key
+    // and the code customers quote on WhatsApp). A blank value means "no change".
+    if (patch.id !== undefined) {
+      const wanted = normalizeProductId(patch.id);
+      if (!wanted) delete patch.id;
+      else {
+        if (wanted !== doc.id) {
+          const clash = await Product.findOne({ _id: { $ne: doc._id }, $or: [{ id: wanted }, { slug: wanted }] });
+          if (clash) fail(409, `The product ID "${wanted}" is already used by "${clash.name}". Please choose another.`);
+        }
+        patch.id = wanted;
+      }
+    }
     if (patch.images) {
       const { images, rejected } = normalizeImages(patch.images);
       if (rejected.length) fail(400, "One or more image URLs are not from an approved source.", { rejected });

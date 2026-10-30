@@ -1,6 +1,10 @@
 # Customer Authentication — Nilaara Jewellers
 
-This guide covers the customer sign-in system: **email + password** (login) with **email OTP (Resend)** verifying a new registration, plus **Google Sign-In**, the **mobile OTP** code path (kept but disabled via `OTP_PROVIDER`), the session/CSRF model, provider setup for India, environment variables, seed accounts, and testing.
+> **Not used by the storefront any more.** The website is a catalogue with WhatsApp ordering: customers never register or sign in, and there is no cart or checkout. The only login in the app is the staff login at `/admin`. Everything below documents the backend endpoints that still exist for legacy data, admin order history and the test suite.
+
+This guide covers the customer sign-in system: **email + password** (registration and login), plus **Google Sign-In**, the **email OTP (Resend)** code path (kept, currently unused by the UI — see below), the **mobile OTP** code path (kept but disabled via `OTP_PROVIDER`), the session/CSRF model, provider setup for India, environment variables, seed accounts, and testing.
+
+> **Registration is currently unverified (interim).** Resend only delivers to any address once a sending domain is verified, so the register form creates the account immediately from name + email + password — no emailed code. The `POST /api/auth/email/otp/*` endpoints and the `RESEND_*` configuration are still in place; re-enabling verification is a front-end change plus a verified domain. Until then accounts are created with `emailVerified: false`, so nobody can prove ownership of an email address (which also rules out email-based password reset).
 
 > **Status honesty:** the automated suite (97 tests, including full HTTP integration tests against an in-memory MongoDB) covers password login, SMS-OTP request/verify/expiry/lockout/cooldown/rate limits, **email-OTP** request/verify/expiry/lockout/cooldown/linking, Google **token rejection**, CSRF, logout, protected routes, server-side carts, login-required checkout and customer/admin/order-ownership separation. Three things **cannot** be tested without real credentials and are therefore *not* claimed as verified: **delivery of a real SMS** (needs a paid 2Factor.in/MSG91/Twilio account), **delivery of a real email OTP** (needs a verified Resend domain), **acceptance of a real Google ID token** (needs a Google OAuth client + a signed-in Google account), and **live Razorpay payments** (needs live/test keys). All are wired through the providers' official APIs and fail loudly (400/502/503) rather than faking success.
 
@@ -10,13 +14,13 @@ This guide covers the customer sign-in system: **email + password** (login) with
 
 | Method | Endpoint(s) | UI |
 |---|---|---|
-| Email + password — **customer sign-in** | `POST /api/auth/login` | Login page; admin panel sign-in (`pages/Admin.jsx`) |
-| Email OTP (Resend) — **registration verification** | `POST /api/auth/email/otp/request` → `POST /api/auth/email/otp/verify` | Register page: name + email + password, then the emailed code |
+| Email + password — **registration and customer sign-in** | `POST /api/auth/register` (creates the customer and starts the session), `POST /api/auth/login` | Register page (name + email + password), Login page; admin panel sign-in (`pages/Admin.jsx`) |
+| Email OTP (Resend) | `POST /api/auth/email/otp/request` → `POST /api/auth/email/otp/verify` | **Not used by the UI** — kept for when a sending domain is verified in Resend |
 | Mobile OTP | `POST /api/auth/otp/request` → `POST /api/auth/otp/verify` | **Disabled** — routes answer `503` while `OTP_PROVIDER` is empty |
 | Google Identity Services | `POST /api/auth/google` | “Continue with Google” button (hidden unless configured) |
 | Link Google to a signed-in account | `POST /api/auth/google/link` | Account page → “Sign-in & security” |
 
-All methods produce the **same** server-side session (httpOnly cookie `nilaara_sid`). Registration verifies the inbox with a one-time code before the account is created; the `password` sent with that verification is bcrypt-hashed and becomes the login password (an existing password is never overwritten by this step). One account per email/Google-subject is enforced by unique indexes. Phone numbers already stored on accounts are preserved and are simply no longer used for sign-in.
+All methods produce the **same** server-side session (httpOnly cookie `nilaara_sid`). Registration stores the typed name (printed on booking slips) and a bcrypt password, then signs the customer in; a duplicate email answers `409`. One account per email/Google-subject is enforced by unique indexes. Phone numbers already stored on accounts are preserved and are simply no longer used for sign-in.
 
 ### Post-login redirect
 

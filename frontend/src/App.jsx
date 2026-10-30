@@ -1,23 +1,20 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { StoreProvider } from "./store/StoreContext";
 import { AuthProvider } from "./store/AuthContext";
-import { Header, Footer, CartDrawer } from "./components/Layout";
+import { Header, Footer } from "./components/Layout";
 import { ScrollToTopOnNavigate, BackToTopButton } from "./components/ScrollToTop";
 import Home from "./pages/Home";
 import Shop from "./pages/Shop";
 import Product from "./pages/Product";
-import { Cart, Success, Wishlist, About, Contact, Track } from "./pages/Misc";
-import Checkout from "./pages/Checkout";
-import MyOrders from "./pages/Orders";
+import { Wishlist, About, Contact } from "./pages/Misc";
 import Stores from "./pages/Stores";
 import Admin from "./pages/Admin";
-import { Login, Register } from "./pages/Auth";
-import Account from "./pages/Account";
 
 export default function App() {
   return (
-    // Router outermost so the store (login dialog, cart navigation) can use
-    // route context; auth sits above the store because the cart syncs per user.
+    // Router outermost so the store and header can use route context.
+    // Auth is only used by the admin panel — customers browse and order on
+    // WhatsApp without any account.
     <BrowserRouter>
       <AuthProvider>
         <StoreProvider>
@@ -27,22 +24,22 @@ export default function App() {
             <Route path="/" element={<Home />} />
             <Route path="/shop" element={<Shop />} />
             <Route path="/product/:id" element={<Product />} />
-            <Route path="/cart" element={<Cart />} />
-            <Route path="/checkout" element={<Checkout />} />
-            <Route path="/success" element={<Success />} />
-            <Route path="/orders" element={<MyOrders />} />
             <Route path="/wishlist" element={<Wishlist />} />
             <Route path="/about" element={<About />} />
             <Route path="/contact" element={<Contact />} />
             <Route path="/stores" element={<Stores />} />
             <Route path="/admin" element={<Admin />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/register" element={<Register />} />
-            <Route path="/account" element={<Account />} />
-            <Route path="/track" element={<Track />} />
+            {/* Retired storefront routes — old links land somewhere useful. */}
+            <Route path="/cart" element={<Navigate to="/shop" replace />} />
+            <Route path="/checkout" element={<Navigate to="/shop" replace />} />
+            <Route path="/success" element={<Navigate to="/shop" replace />} />
+            <Route path="/orders" element={<Navigate to="/shop" replace />} />
+            <Route path="/track" element={<Navigate to="/shop" replace />} />
+            <Route path="/login" element={<Navigate to="/" replace />} />
+            <Route path="/register" element={<Navigate to="/" replace />} />
+            <Route path="/account" element={<Navigate to="/" replace />} />
             <Route path="*" element={<Home />} />
           </Routes>
-          <CartDrawer />
           <BackToTopButton />
           <Footer />
         </StoreProvider>

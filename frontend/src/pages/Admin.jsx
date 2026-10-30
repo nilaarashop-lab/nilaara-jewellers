@@ -25,6 +25,7 @@ const STATUSES = ["placed", "packed", "shipped", "delivered", "cancelled"];
 const PSTATUSES = ["draft", "published", "archived"];
 
 const emptyProduct = () => ({
+  id: "", // admin-assigned product ID — quoted on WhatsApp, also the /product/:id URL
   name: "",
   category: "necklaces",
   collection: "gold-plated",
@@ -107,7 +108,7 @@ function Stat({ label, value, sub }) {
 }
 
 export default function Admin() {
-  const { user, setUser, logout } = useAuth();
+  const { user, setUser, logout, refresh, checking } = useAuth();
   const authed = Boolean(user) && (!hasAPI || ["admin", "staff"].includes(user.role));
   const [tab, setTab] = useState("dashboard");
   const [products, setProducts] = useState([]);
@@ -146,6 +147,11 @@ export default function Admin() {
     }
   };
   useEffect(() => {
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
     if (authed) load();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authed]);
@@ -160,6 +166,14 @@ export default function Admin() {
       (o) => (!statusF || (o.status || "placed") === statusF) && (!s || JSON.stringify(o).toLowerCase().includes(s))
     );
   }, [orders, q, statusF]);
+
+  if (checking && !user) {
+    return (
+      <main className="container">
+        <div className="empty">Checking your session…</div>
+      </main>
+    );
+  }
 
   if (!authed) return <Login onOk={(u) => setUser(u)} />;
 
@@ -339,7 +353,7 @@ export default function Admin() {
                 {filteredProducts.map((p) => (
                   <tr key={p.id || p._id}>
                     <td><Img src={p.images?.[0]} alt="" style={{ width: 44, height: 44, objectFit: "cover", borderRadius: 8 }} /></td>
-                    <td><b>{p.name}</b><br /><small>{p.collection}</small></td>
+                    <td><b>{p.name}</b><br /><small>{p.id || p._id} • {p.collection}</small></td>
                     <td>{p.category}</td>
                     <td>{formatINR(p.price)} <s>{formatINR(p.mrp || p.price)}</s></td>
                     <td>{p.trackInventory === false || p.stock == null ? "—" : p.stock <= 5 ? `⚠ ${p.stock}` : p.stock}</td>
@@ -398,6 +412,23 @@ export default function Admin() {
             <h3 className="serif" style={{ margin: 0, fontSize: 28 }}>{editing === "new" ? "Add product" : "Edit product"}</h3>
             <label>Name</label>
             <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} required />
+
+            {/* Product ID — the code the customer sends on WhatsApp and the URL key. */}
+            <label htmlFor="productId">Product ID — the code customers send on WhatsApp</label>
+            <input
+              id="productId"
+              value={form.id || ""}
+              maxLength={60}
+              placeholder={editing === "new" ? "e.g. nl-001 — leave blank to auto-generate" : ""}
+              onChange={(e) => setForm({ ...form, id: e.target.value })}
+            />
+            <small className="custom-tag-hint">
+              Shown on the product page and included in every “Buy Now” WhatsApp message. Letters, numbers and
+              dashes only (spaces become dashes, lower-case).
+              {editing !== "new" && form.id && form.id !== current?.id
+                ? " Changing it also changes the product link — old links will stop working."
+                : ""}
+            </small>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <div>
                 <label>Category</label>

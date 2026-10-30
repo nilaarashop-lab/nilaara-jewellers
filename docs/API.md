@@ -1,5 +1,7 @@
 # Nilaara API Reference
 
+> **Storefront status:** the website is now a **catalogue with WhatsApp ordering**. The React app only uses the product, settings, upload, staff-auth and admin endpoints. The customer auth / cart / checkout / order / Razorpay endpoints below still exist (for existing data, the admin panel and the test suite) but are **not called by the storefront UI**.
+
 Base URL: whatever you set as the backend origin (e.g. `http://localhost:5000`). All endpoints are JSON unless noted.
 
 ## Conventions
@@ -67,8 +69,10 @@ Public for published products. Accepts the legacy id (`par-…`), the slug, or t
 ### `POST /api/products` — admin/staff
 Zod-validated body; unknown fields are ignored, `role`-like escalation is impossible. `images` entries must be `{url, publicId, alt}` objects (or strings) whose URLs are HTTPS on an allow-listed host — in production that means Cloudinary only, so arbitrary pasted URLs cannot bypass the upload endpoint. Rejected entries fail the request with `400` and are listed in `details`. Returns `201` with the admin product shape.
 
+`id` is optional: staff can set their own product ID (letters/numbers/dashes, normalised to lower-case-with-dashes — it becomes the `/product/:id` URL and the code quoted on WhatsApp). Blank auto-generates `nilaara-…`. A duplicate id/slug returns `409`.
+
 ### `PUT /api/products/:id` — admin/staff
-Partial update (same schema, all fields optional). The document is saved **after** the new image set is validated; Cloudinary assets that were removed from the product and are referenced by nothing else (and no order) are then deleted best-effort.
+Partial update (same schema, all fields optional). The document is saved **after** the new image set is validated; Cloudinary assets that were removed from the product and are referenced by nothing else (and no order) are then deleted best-effort. `id` may be changed (uniqueness enforced, `409` on clash) — the lookup itself also accepts the Mongo `_id`, so the admin UI can rename a product without losing the record.
 
 ### `DELETE /api/products/:id` — admin only
 Deletes the product. Its images are removed from Cloudinary only when no other product and **no order snapshot** references them (orders keep their historical appearance).

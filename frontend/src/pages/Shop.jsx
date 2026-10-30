@@ -14,7 +14,7 @@ const CURATED = [
 const slugifyLabel = (s) => String(s).toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
 
 export default function Shop() {
-  const { settings, promos } = useStore();
+  const { settings } = useStore();
   const [params, setParams] = useSearchParams();
   const [items, setItems] = useState(() => (hasAPI ? [] : PRODUCTS));
   const [status, setStatus] = useState(hasAPI ? "loading" : "ready");
@@ -147,11 +147,11 @@ export default function Shop() {
           )}
           <h4>Max price: ₹{draftPrice ?? priceCap}</h4>
           <input type="range" min={500} max={priceCap} step={50} value={draftPrice ?? priceCap} onChange={(e) => setDraftPrice(+e.target.value)} style={{ width: "100%", accentColor: "var(--gold)" }} />
-          <h4>Offers</h4>
+          <h4>Good to know</h4>
           <p style={{ fontSize: 13.5, color: "var(--ink-soft)" }}>
-            {settings?.coupons?.b1g1?.enabled && <>✦ B1G1 Free on tagged pieces<br /></>}
-            {promos.map((p) => `✦ ${p.code} −${p.percent}% off over ₹${p.minSubtotal || 0}`).map((line) => <span key={line}>{line}<br /></span>)}
-            ✦ Free shipping over ₹{freeOver} • COD available
+            ✦ Free shipping over ₹{freeOver}<br />
+            ✦ 7-day easy exchange<br />
+            ✦ Book any piece on WhatsApp — product ID included automatically
           </p>
           <button type="button" className="btn btn-gold" style={{ width: "100%", justifyContent: "center", marginTop: 6 }} onClick={applyFilters}>
             Apply filters

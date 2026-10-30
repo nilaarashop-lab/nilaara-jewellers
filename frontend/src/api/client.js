@@ -1,15 +1,18 @@
 /**
  * API client for the Nilaara backend.
  *
+ * The storefront is a catalogue: products, homepage settings and the wishlist
+ * are all it needs. Orders happen in WhatsApp, so there is no customer auth,
+ * cart, checkout or payment code on the browser any more.
+ *
  * Modes:
- *  - API configured (VITE_API_URL set)  → all data comes from MongoDB via the API.
+ *  - API configured (VITE_API_URL set)  → products/settings come from MongoDB.
  *    If a request FAILS, an error is thrown — the app never silently falls back
  *    to demo data (that would show fake products on a live store).
- *  - No API configured                  → built-in demo catalogue, demo-only auth.
- *    Never stores passwords anywhere.
+ *  - No API configured                  → built-in demo catalogue.
  *
- * Auth is cookie-based (httpOnly session cookie set by the backend), so every
- * request sends `credentials: "include"`.
+ * The admin panel keeps using the cookie session (httpOnly) and the admin-only
+ * endpoints below, so every request sends `credentials: "include"`.
  *
  * Origins: a production build calls `/api/*` on its own origin — `vercel.json`
  * proxies that path to the API. The session cookie is then first-party, which is
@@ -22,8 +25,6 @@ import { PRODUCTS } from "../data/products";
 const CONFIGURED = import.meta.env.VITE_API_URL?.replace(/\/+$/, "") || "";
 const API = CONFIGURED && !import.meta.env.PROD ? CONFIGURED : "";
 export const hasAPI = Boolean(CONFIGURED);
-/** Google Identity Services is available only when the public client ID is set. */
-export const googleEnabled = Boolean(import.meta.env.VITE_GOOGLE_CLIENT_ID);
 
 let onUnauthorized = null;
 /** Called when the backend answers 401/403 on an authenticated request. */
@@ -82,12 +83,8 @@ const writeLS = (k, v) => {
   }
 };
 
+/** Demo-mode orders (the admin panel can still show them without a backend). */
 export const getLocalOrders = () => readLS("nilaara-orders", []);
-export const saveLocalOrder = (order) => {
-  const list = [order, ...readLS("nilaara-orders", [])].slice(0, 200);
-  writeLS("nilaara-orders", list);
-  return list;
-};
 export const updateLocalOrder = (id, patch) => {
   const list = readLS("nilaara-orders", []).map((o) => (String(o.id) === String(id) ? { ...o, ...patch } : o));
   writeLS("nilaara-orders", list);
@@ -143,74 +140,11 @@ export async function searchProducts(q, limit = 6) {
   return api(`/api/products?limit=${Number(limit) || 6}&q=${encodeURIComponent(query)}`);
 }
 
-export async function fetchProduct(id) {
-  if (!hasAPI) return PRODUCTS.find((p) => p.id === id) || null;
-  return api(`/api/products/${encodeURIComponent(id)}`);
-}
-
-// ── Server-side cart (persistent, per account) ─────────────────
-// The server returns items priced from MongoDB; only ids + quantities are
-// ever sent by the browser.
-
-/** The signed-in customer's cart from MongoDB (demo mode: localStorage). */
-export async function fetchCart() {
-  if (!hasAPI) return readLS("nilaara-cart", []);
-  return (await api("/api/cart")).items || [];
-}
-
-/** Adds (or increments) an item. Throws a displayable error when unavailable/out of stock. */
-export async function cartAdd(id, qty = 1) {
-  if (!hasAPI) {
-    const cart = readLS("nilaara-cart", []);
-    const found = cart.find((i) => i.id === id);
-    if (found) found.qty += qty;
-    else cart.push({ id, qty });
-    writeLS("nilaara-cart", cart);
-    return cart;
-  }
-  return (await api("/api/cart/items", { method: "POST", body: { id, qty } })).items || [];
-}
-
-/** Merges a guest cart into the account cart right after login. */
-export async function cartMerge(items) {
-  if (!hasAPI) return readLS("nilaara-cart", []);
-  return (await api("/api/cart/merge", { method: "POST", body: { items } })).items || [];
-}
-
-/** Sets a quantity (0 removes). Rejects quantities above available stock. */
-export async function cartSetQty(id, qty) {
-  if (!hasAPI) {
-    const cart = readLS("nilaara-cart", []).map((i) => (i.id === id ? { ...i, qty } : i)).filter((i) => i.qty > 0);
-    writeLS("nilaara-cart", cart);
-    return cart;
-  }
-  return (await api(`/api/cart/items/${encodeURIComponent(id)}`, { method: "PATCH", body: { qty } })).items || [];
-}
-
-export async function cartRemove(id) {
-  if (!hasAPI) {
-    const cart = readLS("nilaara-cart", []).filter((i) => i.id !== id);
-    writeLS("nilaara-cart", cart);
-    return cart;
-  }
-  return (await api(`/api/cart/items/${encodeURIComponent(id)}`, { method: "DELETE" })).items || [];
-}
-
-export async function cartClear() {
-  if (!hasAPI) {
-    writeLS("nilaara-cart", []);
-    return [];
-  }
-  return (await api("/api/cart", { method: "DELETE" })).items || [];
-}
-
-// ── Storefront settings (delivery methods, payment availability) ──
+// ── Storefront settings (announcement bar, homepage content) ──
 
 /**
- * Public settings. The checkout UI shows delivery fees/ETAs ONLY from this
- * configured data — nothing is hardcoded in the browser beyond a plain
- * standard-delivery fallback for demo mode. Also carries the announcement
- * marquee lines and homepage hero/card/festive content for the home page.
+ * Public settings. Carries the announcement marquee lines and homepage
+ * hero/card/festive content for the home page.
  */
 export async function fetchSettings() {
   if (!hasAPI) {
@@ -235,13 +169,7 @@ export async function adminSaveSettings(patch) {
   return api("/api/settings", { method: "PATCH", body: patch });
 }
 
-// ── Promo codes (admin-managed; validated at checkout) ──
-
-/** Active promo codes shown on the storefront (bag/checkout chips). */
-export async function fetchActivePromos() {
-  if (!hasAPI) return [];
-  return api("/api/promos/active");
-}
+// ── Promo codes (admin-managed; legacy records may still exist) ──
 
 /** Admin list incl. usage counters. */
 export async function adminListPromos() {
@@ -264,52 +192,6 @@ export async function adminUpdatePromo(code, patch) {
 export async function adminDeletePromo(code) {
   if (!hasAPI) throw new Error("Promo codes need the backend (set VITE_API_URL).");
   return api(`/api/promos/${encodeURIComponent(code)}`, { method: "DELETE" });
-}
-
-// ── Pending action (preserves intent across the login redirect) ──
-
-const PENDING_KEY = "nilaara-pending-action";
-/** Saves what the visitor wanted to do before being asked to log in. */
-export const setPendingIntent = (intent) => writeLS(PENDING_KEY, intent);
-export const peekPendingIntent = () => readLS(PENDING_KEY, null);
-export const clearPendingIntent = () => {
-  try {
-    localStorage.removeItem(PENDING_KEY);
-  } catch {
-    /* storage unavailable */
-  }
-};
-
-// ── Checkout / orders ──
-
-/**
- * Places an order. The backend RECOMPUTES prices from its own records — the
- * returned order contains the authoritative totals.
- */
-export async function createOrder(payload) {
-  if (!hasAPI) {
-    await new Promise((r) => setTimeout(r, 600));
-    const order = { id: "NIL" + Date.now().toString().slice(-8), ...payload, mode: "COD-stub", createdAt: new Date().toISOString() };
-    saveLocalOrder(order);
-    return order;
-  }
-  const order = await api("/api/orders", { method: "POST", body: payload });
-  saveLocalOrder(order);
-  return order;
-}
-
-/**
- * Server-side recalculation of the current basket (no order is created).
- * Returns null in demo mode, where the browser has no pricing engine to ask.
- */
-export async function previewOrder({ items, coupon, shippingMethod }) {
-  if (!hasAPI) return null;
-  return api("/api/orders/preview", { method: "POST", body: { items, coupon, shippingMethod } });
-}
-
-export async function fetchOrder(id, phone) {
-  if (!hasAPI) return getLocalOrders().find((o) => String(o.id) === String(id)) || null;
-  return api(`/api/orders/${encodeURIComponent(id)}${phone ? `?phone=${encodeURIComponent(phone)}` : ""}`);
 }
 
 // ── Admin: uploads, products, orders, stats ──
@@ -371,11 +253,13 @@ export async function adminUpdateOrderStatus(id, status, note) {
 
 export async function adminSaveProduct(p) {
   if (!hasAPI) {
+    const id = p.id || `nilaara-${Date.now().toString(36)}`;
+    const saved = { ...p, id };
     const ov = readLS("nilaara-admin-products", { upsert: [], remove: [] });
-    ov.upsert = [p, ...ov.upsert.filter((x) => x.id !== p.id)];
-    ov.remove = ov.remove.filter((id) => id !== p.id);
+    ov.upsert = [saved, ...ov.upsert.filter((x) => x.id !== id)];
+    ov.remove = ov.remove.filter((x) => x !== id);
     writeLS("nilaara-admin-products", ov);
-    return p;
+    return saved;
   }
   const body = {
     ...p,
@@ -384,7 +268,9 @@ export async function adminSaveProduct(p) {
     stock: p.stock === "" || p.stock == null ? undefined : +p.stock,
     images: (p.images || []).map((i) => (typeof i === "string" ? { url: i, publicId: "", alt: "" } : i)),
   };
-  if (p._id) return api(`/api/products/${encodeURIComponent(p.id || p._id)}`, { method: "PUT", body: body });
+  // Look the product up by Mongo _id when editing, so changing the visible
+  // product ID (which is also the URL) still updates the right record.
+  if (p._id) return api(`/api/products/${encodeURIComponent(p._id)}`, { method: "PUT", body: body });
   try {
     return await api("/api/products", { method: "POST", body: body });
   } catch (e) {
@@ -415,22 +301,14 @@ export async function adminStats() {
   return api("/api/stats");
 }
 
-// ── Auth (cookie sessions; no tokens or passwords in browser storage) ──
+// ── Staff auth (cookie sessions; no tokens or passwords in browser storage) ──
 
 export async function authLogin({ id, password }) {
   if (!hasAPI) {
     await new Promise((r) => setTimeout(r, 400));
-    return { user: { id: "demo-" + Date.now(), name: "Demo User", email: id, role: "customer", provider: "demo" } };
+    return { user: { id: "demo-" + Date.now(), name: "Demo Admin", email: id, role: "admin", provider: "demo" } };
   }
   return api("/api/auth/login", { method: "POST", body: { id, password } });
-}
-
-export async function authRegister(payload) {
-  if (!hasAPI) {
-    await new Promise((r) => setTimeout(r, 400));
-    return { user: { id: "demo-" + Date.now(), name: payload.name, email: payload.email || null, phone: payload.phone || null, role: "customer", provider: "demo" } };
-  }
-  return api("/api/auth/register", { method: "POST", body: payload });
 }
 
 export async function authLogout() {
@@ -445,85 +323,4 @@ export async function authMe() {
   } catch {
     return null;
   }
-}
-
-/** Google Identity Services: exchanges the ID token for a Nilaara session. */
-export async function authGoogle(credential) {
-  if (!hasAPI) throw new Error("Google sign-in needs the backend (set VITE_API_URL).");
-  return api("/api/auth/google", { method: "POST", body: { credential } });
-}
-
-/** Links Google to the account of the CURRENT session (from the account page). */
-export async function linkGoogle(credential) {
-  if (!hasAPI) throw new Error("Google linking needs the backend (set VITE_API_URL).");
-  return api("/api/auth/google/link", { method: "POST", body: { credential } });
-}
-
-/** Step 1 of EMAIL OTP login (Resend) — the server emails the code; never returned. */
-export async function emailOtpRequest(email) {
-  if (!hasAPI) throw new Error("Email verification needs the backend (set VITE_API_URL).");
-  return api("/api/auth/email/otp/request", { method: "POST", body: { email } });
-}
-
-/** Step 2 — verifies the emailed code server-side and starts a session. `name`/`password` are signup-only. */
-export async function emailOtpVerify(email, otp, name, password) {
-  if (!hasAPI) throw new Error("Email verification needs the backend (set VITE_API_URL).");
-  return api("/api/auth/email/otp/verify", {
-    method: "POST",
-    body: { email, otp, ...(name ? { name } : {}), ...(password ? { password } : {}) },
-  });
-}
-
-/** Updates the signed-in customer's profile. */
-export async function updateMe(patch) {
-  if (!hasAPI) throw new Error("Profiles need the backend (set VITE_API_URL).");
-  return api("/api/auth/me", { method: "PATCH", body: patch });
-}
-
-/**
- * The signed-in customer's own order history (server-scoped to the session).
- * @param {"live"|"old"|""} view  live = placed/packed/shipped, old = finished/cancelled
- */
-export async function fetchMyOrders(view = "") {
-  if (!hasAPI) {
-    const LIVE = ["placed", "packed", "shipped"];
-    const list = getLocalOrders();
-    if (view === "live") return list.filter((o) => LIVE.includes(o.status || "placed"));
-    if (view === "old") return list.filter((o) => !LIVE.includes(o.status || "placed"));
-    return list;
-  }
-  return api(`/api/orders/mine${view ? `?view=${encodeURIComponent(view)}` : ""}`);
-}
-
-// ── Razorpay (server-mediated; amounts & status always decided server-side) ──
-
-/**
- * Creates the Razorpay provider order for a shop order the customer owns.
- * The amount is the SERVER-computed total — never a browser value.
- */
-export async function createRazorpayOrder(orderNumber) {
-  if (!hasAPI) throw new Error("Online payments need the backend (set VITE_API_URL).");
-  return api(`/api/payments/${encodeURIComponent(orderNumber)}/order`, { method: "POST" });
-}
-
-/**
- * Submits the Razorpay checkout signature for SERVER verification.
- * The order only becomes "paid" if the HMAC signature validates.
- */
-export async function verifyRazorpayPayment(orderNumber, payload) {
-  if (!hasAPI) throw new Error("Online payments need the backend (set VITE_API_URL).");
-  return api(`/api/payments/${encodeURIComponent(orderNumber)}/verify`, { method: "POST", body: payload });
-}
-
-/** Loads the official Razorpay checkout script on demand (only when configured). */
-export function loadRazorpayScript() {
-  return new Promise((resolve, reject) => {
-    if (window.Razorpay) return resolve(window.Razorpay);
-    const s = document.createElement("script");
-    s.src = "https://checkout.razorpay.com/v1/checkout.js";
-    s.async = true;
-    s.onload = () => resolve(window.Razorpay);
-    s.onerror = () => reject(new Error("Could not load the secure payment window. Check your connection and try again."));
-    document.body.appendChild(s);
-  });
 }
