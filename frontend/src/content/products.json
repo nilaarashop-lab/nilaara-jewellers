@@ -1,34 +1,6 @@
 {
   "products": [
     {
-      "id": "par-kundan-hair-brooch",
-      "slug": "dazzling-kundan-pearl-hair-brooch-with-jhumka-mvt2jwwm",
-      "name": "Dazzling Kundan Pearl Hair Brooch with Jhumka",
-      "category": "jewellery-sets",
-      "metal": "Brass alloy",
-      "purity": "",
-      "size": "",
-      "variants": [],
-      "price": 1249,
-      "mrp": 2875,
-      "makingCharges": 0,
-      "rating": 4.4,
-      "reviews": 410,
-      "customTag": "",
-      "featured": false,
-      "bestseller": false,
-      "newArrival": true,
-      "images": [
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jqnc-3f2e141ed606_eQnvOwtTH.jpg",
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jrts-a5a765daaa81_-w2N7MUWy.jpg"
-      ],
-      "desc": "Hair accessory + brooch two-in-one, wedding & haldi favourite.",
-      "stock": 25,
-      "trackInventory": true,
-      "lowStockThreshold": 5,
-      "status": "published"
-    },
-    {
       "id": "par-white-pearl-choker",
       "slug": "dazzling-white-gold-plated-pearl-choker-set-mvt2jwyw",
       "name": "Dazzling White Gold-Plated Pearl Choker Set",
