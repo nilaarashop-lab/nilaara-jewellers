@@ -1,34 +1,6 @@
 {
   "products": [
     {
-      "id": "par-white-pearl-choker",
-      "slug": "dazzling-white-gold-plated-pearl-choker-set-mvt2jwyw",
-      "name": "Dazzling White Gold-Plated Pearl Choker Set",
-      "category": "necklaces",
-      "metal": "Brass alloy",
-      "purity": "",
-      "size": "",
-      "variants": [],
-      "price": 799,
-      "mrp": 2664,
-      "makingCharges": 0,
-      "rating": 4.5,
-      "reviews": 1520,
-      "customTag": "",
-      "featured": false,
-      "bestseller": true,
-      "newArrival": false,
-      "images": [
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jrts-a5a765daaa81_-w2N7MUWy.jpg",
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jij4-e8deca99b0d6_q5DK3yLjL.jpg"
-      ],
-      "desc": "Contemporary pearl-beaded choker, lightweight for daily ethnic.",
-      "stock": 25,
-      "trackInventory": true,
-      "lowStockThreshold": 5,
-      "status": "published"
-    },
-    {
       "id": "par-mangalsutra-bracelet",
       "slug": "minimal-gold-mangalsutra-style-bracelet-mvt2jx10",
       "name": "Minimal Gold Mangalsutra-Style Bracelet",
