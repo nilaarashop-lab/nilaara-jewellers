@@ -93,6 +93,21 @@ export const updateLocalOrder = (id, patch) => {
 
 // ── Products ──
 
+/**
+ * Last catalogue fetched from the API. A cold/sleeping Render instance should
+ * not blank the storefront for a returning visitor, so a recent copy is used
+ * only when the live request fails. Admin screens always hit the API directly.
+ */
+const PRODUCTS_CACHE_KEY = "nilaara-products-v1";
+const PRODUCTS_CACHE_TTL = 24 * 60 * 60 * 1000; // 24 hours
+
+const readCachedProducts = () => {
+  const entry = readLS(PRODUCTS_CACHE_KEY, null);
+  if (!entry || !Array.isArray(entry.items) || !entry.savedAt) return null;
+  if (Date.now() - entry.savedAt > PRODUCTS_CACHE_TTL) return null;
+  return entry.items;
+};
+
 export async function fetchProducts() {
   if (!hasAPI) {
     const ov = readLS("nilaara-admin-products", null); // demo-mode admin edits
@@ -102,8 +117,17 @@ export async function fetchProducts() {
     for (const id of ov.remove) map.delete(id);
     return [...map.values()];
   }
-  const list = await api("/api/products?limit=100"); // throws on failure — no demo fallback
-  return list;
+  try {
+    const list = await api("/api/products?limit=100");
+    if (Array.isArray(list) && list.length) {
+      writeLS(PRODUCTS_CACHE_KEY, { savedAt: Date.now(), items: list });
+    }
+    return list;
+  } catch (err) {
+    const cached = readCachedProducts();
+    if (cached) return cached;
+    throw err; // no cache → surface the real error, never invent products
+  }
 }
 
 /** Admin table listing — includes drafts/archived (not just published). */
@@ -137,7 +161,15 @@ export async function searchProducts(q, limit = 6) {
   const query = String(q || "").trim();
   if (!query) return [];
   if (!hasAPI) return (await fetchProducts()).filter((p) => matchesQuery(p, query)).slice(0, limit);
-  return api(`/api/products?limit=${Number(limit) || 6}&q=${encodeURIComponent(query)}`);
+  try {
+    return await api(`/api/products?limit=${Number(limit) || 6}&q=${encodeURIComponent(query)}`);
+  } catch (err) {
+    // Keep suggestions working from the cached catalogue while a cold backend
+    // boots; the full shop page and product pages use the same cache.
+    const cached = readCachedProducts();
+    if (cached) return cached.filter((p) => matchesQuery(p, query)).slice(0, limit);
+    throw err;
+  }
 }
 
 // ── Storefront settings (announcement bar, homepage content) ──
