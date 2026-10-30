@@ -12,6 +12,10 @@ name: Keep API awake
 on:
   schedule:
     - cron: "*/5 * * * *"
+  # Also verify the workflow whenever this file changes.
+  push:
+    paths:
+      - ".github/workflows/keep-api-awake.yml"
   workflow_dispatch:
 
 permissions:
