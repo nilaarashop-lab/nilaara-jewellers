@@ -25,8 +25,13 @@ Last updated: 2026-10-30.
 - Runtime freshness: storefront fetches /content/products.json + settings.json (no-store, ?v=timestamp)
   on load, polls every 10 s, refreshes on tab focus, and after an admin save fetches the exact commit
   from raw.githubusercontent. Bundled JSON is the offline fallback.
-- Images: admin uploads are committed to frontend/public/uploads/ and displayed through
-  raw.githubusercontent (branch URL normally, exact-commit URL right after a save).
+- Images: admin uploads go to ImageKit (folder /nilaara/products) once the Vercel env vars
+  IMAGEKIT_PRIVATE_KEY + IMAGEKIT_PUBLIC_KEY (+ optional IMAGEKIT_URL_ENDPOINT) exist; the browser
+  asks frontend/api/imagekit.js for a short-lived signature (private key stays server-side, request
+  gated on the staff GitHub token having push access), then posts the file to upload.imagekit.io.
+  Without keys — or if ImageKit fails — the photo is committed to frontend/public/uploads/ and shown
+  through raw.githubusercontent (branch URL normally, exact-commit URL right after a save). ImageKit
+  URLs are absolute and pass through mediaUrl() unchanged.
 - Admin auth: GitHub OAuth popup via serverless functions frontend/api/auth.js + callback.js
   (state cookie, client secret stays server-side). Token lives in sessionStorage only.
   /admin is noindex; it also checks the token's repo push permission and refuses read-only accounts.
@@ -106,9 +111,11 @@ photo workflow —
     Pan resets to centre after a rotation; GIFs skip the crop dialog.
   • any existing photo can be re-cropped (Crop button on its thumbnail) — including rotating it
   • paste an image URL instead of uploading; remove a photo from the product
-  • uploads are compressed client-side to ≤900 KB WebP (max edge 1600 px, input cap 12 MB),
-    committed to the repo, and retried up to 3× on GitHub 500/502/503/504 or a dropped connection;
-    a repeated write is treated as already committed. Errors name GitHub and print its request id.
+  • uploads are compressed client-side to WebP (max edge 1600 px, input cap 12 MB) and sent to
+    ImageKit when it is configured; otherwise (or if ImageKit errors) they are committed to the repo,
+    where the ≤900 KB ceiling applies and the write is retried up to 3× on GitHub 500/502/503/504 or
+    a dropped connection. A repeated write is treated as already committed. Errors name the service
+    and GitHub errors print its request id.
 Homepage tab: announcement (on/off, rotating messages, desktop + mobile fallback text),
 hero slides (on/off, image, eyebrow, title, highlight, text), promo cards (image, eyebrow, title, text,
 link, label), festive banner, category tile pictures, freebie threshold (Freebies over ₹).
@@ -122,11 +129,12 @@ A. NEVER commit frontend/src/content/** or frontend/public/uploads/**. They belo
 B. The owner's admin commits land on origin/main constantly. ALWAYS: git fetch origin, then
    git rebase origin/main (never force-push, never reset --hard over their work). Verify afterwards:
    git diff origin/main --stat -- frontend/src/content frontend/public/uploads   → must be EMPTY.
-C. Before committing: run in frontend/ — npm test (48 tests), npm run lint (oxlint: 0 errors; 9 known
+C. Before committing: run in frontend/ — npm test (55 tests), npm run lint (oxlint: 0 errors; 9 known
    react(set-state-in-effect) warnings are pre-existing), npm run build. Commit only source, tests,
    styles, docs. Never commit dist/, node_modules/, public/content/, public/sitemap.xml (generated), .env.
-D. Never commit secrets: GitHub OAuth client secret, ImageKit private key, tokens. Admin tokens stay in
-   sessionStorage, never in files. Report to the owner if a secret would be needed.
+D. Never commit secrets: GitHub OAuth client secret, ImageKit private key/public key, tokens. They live
+   only in Vercel environment variables. Admin tokens stay in sessionStorage,
+   never in files. Report to the owner if a secret would be needed.
 E. Commit and push are separate actions. Commit when asked to commit; push only when asked to push.
    Ask before destructive git operations (force-push, reset --hard, branch -D, clean).
 F. Commit message: what changed and why, in plain language (the owner reads them). One bundled commit
@@ -161,3 +169,7 @@ J. UPDATE THIS FILE in the same commit as any change: sections 3–6 for behavio
   counts only live pieces, per-page titles/descriptions + site-wide OG tags + generated sitemap,
   product-named wishlist labels, marquee duplicate hidden from screen readers, admin undo delete +
   ↑↓ reorder. Tests: 48 passing.
+- IMAGEKIT, 2026-10-30 (code only, not yet live): uploads prefer ImageKit via the new signed endpoint
+  frontend/api/imagekit.js, with the GitHub commit as automatic fallback. Waiting on the owner to add
+  IMAGEKIT_PRIVATE_KEY + IMAGEKIT_PUBLIC_KEY in Vercel and redeploy; until then nothing changes for
+  them. The 4 existing /uploads photos stay where they are. Tests: 55 passing.

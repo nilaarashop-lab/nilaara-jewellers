@@ -376,6 +376,54 @@ const extensionFor = (file) => {
   return match ? match[1].toLowerCase() : "jpg";
 };
 
+export const IMAGEKIT_UPLOAD_URL = "https://upload.imagekit.io/api/v1/files/upload";
+export const IMAGEKIT_FOLDER = "/nilaara/products";
+
+/**
+ * Short-lived ImageKit credentials from our own serverless function. Missing
+ * keys, an expired GitHub session or a network failure all return null, and
+ * the upload then goes to the repo exactly as before.
+ */
+async function imageKitAuth(token) {
+  if (!token) return null;
+  try {
+    const res = await fetch("/api/imagekit", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data?.configured && data.signature ? data : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function uploadToImageKit(file, auth) {
+  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}-${slugify(file.name)}`;
+  const body = new FormData();
+  body.append("file", file, file.name || `${fileName}.webp`);
+  body.append("fileName", fileName);
+  body.append("folder", IMAGEKIT_FOLDER);
+  body.append("useUniqueFileName", "true");
+  body.append("publicKey", auth.publicKey);
+  body.append("token", auth.token);
+  body.append("expire", String(auth.expire));
+  body.append("signature", auth.signature);
+
+  let res;
+  try {
+    res = await fetch(IMAGEKIT_UPLOAD_URL, { method: "POST", body });
+  } catch {
+    throw new GitHubError("Couldn't reach ImageKit. Check your internet connection and try again.");
+  }
+  const data = await res.json().catch(() => ({}));
+  if (!res.ok || !data?.url) {
+    throw new GitHubError(data?.message || `ImageKit returned ${res.status}.`, res.status, data);
+  }
+  return { url: data.url, path: data.filePath || "", name: data.name || fileName };
+}
+
 export async function uploadImage(file, token = getToken()) {
   if (!file || !String(file.type || "").startsWith("image/")) {
     throw new GitHubError("Please choose an image file (JPG, PNG, WebP or GIF).");
@@ -385,6 +433,18 @@ export async function uploadImage(file, token = getToken()) {
   }
 
   const prepared = await compressImage(file);
+
+  // ImageKit keeps photo bytes out of git history. Anything it cannot do
+  // (no keys yet, bad response) falls through to the commit upload below.
+  const auth = await imageKitAuth(token);
+  if (auth) {
+    try {
+      return await uploadToImageKit(prepared, auth);
+    } catch (ex) {
+      console.warn("ImageKit upload failed; committing the photo to GitHub instead.", ex);
+    }
+  }
+
   if (prepared.size > 900 * 1024) {
     throw new GitHubError("That image is still larger than 900 KB after resizing. Please choose a smaller photo.");
   }
