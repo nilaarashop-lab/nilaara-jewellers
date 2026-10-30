@@ -3,7 +3,7 @@
     {
       "id": "par-ethnic-kundan-choker",
       "slug": "rajwadi-kundan-pearl-choker-necklace-set",
-      "name": "Rajwadi Kundan Pearl Choker Necklace Set",
+      "name": "test",
       "category": "jewellery-sets",
       "collection": "kundan",
       "plating": "22K Gold Plated",
@@ -22,13 +22,12 @@
       "customTag": "",
       "featured": false,
       "bestseller": false,
-      "newArrival": false,
+      "newArrival": true,
       "images": [
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jdlf-3b78ae2e8091_svO01POVK.jpg",
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jf06-ca7e6786de83_3qSFEcb4v.jpg"
+        "/uploads/1793343817716-764p-nilaara.webp"
       ],
       "desc": "Handcrafted festive choker with kundan polki and pearls.",
-      "stock": 50,
+      "stock": 1,
       "trackInventory": true,
       "lowStockThreshold": 5,
       "status": "published"
