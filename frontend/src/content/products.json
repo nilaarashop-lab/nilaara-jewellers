@@ -1,34 +1,6 @@
 {
   "products": [
     {
-      "id": "par-mangalsutra-bracelet",
-      "slug": "minimal-gold-mangalsutra-style-bracelet-mvt2jx10",
-      "name": "Minimal Gold Mangalsutra-Style Bracelet",
-      "category": "bangles",
-      "metal": "Brass alloy",
-      "purity": "",
-      "size": "",
-      "variants": [],
-      "price": 749,
-      "mrp": 1375,
-      "makingCharges": 0,
-      "rating": 4.3,
-      "reviews": 980,
-      "customTag": "",
-      "featured": false,
-      "bestseller": false,
-      "newArrival": false,
-      "images": [
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jt01-c60d56bb7593_bGrrkVTPp.jpg",
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jm0p-f3268521ef33_9_ddpxVIF.jpg"
-      ],
-      "desc": "Waterproof, tarnish-free demi-fine bracelet for everyday wear.",
-      "stock": 25,
-      "trackInventory": true,
-      "lowStockThreshold": 5,
-      "status": "published"
-    },
-    {
       "id": "par-emerald-hoops",
       "slug": "contemporary-emerald-zirconia-hoop-drops-mvt2jx32",
       "name": "Contemporary Emerald Zirconia Hoop Drops",
