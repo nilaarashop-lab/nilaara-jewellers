@@ -1,39 +1,6 @@
 {
   "products": [
     {
-      "id": "par-tribal-necklace-set",
-      "slug": "tribal-magic-green-red-necklace-set",
-      "name": "Tribal Magic Green & Red Necklace Set",
-      "category": "necklaces",
-      "collection": "oxidised",
-      "plating": "Antique Gold Oxidised",
-      "metal": "Brass alloy",
-      "purity": "",
-      "stones": "Crystal • Beads",
-      "size": "",
-      "variants": [],
-      "price": 1299,
-      "mrp": 2569,
-      "makingCharges": 0,
-      "rating": 4.2,
-      "reviews": 864,
-      "badge": "New",
-      "tag": "",
-      "customTag": "",
-      "featured": false,
-      "bestseller": false,
-      "newArrival": false,
-      "images": [
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jij4-e8deca99b0d6_q5DK3yLjL.jpg",
-        "https://ik.imagekit.io/w4bq6axnq/nilaara/products/nil-mvt2jjpx-ab6de39154aa_Jiw1fpMLfN.jpg"
-      ],
-      "desc": "Oxidised tribal set.",
-      "stock": 35,
-      "trackInventory": true,
-      "lowStockThreshold": 5,
-      "status": "published"
-    },
-    {
       "id": "par-rose-gold-bracelet",
       "slug": "american-diamond-zirconia-rose-gold-bracelet",
       "name": "American Diamond Zirconia Rose-Gold Bracelet",
