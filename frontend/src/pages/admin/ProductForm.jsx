@@ -392,7 +392,7 @@ export default function ProductForm({ product, products, onClose, onSave, saving
           </small>
         </div>
 
-        <label>Photos — from your phone / PC (up to 6, saved in the repository)</label>
+        <label>Photos — from your phone / PC (up to 6, each backed up automatically)</label>
         <div className="photo-grid">
           {form.images.map((image, i) => (
             <span key={`${image}-${i}`} className="photo-thumb">

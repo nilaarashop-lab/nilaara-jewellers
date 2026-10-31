@@ -39,6 +39,14 @@ Last updated: 2026-10-30.
   Photos tab, behind the same GitHub push gate. Only paths starting /nilaara/products/ can be deleted.
   Photo references that live in code (the hero fallback / og:image in HERO_PHOTO, src/data/products.js)
   count as used and are never offered for deletion.
+- Backups (added 2026-10-31): every photo is copied to the "backups" branch
+  (backups/photos/<YYYY-MM>/<file>) BEFORE it goes to ImageKit, so no photo can reach the storefront
+  without an archived copy — if the archive write fails, the upload stops with a clear error. Every
+  product add, update and delete also writes backups/products/<id>/<timestamp>-<reason>.json holding
+  the full product details. The branch is never deployed (vercel.json git.deploymentEnabled
+  "backups": false, so it cannot use the Vercel build quota), never served, and no admin action ever
+  deletes from it. Restore = copy the photo back into ImageKit and re-add the product from its
+  snapshot. The catalogue's own git history is a second copy of the details.
 - Analytics: @vercel/analytics, injected in src/main.jsx with history mode so each SPA route change
   counts once. Cookieless, no consent banner, no personal data. It only collects after the owner
   turns Web Analytics on in the Vercel project (until then the script 404s silently).
@@ -130,6 +138,10 @@ photo workflow —
     where the ≤900 KB ceiling applies and the write is retried up to 3× on GitHub 500/502/503/504 or
     a dropped connection. A repeated write is treated as already committed. Errors name the service
     and GitHub errors print its request id.
+  • before any photo is uploaded to ImageKit, the same bytes are archived to the backups branch
+    (see section 2). If that archive write fails the upload is stopped, so every live photo has a
+    backup. Saving a product writes a details snapshot too, and the admin flash says whether the
+    backup copy was saved; deleting a product also keeps a final snapshot of it.
 Homepage tab: announcement (on/off, rotating messages, desktop + mobile fallback text),
 hero slides (on/off, image, eyebrow, title, highlight, text), promo cards (image, eyebrow, title, text,
 link, label), festive banner, category tile pictures, freebie threshold (Freebies over ₹).
@@ -137,7 +149,8 @@ Photos tab: "Check for unused photos" lists ImageKit photos in /nilaara/products
 homepage block mentions (hidden/inactive blocks still count as use; code-owned art counts as use;
 photos uploaded in the last 24 hours are skipped). Each row shows a thumbnail, size and upload date;
 Delete asks for confirmation, "Delete all" deletes the whole list. Deletion is permanent — there is no
-undo. When ImageKit is not configured the tab says so instead of offering a delete.
+undo, but the archived copy on the backups branch is untouched and can restore the photo.
+When ImageKit is not configured the tab says so instead of offering a delete.
 Every save is a commit on main and goes live without a developer.
 
 7. HARD RULES WHEN COMMITTING AND PUSHING  ← read this before any git command
@@ -148,7 +161,7 @@ A. NEVER commit frontend/src/content/** or frontend/public/uploads/**. They belo
 B. The owner's admin commits land on origin/main constantly. ALWAYS: git fetch origin, then
    git rebase origin/main (never force-push, never reset --hard over their work). Verify afterwards:
    git diff origin/main --stat -- frontend/src/content frontend/public/uploads   → must be EMPTY.
-C. Before committing: run in frontend/ — npm test (83 tests), npm run lint (oxlint: 0 errors; 9 known
+C. Before committing: run in frontend/ — npm test (89 tests), npm run lint (oxlint: 0 errors; 9 known
    react(set-state-in-effect) warnings are pre-existing), npm run build. Commit only source, tests,
    styles, docs. Never commit dist/, node_modules/, public/content/, public/sitemap.xml (generated), .env.
 D. Never commit secrets: GitHub OAuth client secret, ImageKit private key/public key, tokens. They live
@@ -174,7 +187,7 @@ I. Admin UI cannot be browser-verified without the owner's GitHub session. Test 
 J. UPDATE THIS FILE in the same commit as any change: sections 3–6 for behaviour and copy, section 8
    for state. If a feature is removed, delete its lines here — a stale brief is a defect.
 
-8. CURRENT STATE (2026-10-30)
+8. CURRENT STATE (2026-10-31)
 - Unless a bullet says otherwise, everything is on main and live via Vercel; /content/products.json
   "._commit" names the exact commit the live site is serving.
 - Catalogue has 3 published products, all added by the owner in the admin on 2026-10-30: w2000
@@ -204,3 +217,11 @@ J. UPDATE THIS FILE in the same commit as any change: sections 3–6 for behavio
   home.festive.image points at nil-mvt4bb7q (404), but the festive banner is switched off, so the
   homepage shows nothing broken. Upload a picture in Homepage → Festive before switching it on, or
   clear the image to use the built-in festive art. Tests: 83 passing.
+- BACKUPS (in this code commit, 2026-10-31): every photo is archived to the backups branch before
+  it reaches ImageKit, and each product add/update/delete writes a details snapshot there (see
+  section 2). The branch is created automatically on the first upload after this deploys;
+  vercel.json disables deployments for it so backups never spend the Hobby build quota. The admin
+  write path needs the owner's GitHub session, so it is logic-tested (test/backup.test.js) rather
+  than browser-verified. Only photos uploaded after this ships are archived; the photos already in
+  use (the 3 test products, one of them on ImageKit) are not re-copied, which is fine — there is
+  nothing older worth migrating. Tests: 89 passing.

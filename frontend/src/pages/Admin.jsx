@@ -4,6 +4,7 @@ import { formatINR } from "../data/products";
 import { categoryLabel, listCategories } from "../data/categories";
 import { Img } from "../components/Layout";
 import {
+  backupProductSnapshot,
   clearToken,
   getSession,
   getToken,
@@ -151,6 +152,7 @@ export default function Admin() {
     const nextDoc = { ...catalogue.doc, products: nextProducts };
     const saved = await saveCatalogue(nextDoc, catalogue.sha, message, session.token);
     setCatalogue({ products: nextProducts, sha: saved.sha, doc: nextDoc });
+    return saved;
   };
 
   const saveProduct = async (payload, original) => {
@@ -160,14 +162,25 @@ export default function Admin() {
       const next = original
         ? products.map((p) => (p.id === original.id ? payload : p))
         : [...products, payload];
-      await persist(
+      const action = original ? "Product updated" : "Product added";
+      const saved = await persist(
         next,
         original ? `Admin: update product “${payload.name}”` : `Admin: add product “${payload.name}”`
       );
       setEditing(null);
-      setFlash(
-        `${original ? "Product updated" : "Product added"} ✓ — live on the storefront now. Open Preview to check it.`
-      );
+      // The catalogue commit is already the safe copy of the details; this
+      // second copy exists so a restore never has to dig through git history.
+      let backupNote = "Backup copy saved.";
+      try {
+        await backupProductSnapshot(payload, {
+          reason: original ? "updated" : "added",
+          commit: saved?.commit,
+          token: session.token,
+        });
+      } catch {
+        backupNote = "Backup copy failed — save again to retry.";
+      }
+      setFlash(`${action} ✓ — live on the storefront now. ${backupNote} Open Preview to check it.`);
     } finally {
       setSaving(false);
     }
@@ -181,10 +194,21 @@ export default function Admin() {
     setFlash("");
     try {
       const next = products.filter((p) => p.id !== product.id);
-      await persist(next, `Admin: delete product “${product.name}”`);
+      const saved = await persist(next, `Admin: delete product “${product.name}”`);
+      // Keep the deleted product's details in the archive too. This never
+      // blocks the delete: the catalogue's git history already holds them.
+      try {
+        await backupProductSnapshot(product, {
+          reason: "deleted",
+          commit: saved?.commit,
+          token: session.token,
+        });
+      } catch {
+        /* details remain in the catalogue's git history */
+      }
       if (editing && editing !== "new" && editing.id === product.id) setEditing(null);
       setDeleted({ product, index });
-      setFlash("Product deleted ✓ — removed from the storefront now.");
+      setFlash("Product deleted ✓ — removed from the storefront now. A copy of its details is kept in the backup.");
     } catch (ex) {
       setLoadErr(ex.message);
     } finally {

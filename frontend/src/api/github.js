@@ -16,6 +16,15 @@ export const PRODUCTS_PATH = "frontend/src/content/products.json";
 export const SETTINGS_PATH = "frontend/src/content/settings.json";
 export const UPLOADS_DIR = "frontend/public/uploads";
 
+/**
+ * Archive branch for photos and product snapshots. It is never deployed,
+ * never served to shoppers, and nothing in the admin deletes from it, so a
+ * photo lost from the photo service or a product deleted by mistake can be
+ * recovered from here.
+ */
+export const BACKUP_BRANCH = "backups";
+export const BACKUP_DIR = "backups";
+
 const TOKEN_KEY = "nilaara-admin-token";
 const API_ROOT = "https://api.github.com";
 
@@ -282,6 +291,93 @@ export async function saveSettings(doc, sha, message, token = getToken()) {
   return saveFile(SETTINGS_PATH, text, message, sha, token);
 }
 
+/* ── Backups ──────────────────────────────────────────────────────────── */
+
+let backupBranchReady = null;
+
+/** Creates the backup branch from main the first time it is needed. */
+async function ensureBackupBranch(token = getToken()) {
+  if (!backupBranchReady) {
+    backupBranchReady = (async () => {
+      try {
+        await githubRequest(`/repos/${REPO}/git/ref/heads/${BACKUP_BRANCH}`, { token });
+        return;
+      } catch (ex) {
+        if (!(ex instanceof GitHubError) || ex.status !== 404) throw ex;
+      }
+      const main = await githubRequest(`/repos/${REPO}/git/ref/heads/${BRANCH}`, { token });
+      const sha = main?.object?.sha;
+      if (!sha) throw new GitHubError("GitHub did not return the branch to copy for backups.");
+      try {
+        await githubRequest(`/repos/${REPO}/git/refs`, {
+          method: "POST",
+          token,
+          body: { ref: `refs/heads/${BACKUP_BRANCH}`, sha },
+        });
+      } catch (ex) {
+        // A parallel upload may have created it first.
+        if (!(ex instanceof GitHubError) || ex.status !== 422) throw ex;
+      }
+    })().catch((ex) => {
+      backupBranchReady = null;
+      throw ex;
+    });
+  }
+  return backupBranchReady;
+}
+
+async function backupFile(path, base64, message, token) {
+  await ensureBackupBranch(token);
+  try {
+    await githubRequest(`/repos/${REPO}/contents/${encodedPath(path)}`, {
+      method: "PUT",
+      token,
+      attempts: 2,
+      body: { message, content: base64, branch: BACKUP_BRANCH },
+    });
+  } catch (ex) {
+    // A retried write can land after the first attempt actually committed.
+    if (ex instanceof GitHubError && ex.status === 422) {
+      const existing = await githubRequest(
+        `/repos/${REPO}/contents/${encodedPath(path)}?ref=${encodeURIComponent(BACKUP_BRANCH)}`,
+        { token }
+      ).catch(() => null);
+      if (existing?.content) return path;
+    }
+    throw ex;
+  }
+  return path;
+}
+
+/**
+ * Copies the exact photo bytes to the archive. Call it before the photo is
+ * used anywhere, so every photo on the site always has a backup.
+ */
+export async function backupPhoto(file, { name: fileName, token = getToken() } = {}) {
+  if (!file) throw new GitHubError("No photo to back up.");
+  const month = new Date().toISOString().slice(0, 7);
+  const name = fileName || photoFileName(file);
+  const path = `${BACKUP_DIR}/photos/${month}/${name}`;
+  await backupFile(path, await blobToBase64(file), `Backup: photo ${name}`, token);
+  return path;
+}
+
+/** Archives one product as it was, so details survive any later change. */
+export async function backupProductSnapshot(product, { reason = "saved", commit = "", token = getToken() } = {}) {
+  if (!product?.id) throw new GitHubError("No product to back up.");
+  const id = String(product.id).replace(/[^a-z0-9._-]+/gi, "-").replace(/^-+|-+$/g, "") || "product";
+  const at = new Date().toISOString();
+  const path = `${BACKUP_DIR}/products/${id}/${at.replace(/[:.]/g, "-")}-${reason}.json`;
+  const doc = { backedUpAt: at, reason, commit, product };
+  await backupFile(
+    path,
+    encodeBase64Utf8(`${JSON.stringify(doc, null, 2)}\n`),
+    `Backup: product “${product.name || product.id}”`,
+    token
+  );
+  return path;
+}
+
 /* ── Image uploads ────────────────────────────────────────────────────── */
 
 const slugify = (value) =>
@@ -356,13 +452,15 @@ async function compressImage(file) {
   return new File([best], `${base}.webp`, { type: "image/webp" });
 }
 
-const blobToBase64 = (blob) =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(String(reader.result || "").split(",")[1] || "");
-    reader.onerror = () => reject(new Error("Could not read that image."));
-    reader.readAsDataURL(blob);
-  });
+const blobToBase64 = async (blob) => {
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  let binary = "";
+  const chunk = 0x8000;
+  for (let i = 0; i < bytes.length; i += chunk) {
+    binary += String.fromCharCode(...bytes.subarray(i, i + chunk));
+  }
+  return btoa(binary);
+};
 
 const extensionFor = (file) => {
   const byType = {
@@ -378,6 +476,10 @@ const extensionFor = (file) => {
 
 export const IMAGEKIT_UPLOAD_URL = "https://upload.imagekit.io/api/v1/files/upload";
 export const IMAGEKIT_FOLDER = "/nilaara/products";
+
+/** Unique name shared by the ImageKit copy and the archived copy. */
+export const photoFileName = (file) =>
+  `${Date.now()}-${Math.random().toString(36).slice(2, 6)}-${slugify(file.name)}.${extensionFor(file)}`;
 
 /**
  * Short-lived ImageKit credentials from our own serverless function. Missing
@@ -432,8 +534,8 @@ export async function deleteImageKitPhoto(filePath, token = getToken()) {
   return data.deleted;
 }
 
-export async function uploadToImageKit(file, auth) {
-  const fileName = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}-${slugify(file.name)}.${extensionFor(file)}`;
+export async function uploadToImageKit(file, auth, name = photoFileName(file)) {
+  const fileName = name;
   const body = new FormData();
   body.append("file", file, file.name || `${fileName}.webp`);
   body.append("fileName", fileName);
@@ -467,12 +569,23 @@ export async function uploadImage(file, token = getToken()) {
 
   const prepared = await compressImage(file);
 
-  // ImageKit keeps photo bytes out of git history. Anything it cannot do
-  // (no keys yet, bad response) falls through to the commit upload below.
+  // ImageKit keeps photo bytes out of the storefront's git tree. Anything it
+  // cannot do (no keys yet, bad response) falls through to the commit upload
+  // below, which is itself a git copy.
   const auth = await imageKitAuth(token);
   if (auth) {
+    const name = photoFileName(prepared);
+    // Archive first: no photo reaches the storefront without a backup copy.
     try {
-      return await uploadToImageKit(prepared, auth);
+      await backupPhoto(prepared, { name, token });
+    } catch (ex) {
+      throw new GitHubError(
+        `The photo was not uploaded because its backup copy could not be saved. ${ex.message}`,
+        ex.status || 0
+      );
+    }
+    try {
+      return await uploadToImageKit(prepared, auth, name);
     } catch (ex) {
       console.warn("ImageKit upload failed; committing the photo to GitHub instead.", ex);
     }
