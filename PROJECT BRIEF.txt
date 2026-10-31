@@ -3,7 +3,7 @@ PROJECT BRIEF — Nilaara Jewellers website (nilaarashop-lab/nilaara-jewellers)
 LIVING PROMPT. This file describes the website as it is TODAY. Update it in the same change as any
 website edit — a new feature, changed wording, a new data field, a removed feature, a new rule.
 If this file and the code disagree, this file is wrong and must be fixed before the change is done.
-Last updated: 2026-10-30.
+Last updated: 2026-10-31.
 
 1. WHAT THE BUSINESS IS
 - Brand: Nilaara Jewellers. Artificial (imitation) jewellery, India. WhatsApp orders: +91 96331 36081.
@@ -96,7 +96,8 @@ category chips, Highlights (New Launches, Best Sellers), Edits (from customTag),
 (starts at 500, grows with the catalogue, at max = no cap), Apply button; mobile filter drawer.
 Sort: Featured / Price low→high / Price high→low. Every filter is in the URL (?cat ?col ?max ?q ?sort),
 so links are shareable. Empty states distinguish "no match" from "coming soon".
-Cards: photo, name, price, strikethrough MRP + % off, badges, sold-out overlay, wishlist heart,
+Cards: photo, a small line above the name with the category (left) and the product ID (right, faint),
+name, price, strikethrough MRP + % off, badges, sold-out overlay, wishlist heart,
 Buy Now (opens WhatsApp), Choose-a-chain link when the product has a chain option.
 Product page: gallery + thumbnails, badges, price/discount, stock states (in stock / "Hurry, only N
 left!" / out of stock), product ID, chain radio (Without / With +₹charge) which GATES Buy Now until
@@ -225,3 +226,8 @@ J. UPDATE THIS FILE in the same commit as any change: sections 3–6 for behavio
   than browser-verified. Only photos uploaded after this ships are archived; the photos already in
   use (the 3 test products, one of them on ImageKit) are not re-copied, which is fine — there is
   nothing older worth migrating. Tests: 89 passing.
+- CARD LINE (in the working tree, 2026-10-31, not yet committed): product cards now carry a small
+  line above the name — category on the left, product ID on the right in faint type — matching what
+  the search suggestions already show. Long categories truncate with "…"; the ID never truncates.
+  The same card is used on the shop, home, wishlist and product-page related rows, so all four
+  changed together. Tests still 89 passing, 0 lint errors.
