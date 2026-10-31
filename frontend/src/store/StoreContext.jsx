@@ -47,6 +47,7 @@ export function StoreProvider({ children }) {
   const queued = useRef(false);
   const pendingCommit = useRef("");
   const appliedCommit = useRef("");
+  const staleBuildCommit = useRef("");
   const commitMode = useRef(false);
   const previousPath = useRef(location.pathname);
   // Polling should not churn React state (or restart header search) when the
@@ -57,10 +58,19 @@ export function StoreProvider({ children }) {
   useEffect(() => save("nilaara-wish", wishlist), [wishlist]);
 
   const applyBuildContent = useCallback((live) => {
-    // A commit update is newer than this build. Wait for the build that
-    // includes that commit instead of reverting to older content.
+    // The build snapshot is the normal source. After an admin save, ignore the
+    // build that was already live at save time; accept the build that replaces
+    // it, even when rapid saves skip past the applied commit.
     const buildCommit = live.products?._commit || live.settings?._commit || "";
-    if (commitMode.current && buildCommit !== appliedCommit.current) return;
+    if (commitMode.current) {
+      if (buildCommit === appliedCommit.current) {
+        commitMode.current = false;
+      } else if (buildCommit === staleBuildCommit.current) {
+        return;
+      } else {
+        commitMode.current = false;
+      }
+    }
 
     if (live.products) {
       const next = normalizeProducts(live.products.products);
@@ -78,11 +88,10 @@ export function StoreProvider({ children }) {
         setSettings(next);
       }
     }
-    commitMode.current = false;
     setContentStatus(live.products || live.settings ? "live" : "fallback");
   }, []);
 
-  const applyCommitContent = useCallback((live, commit) => {
+  const applyCommitContent = useCallback((live, commit, buildCommit) => {
     if (live.products) {
       // Pin upload URLs to this commit: raw branch URLs can serve a cached
       // copy for a few minutes, which would hide a just-uploaded photo.
@@ -103,6 +112,7 @@ export function StoreProvider({ children }) {
     }
     if (live.products || live.settings) {
       appliedCommit.current = commit;
+      staleBuildCommit.current = buildCommit;
       commitMode.current = true;
       setContentStatus("live");
     }
@@ -122,7 +132,15 @@ export function StoreProvider({ children }) {
         const targetCommit = pendingCommit.current;
         pendingCommit.current = "";
         if (targetCommit) {
-          applyCommitContent(await loadCommitContent(targetCommit), targetCommit);
+          // Remember which build was live when this save happened. That build
+          // must not overwrite the commit; the next build should.
+          const [commitLive, buildLive] = await Promise.all([
+            loadCommitContent(targetCommit),
+            loadBuildContent(),
+          ]);
+          const buildCommit =
+            buildLive.products?._commit || buildLive.settings?._commit || "";
+          applyCommitContent(commitLive, targetCommit, buildCommit);
         } else {
           applyBuildContent(await loadBuildContent());
         }
