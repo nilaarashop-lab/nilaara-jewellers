@@ -191,10 +191,15 @@ J. UPDATE THIS FILE in the same commit as any change: sections 3–6 for behavio
 8. CURRENT STATE (2026-10-31)
 - Unless a bullet says otherwise, everything is on main and live via Vercel; /content/products.json
   "._commit" names the exact commit the live site is serving.
-- Catalogue has 3 published products, all added by the owner in the admin on 2026-10-30: w2000
-  "test2" (stock 1) and w2001 "test23" (stock 7) with their two cropped photos committed to the repo
-  (files end in "-cropped.webp"), and w2002 "test7" (stock 10, commit 8647f6b) whose two photos are
-  on ImageKit. Announcement bar is off; freebies threshold ₹5,000.
+- CATALOGUE, since this commit (2026-10-31): 34 published products, wh0001 … wh0034, added as one
+  bulk import at the owner's request — all named "White Stone Jeweller", category White Stone,
+  price ₹799 / MRP ₹1,499, stock 1, two photos each in pair order. The 68 photos are WebP files in
+  /uploads (wh0001.webp + wh0001-1.webp, max edge 1600, 8.6 MB total); the WH0001.jpg / WH0001-1.jpg
+  originals stay on the owner's D: drive. IDs are stored lowercase because the admin normalises every
+  ID to lowercase — search "WH0001" still matches it. The four test products (w2000 test2, w2001
+  test23, w2002 test7, w2003 test6) and their four repo photos are deleted permanently. Their
+  ImageKit photos remain until the owner runs Photos → unused (photos younger than 24 h are skipped,
+  so test6's wait a day). Announcement bar is off; freebies threshold ₹5,000.
 - Shipped and live: photo crop tool, ↻ Rotate 90°, duplicate-ID guard, Parinaya Rentals store names,
   online-sale/offline-rental wording, upload retry on GitHub server errors.
 - AUDIT FIXES, 2026-10-30 (in this code commit): one source for store hours (10:30 AM – 9:00 PM daily)
@@ -206,7 +211,9 @@ J. UPDATE THIS FILE in the same commit as any change: sections 3–6 for behavio
 - IMAGEKIT, live since 4258813 (2026-10-30): uploads go through the signed endpoint
   frontend/api/imagekit.js to the nilaara/products folder, with the GitHub commit as automatic
   fallback. Keys are set in Vercel; the owner's test7 save proved it (only products.json changed,
-  no upload commit). Photos uploaded before that stay in the repo (6 /uploads files, all in use).
+  no upload commit). Photos uploaded before that stay in the repo (after the 2026-10-31 import:
+  70 /uploads files, all in use). The 68 white-stone photos went to the repo, not ImageKit,
+  because that bulk import ran from the owner's PC where the ImageKit keys are not available.
 - FASTER PHOTOS + ANALYTICS (in commit 00db9e8): ImageKit images now request a width fit for their
   slot (see section 2), and @vercel/analytics is installed and injected. Analytics stays dark until
   the owner enables Web Analytics once in the Vercel dashboard and redeploys.
@@ -226,8 +233,8 @@ J. UPDATE THIS FILE in the same commit as any change: sections 3–6 for behavio
   than browser-verified. Only photos uploaded after this ships are archived; the photos already in
   use (the 3 test products, one of them on ImageKit) are not re-copied, which is fine — there is
   nothing older worth migrating. Tests: 89 passing.
-- CARD LINE (in the working tree, 2026-10-31, not yet committed): product cards now carry a small
-  line above the name — category on the left, product ID on the right in faint type — matching what
-  the search suggestions already show. Long categories truncate with "…"; the ID never truncates.
-  The same card is used on the shop, home, wishlist and product-page related rows, so all four
-  changed together. Tests still 89 passing, 0 lint errors.
+- CARD LINE (commit 35e0613, shipped with the 2026-10-31 catalogue import): product cards carry a
+  small line above the name — category on the left, product ID on the right in faint type — matching
+  what the search suggestions already show. Long categories truncate with "…"; the ID never
+  truncates. The same card is used on the shop, home, wishlist and product-page related rows, so all
+  four changed together. Tests still 89 passing, 0 lint errors.
