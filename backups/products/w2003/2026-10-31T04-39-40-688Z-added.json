@@ -1,0 +1,34 @@
+{
+  "backedUpAt": "2026-10-31T04:39:40.688Z",
+  "reason": "added",
+  "commit": "9de9baeb879a52cfaf44e1453da930a06ce1ffaf",
+  "product": {
+    "id": "w2003",
+    "slug": "w2003",
+    "name": "test6",
+    "category": "white-stone",
+    "metal": "",
+    "purity": "",
+    "size": "",
+    "price": 799,
+    "mrp": 1499,
+    "makingCharges": 0,
+    "stock": 10,
+    "lowStockThreshold": 5,
+    "trackInventory": true,
+    "customTag": "",
+    "chainOption": false,
+    "chainCharge": 0,
+    "bestseller": false,
+    "newArrival": true,
+    "featured": false,
+    "rating": 0,
+    "reviews": 0,
+    "images": [
+      "https://ik.imagekit.io/w4bq6axnq/nilaara/products/1793421561391-c5oc-dsc00209-cropped_vM6IGs6Db.webp",
+      "https://ik.imagekit.io/w4bq6axnq/nilaara/products/1793421575656-tgmy-dsc00210-cropped_FNUdNqreG.webp"
+    ],
+    "desc": "",
+    "status": "published"
+  }
+}
