@@ -191,14 +191,17 @@ J. UPDATE THIS FILE in the same commit as any change: sections 3–6 for behavio
 8. CURRENT STATE (2026-10-31)
 - Unless a bullet says otherwise, everything is on main and live via Vercel; /content/products.json
   "._commit" names the exact commit the live site is serving.
-- CATALOGUE, since this commit (2026-10-31): 50 published products, wh0001 … wh0050, in two bulk
-  imports at the owner's request — all named "White Stone Jeweller", category White Stone,
-  price ₹799 / MRP ₹1,499, stock 1, two photos each in pair order. Batch 1 is wh0001 … wh0034 (68
-  photos, "WHITE STONE\Untitled Export"); batch 2 is wh0035 … wh0050 (32 photos, renamed with the
-  Photo Pair Renamer from "WHITE STONE\2\Untitled Export", WG-1 … WG-32 → WH0035, WH0035-1, …).
-  The 100 photos are WebP files in /uploads (wh0001.webp + wh0001-1.webp, max edge 1600, ~11 MB
-  total, batch 2's 32 files ~3.4 MB); the JPG originals stay on the owner's D: drive. IDs are stored
-  lowercase because the admin normalises every ID to lowercase — search "WH0001" still matches it.
+- CATALOGUE, since this commit (2026-10-31): 62 published products, wh0001 … wh0050 and ts0001 …
+  ts0012, in three bulk imports at the owner's request, two photos each in pair order. The 50 White
+  Stone pieces are named "White Stone Jeweller", category White Stone: batch 1 is wh0001 … wh0034
+  (68 photos, "WHITE STONE\Untitled Export"); batch 2 is wh0035 … wh0050 (32 photos, renamed with the
+  Photo Pair Renamer from "WHITE STONE\2\Untitled Export", WG-1 … WG-32 → WH0035, WH0035-1, …). Batch
+  3 is 12 Temple Jewellery pieces, ts0001 … ts0012 (24 photos renamed TS0001 … TS0012 from "TEMPLE
+  JEWELLERY"), named "Temple Jewellery", category Temple Jewellery. All three batches use price ₹799
+  / MRP ₹1,499, stock 1 and are published. The 124 photos are WebP files in /uploads (wh0001.webp +
+  wh0001-1.webp, max edge 1600, ~18 MB total: white stone ~11 MB, temple jewellery ~7.2 MB); the JPG
+  originals stay on the owner's D: drive. IDs are stored lowercase because the admin normalises every
+  ID to lowercase — search "WH0001" or "TS0001" still matches it.
   The four test products (w2000 test2, w2001
   test23, w2002 test7, w2003 test6) and their four repo photos are deleted permanently. Their
   ImageKit photos remain until the owner runs Photos → unused (photos younger than 24 h are skipped,
@@ -215,8 +218,9 @@ J. UPDATE THIS FILE in the same commit as any change: sections 3–6 for behavio
   frontend/api/imagekit.js to the nilaara/products folder, with the GitHub commit as automatic
   fallback. Keys are set in Vercel; the owner's test7 save proved it (only products.json changed,
   no upload commit). Photos uploaded before that stay in the repo (after the 2026-10-31 imports:
-  102 /uploads files, all in use). The 100 white-stone photos went to the repo, not ImageKit,
-  because those bulk imports ran from the owner's PC where the ImageKit keys are not available.
+  126 /uploads files, all in use). The 124 white-stone and temple-jewellery photos went to the repo,
+  not ImageKit, because those bulk imports ran from the owner's PC where the ImageKit keys are not
+  available.
 - FASTER PHOTOS + ANALYTICS (in commit 00db9e8): ImageKit images now request a width fit for their
   slot (see section 2), and @vercel/analytics is installed and injected. Analytics stays dark until
   the owner enables Web Analytics once in the Vercel dashboard and redeploys.
