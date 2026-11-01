@@ -9,6 +9,7 @@ const json = (body, status = 200) => ({
 });
 
 const photo = (name) => ({
+  fileId: `id_${name}`,
   filePath: `/nilaara/products/${name}`,
   url: `https://ik.imagekit.io/w4bq6axnq/nilaara/products/${name}`,
   name,
@@ -31,6 +32,7 @@ test("lists the storefront folder with the private key as basic auth", async () 
   assert.equal(calls[0].init.headers.Authorization, `Basic ${Buffer.from("priv_x:").toString("base64")}`);
   assert.deepEqual(files, [
     {
+      fileId: "id_a.png",
       path: "/nilaara/products/a.png",
       url: "https://ik.imagekit.io/w4bq6axnq/nilaara/products/a.png",
       name: "a.png",
@@ -78,22 +80,41 @@ test("refuses a path outside the folder before calling ImageKit", async () => {
   assert.equal(called, false);
 });
 
-test("deletes one photo by path", async () => {
+/** Answers the folder listing with `files` and every delete with an empty 200. */
+const adminApi = (files = [photo("old one.png")]) => {
   const calls = [];
   const fetchImpl = async (url, init) => {
-    calls.push({ url, init });
-    return json({});
+    calls.push({ url: String(url), method: init?.method, init });
+    return init?.method === "DELETE" ? json({}) : json(files);
   };
+  return { calls, fetchImpl };
+};
+
+test("deletes the id the folder listing reported for that path", async () => {
+  const { calls, fetchImpl } = adminApi();
 
   const result = await deletePhoto({ privateKey: "priv_x", filePath: "/nilaara/products/old one.png", fetchImpl });
 
   assert.deepEqual(result, { deleted: "/nilaara/products/old one.png" });
-  assert.equal(calls[0].init.method, "DELETE");
-  assert.match(calls[0].url, /filePath=%2Fnilaara%2Fproducts%2Fold%20one\.png$/);
+  assert.deepEqual(calls.map((call) => call.method), [undefined, "DELETE"]);
+  assert.equal(calls[1].url, "https://api.imagekit.io/v1/files/id_old%20one.png");
+  assert.equal(calls[1].init.headers.Accept, "application/json");
+});
+
+test("a path the listing no longer contains is never deleted", async () => {
+  const { calls, fetchImpl } = adminApi([photo("a.png")]);
+
+  await assert.rejects(
+    deletePhoto({ privateKey: "priv_x", filePath: "/nilaara/products/gone.png", fetchImpl }),
+    /no longer in the storefront folder/
+  );
+  assert.deepEqual(calls.map((call) => call.method), [undefined]);
 });
 
 test("surfaces ImageKit's message when a delete fails", async () => {
-  const fetchImpl = async () => json({ message: "File not found" }, 404);
+  const fetchImpl = async (url, init) =>
+    init?.method === "DELETE" ? json({ message: "File not found" }, 404) : json([photo("gone.png")]);
+
   await assert.rejects(deletePhoto({ privateKey: "priv_x", filePath: "/nilaara/products/gone.png", fetchImpl }), /File not found/);
 });
 
@@ -138,12 +159,12 @@ test("an action of list returns the folder's photos", async () => {
   assert.deepEqual(body.files.map((f) => f.path), ["/nilaara/products/a.png"]);
 });
 
-test("an action of delete passes the path through to ImageKit", async () => {
+test("an action of delete resolves the path and deletes by id", async () => {
   configure();
   const seen = [];
   globalThis.fetch = staffToken(async (url, init) => {
     seen.push({ url: String(url), method: init?.method });
-    return json({});
+    return init?.method === "DELETE" ? json({}) : json([photo("old.png")]);
   });
   const res = fakeRes();
 
@@ -159,6 +180,7 @@ test("an action of delete passes the path through to ImageKit", async () => {
   assert.equal(res.statusCode, 200);
   assert.equal(JSON.parse(res.body).deleted, "/nilaara/products/old.png");
   assert.equal(seen.at(-1).method, "DELETE");
+  assert.equal(seen.at(-1).url, "https://api.imagekit.io/v1/files/id_old.png");
 });
 
 test("deleting outside the storefront folder is a 400", async () => {

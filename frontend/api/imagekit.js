@@ -63,6 +63,7 @@ const readBody = (req) => {
 };
 
 const photo = (file) => ({
+  fileId: String(file?.fileId || file?.id || ""),
   path: String(file?.filePath || ""),
   url: String(file?.url || ""),
   name: String(file?.name || ""),
@@ -103,11 +104,17 @@ export function isManagedPhotoPath(path) {
 
 export async function deletePhoto({ privateKey, filePath, fetchImpl = fetch }) {
   if (!isManagedPhotoPath(filePath)) throw failure(400, "That photo is not in the storefront folder.");
+  // ImageKit deletes by file id, and the id is only trusted when it comes from
+  // our own folder listing — an id handed to us by the browser could point at
+  // any file in the account, so the path is verified first and then resolved.
+  const files = await listFolderPhotos({ privateKey, fetchImpl });
+  const fileId = files.find((file) => file.path === filePath)?.fileId;
+  if (!fileId) throw failure(404, "That photo is no longer in the storefront folder.");
   let res;
   try {
-    res = await fetchImpl(`${IMAGEKIT_FILES_API}?filePath=${encodeURIComponent(filePath)}`, {
+    res = await fetchImpl(`${IMAGEKIT_FILES_API}/${encodeURIComponent(fileId)}`, {
       method: "DELETE",
-      headers: { Authorization: basicAuth(privateKey) },
+      headers: { Accept: "application/json", Authorization: basicAuth(privateKey) },
     });
   } catch {
     throw failure(502, "Couldn't reach ImageKit. Check your internet connection and try again.");

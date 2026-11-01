@@ -49,6 +49,9 @@ Last updated: 2026-11-01.
   ~6 KB as a thumbnail; non-ImageKit URLs are left untouched.
   The same endpoint (action "list" / "delete") lists and deletes photos in that folder for the admin
   Photos tab, behind the same GitHub push gate. Only paths starting /nilaara/products/ can be deleted.
+  ImageKit deletes by file id, so the endpoint re-reads the folder listing and uses the id ImageKit
+  reported for that path — an id sent by the browser could point at any file in the account. The older
+  delete-by-filePath request is refused by ImageKit with a 403, so it is not used.
   Photo references that live in code (the hero fallback / og:image in HERO_PHOTO, src/data/products.js)
   count as used and are never offered for deletion.
 - Backups (added 2026-10-31): every photo is copied to the "backups" branch
