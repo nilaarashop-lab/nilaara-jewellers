@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { categoryLabel, listCategories, slugify } from "../data/categories";
+import { clampPage, pageCount, pageSlice, pageWindow } from "../data/pagination";
 import { ProductCard } from "../components/Layout";
 import { usePageMeta } from "../components/meta";
 import { matchesQuery } from "../api/client";
@@ -116,8 +117,22 @@ export default function Shop() {
   const set = (k, v) => {
     const n = new URLSearchParams(params);
     if (!v) n.delete(k); else n.set(k, v);
+    // Any filter, sort or search change restarts the listing at page 1.
+    n.delete("page");
     // replace: live search/sort changes shouldn't add a history entry per keystroke.
     setParams(n, { replace: true });
+  };
+
+  const pages = pageCount(filtered.length);
+  const page = clampPage(params.get("page"), filtered.length);
+  const shown = pageSlice(filtered, page);
+
+  const goPage = (n) => {
+    const next = new URLSearchParams(params);
+    // Page 1 is the default view, so it keeps a clean URL.
+    if (n <= 1) next.delete("page"); else next.set("page", String(n));
+    setParams(next, { replace: true });
+    window.scrollTo({ top: 0, behavior: "smooth" });
   };
 
   const applyFilters = () => {
@@ -127,6 +142,7 @@ export default function Shop() {
     // A cap at the slider maximum means "no cap" — keep the URL clean.
     if (draftPrice == null || draftPrice >= priceCap) n.delete("max");
     else n.set("max", String(draftPrice));
+    n.delete("page");
     setParams(n);
     setFiltersOpen(false);
     window.scrollTo({ top: 0, behavior: "smooth" });
@@ -198,7 +214,35 @@ export default function Shop() {
             </div>
           </div>
           {filtered.length === 0 ? <div className="empty">{cat ? "Coming soon — designs for this section are being added. Ask us on WhatsApp and we'll tell you the moment they're up." : "No designs match. Try clearing filters."}</div>
-            : <div className="grid grid-3">{filtered.map((p) => <ProductCard key={p.id} p={p} />)}</div>}
+            : (
+              <>
+                <div className="grid grid-3">{shown.map((p) => <ProductCard key={p.id} p={p} />)}</div>
+                {pages > 1 && (
+                  <nav className="pager" aria-label="More designs">
+                    <button type="button" className="pg-nav" disabled={page <= 1} onClick={() => goPage(page - 1)}>‹ Prev</button>
+                    {pageWindow(pages, page).map((n, i) =>
+                      n === null ? (
+                        <span key={`gap-${i}`} className="pg-gap" aria-hidden="true">…</span>
+                      ) : (
+                        <button
+                          key={n}
+                          type="button"
+                          className={n === page ? "on" : ""}
+                          aria-current={n === page ? "page" : undefined}
+                          onClick={() => goPage(n)}
+                        >
+                          {n}
+                        </button>
+                      )
+                    )}
+                    <button type="button" className="pg-nav" disabled={page >= pages} onClick={() => goPage(page + 1)}>Next ›</button>
+                  </nav>
+                )}
+                <p className="pager-note">
+                  Showing {(page - 1) * shown.length + 1}–{(page - 1) * shown.length + shown.length} of {filtered.length} designs
+                </p>
+              </>
+            )}
         </div>
       </div>
     </main>

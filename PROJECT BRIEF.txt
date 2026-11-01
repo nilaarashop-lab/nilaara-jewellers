@@ -73,7 +73,11 @@ Last updated: 2026-11-01.
 /                Home: auto-rotating hero (admin slides or built-in festive hero), trust strip,
                  Shop by Category tiles, promo cards, Best Sellers, New Arrivals, Instagram strip,
                  "Visit us in person — Two stores" rental-invite block.
-/shop            Catalogue with filters/sort/search (details in 5).
+/shop            Catalogue with filters/sort/search (details in 5). Eight pieces per page: the page
+                 number lives in the URL (?page=3, page 1 stays clean), any filter/sort/search change
+                 or Apply resets it to 1, and a stale or junk value is clamped to the last real page.
+                 The bar shows first/last/current ± 1 with … for jumps, and a "Showing 9–16 of 143
+                 designs" line under it. Helpers in src/data/pagination.js (PAGE_SIZE is the one knob).
 /product/:id     Product detail (details in 5).
 /wishlist        Saved pieces (localStorage, survives reload); the header badge counts only pieces
                  that still exist in the catalogue.
@@ -115,11 +119,11 @@ category chips, Highlights (New Launches, Best Sellers), Edits (from customTag),
 Sort: Featured / Price low→high / Price high→low. Every filter is in the URL (?cat ?col ?max ?q ?sort),
 so links are shareable. Empty states distinguish "no match" from "coming soon".
 Cards: photo, a small line above the name with the category (left) and the product ID (right, faint),
-name, price, strikethrough MRP + % off, badges, sold-out overlay, wishlist heart,
-Buy Now → the product page (WhatsApp ordering lives there, where the chain choice and the exact
-price are shown).
-Product page: gallery + thumbnails, badges, price/discount, stock states (in stock / "Hurry, only N
-left!" / out of stock), product ID, chain radio (Without / With +₹charge) which GATES Buy Now until
+name, price, strikethrough MRP + % off, badges, sold-out overlay, wishlist heart, the low-stock line
+("Limited stocks only!" — never the actual count), Buy Now → the product page (WhatsApp ordering lives
+there, where the chain choice and the exact price are shown).
+Product page: gallery + thumbnails, badges, price/discount, stock states (in stock / "Limited stocks
+only!" / out of stock), product ID, chain radio (Without / With +₹charge) which GATES Buy Now until
 chosen, WhatsApp Buy Now with name + product ID + chosen chain + total pre-filled, wishlist, details /
 shipping (dispatch 24 h, delivery 3–5 days) / care accordions, "You may also love".
 Stores page: two map iframes (9.5917471,76.5259062 and 9.617801,76.532909), 10:30 AM–9:00 PM daily,

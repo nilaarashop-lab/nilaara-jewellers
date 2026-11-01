@@ -433,6 +433,14 @@ h1,h2,h3,h4{color:var(--maroon)}
 .chip:hover{border-color:var(--maroon);color:var(--maroon)}
 .chip.on{background:var(--maroon);color:#FFF3D6;border-color:var(--maroon);font-weight:600}
 .filters-bar{display:none}
+.pager{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;align-items:center;margin:30px 0 4px}
+.pager button{min-width:42px;height:42px;padding:0 13px;border:1px solid var(--line);border-radius:999px;background:var(--card);color:var(--ink-soft);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:.18s}
+.pager button:hover:not(:disabled){border-color:var(--maroon);color:var(--maroon)}
+.pager button.on{background:linear-gradient(135deg,var(--maroon),var(--maroon-deep));border-color:var(--maroon);color:var(--gold-bright)}
+.pager button:disabled{opacity:.4;cursor:default}
+.pager .pg-gap{color:var(--muted);font-size:15px;padding:0 2px}
+.pager-note{text-align:center;color:var(--ink-soft);font-size:13px;margin:10px 0 0}
+@media (max-width:560px){.pager{gap:6px;margin-top:22px}.pager button{min-width:38px;height:38px;padding:0 10px;font-size:13px}}
 .toolbar{display:flex;gap:12px;align-items:center;margin-bottom:14px;flex-wrap:wrap}
 .toolbar input{height:44px;border:1px solid var(--line);border-radius:999px;padding:0 15px;font-family:inherit;font-size:14px;background:var(--card);color:var(--ink);outline:0}
 .toolbar input:focus{border-color:var(--gold);box-shadow:0 0 0 3px rgba(199,164,92,.14)}

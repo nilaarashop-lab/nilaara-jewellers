@@ -70,7 +70,7 @@ export default function Product() {
           <h1>{p.name}</h1>
           <div className="pr" style={{ marginTop: 10 }}><b>{formatINR(shownPrice)}</b>{off > 0 && <><s>{formatINR(p.mrp)}</s><em>{off}% off</em></>}</div>
           <p style={{ color: "var(--green)", fontSize: 14 }}>Inclusive of all taxes</p>
-          <p className={`stock ${soldOut ? "out" : low ? "low" : "in"}`} style={{ marginTop: 0 }}>{soldOut ? "Out of stock — back soon" : low ? `Hurry, only ${p.stock} left!` : "In stock • ready to ship"}</p>
+          <p className={`stock ${soldOut ? "out" : low ? "low" : "in"}`} style={{ marginTop: 0 }}>{soldOut ? "Out of stock — back soon" : low ? "Limited stocks only!" : "In stock • ready to ship"}</p>
           <p style={{ color: "var(--ink-soft)", lineHeight: 1.7 }}>{p.desc}</p>
           <p className="pd-id">Product ID: <code>{p.id}</code></p>
           {p.chainOption && (

@@ -69,7 +69,7 @@ export function ProductCard({ p }) {
         </div>
         <Link to={`/product/${p.id}`} className="card-title"><h3>{p.name}</h3></Link>
         <div className="pr"><b>{formatINR(p.price)}</b>{off > 0 && <><s>{formatINR(p.mrp)}</s><em>{off}% off</em></>}</div>
-        {!soldOut && low && <div className="stock low">Only {p.stock} left</div>}
+        {!soldOut && low && <div className="stock low">Limited stocks only!</div>}
         <div className="card-actions">
           {soldOut ? (
             <button className="add" disabled>Sold Out</button>
