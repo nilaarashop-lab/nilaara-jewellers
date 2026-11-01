@@ -62,7 +62,7 @@ There is **no `.env` or API URL to configure** for the storefront.
 
 GitHub OAuth is hosted by Vercel, so local `/admin` login is not available with
 plain `vite dev`. Use the deployed admin at
-`https://nilaara-jewellers.vercel.app/admin`, run the project with `vercel dev`,
+`https://www.nilaarajewellers.com/admin`, run the project with `vercel dev`,
 or edit the JSON files directly.
 
 ## Editing content
@@ -99,9 +99,9 @@ the WhatsApp message, so keep it unique.
 The Vercel project must use **Root Directory = `frontend`**.
 
 1. Create a GitHub OAuth App:
-   - **Homepage URL**: `https://nilaara-jewellers.vercel.app`
+   - **Homepage URL**: `https://www.nilaarajewellers.com`
    - **Authorization callback URL**:
-     `https://nilaara-jewellers.vercel.app/api/callback`
+     `https://www.nilaarajewellers.com/api/callback`
 2. In Vercel → Project → Settings → Environment Variables, add:
    - `GITHUB_OAUTH_CLIENT_ID`
    - `GITHUB_OAUTH_CLIENT_SECRET`

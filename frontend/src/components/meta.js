@@ -9,7 +9,7 @@ import { useEffect } from "react";
  * prerendering, which this site does not have.
  */
 const SITE = "Nilaara Jewellers";
-export const SITE_ORIGIN = "https://nilaara-jewellers.vercel.app";
+export const SITE_ORIGIN = "https://www.nilaarajewellers.com";
 
 const DEFAULT_TITLE = `${SITE} • Artificial Jewellery`;
 const DEFAULT_DESCRIPTION =

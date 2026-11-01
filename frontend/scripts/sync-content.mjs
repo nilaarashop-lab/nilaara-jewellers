@@ -16,7 +16,7 @@ const source = resolve(root, "src/content");
 const output = resolve(root, "public/content");
 const publicDir = resolve(root, "public");
 const commit = process.env.VERCEL_GIT_COMMIT_SHA || "";
-const site = (process.env.SITE_URL || "https://nilaara-jewellers.vercel.app").replace(/\/+$/, "");
+const site = (process.env.SITE_URL || "https://www.nilaarajewellers.com").replace(/\/+$/, "");
 
 mkdirSync(output, { recursive: true });
 

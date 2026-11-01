@@ -20,6 +20,13 @@ Last updated: 2026-11-01.
 - Hosting: Vercel, project root = frontend/. Build = "npm run build"; prebuild runs
   scripts/sync-content.mjs which copies src/content/*.json into public/content/, stamps "_commit",
   and writes public/sitemap.xml from the catalogue (static routes + one URL per published product).
+- Live domain: https://www.nilaarajewellers.com (bought in Vercel; the bare
+  nilaarajewellers.com 308-redirects to www). https://nilaara-jewellers.vercel.app still serves the
+  same build and is only a fallback address. SITE_ORIGIN (src/components/meta.js), the og:url in
+  index.html, robots.txt and the sync-content default all name the www host, and Vercel's SITE_URL
+  must match it: it fixes the OAuth redirect_uri, the sitemap and the share previews to one address.
+  The GitHub OAuth App's callback URL must be https://www.nilaarajewellers.com/api/callback exactly —
+  GitHub matches it character for character, so admin sign-in breaks on any other host.
 - SPA rewrite: every unknown path serves index.html (so a missing asset returns HTTP 200 + HTML).
 - Catalogue source of truth: frontend/src/content/products.json and settings.json (committed).
 - Runtime freshness: storefront fetches /content/products.json + settings.json (no-store, ?v=timestamp)
@@ -202,7 +209,7 @@ E. Commit and push are separate actions. Commit when asked to commit; push only 
 F. Commit message: what changed and why, in plain language (the owner reads them). One bundled commit
    is fine for a related feature set; don't split for the sake of it.
 G. After pushing, VERIFY THE LIVE SITE — don't trust the push:
-   1) poll https://nilaara-jewellers.vercel.app/content/products.json until "_commit" equals the pushed
+   1) poll https://www.nilaarajewellers.com/content/products.json until "_commit" equals the pushed
       SHA (takes ~30–120 s);
    2) load /, /shop, /stores and one /product/:id — correct copy, same product count as the commit,
       zero broken images;

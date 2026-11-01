@@ -42,8 +42,8 @@ GitHub → Settings → Developer settings → OAuth Apps → **New OAuth App**:
 | Field | Value |
 | --- | --- |
 | Application name | Nilaara Admin |
-| Homepage URL | `https://nilaara-jewellers.vercel.app` |
-| Authorization callback URL | `https://nilaara-jewellers.vercel.app/api/callback` |
+| Homepage URL | `https://www.nilaarajewellers.com` |
+| Authorization callback URL | `https://www.nilaarajewellers.com/api/callback` |
 
 Copy the **Client ID**, then generate a **Client Secret**.
 
@@ -58,7 +58,7 @@ Project → Settings → Environment Variables (Production, and Preview if neede
 | --- | --- |
 | `GITHUB_OAUTH_CLIENT_ID` | OAuth App Client ID |
 | `GITHUB_OAUTH_CLIENT_SECRET` | OAuth App Client Secret |
-| `SITE_URL` | optional; defaults to the request origin. Set to `https://nilaara-jewellers.vercel.app` if using a custom domain/proxy |
+| `SITE_URL` | `https://www.nilaarajewellers.com` — the one address admin sign-in, the sitemap and the share previews use. Defaults to the request origin when unset, which splits those three across whichever host answered |
 
 The secret stays in the Vercel function and is never included in the browser
 bundle.
@@ -74,7 +74,7 @@ Remove someone's repository access to remove admin access.
 
 ## 3. Editing flow
 
-1. Open `https://nilaara-jewellers.vercel.app/admin`.
+1. Open `https://www.nilaarajewellers.com/admin`.
 2. Sign in with GitHub.
 3. Edit **Products** or **Homepage**.
 4. Save.
