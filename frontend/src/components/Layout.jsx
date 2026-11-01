@@ -1,5 +1,5 @@
 import { Link, NavLink, useNavigate, useLocation } from "react-router-dom";
-import { Fragment, useEffect, useId, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { useStore } from "../store/StoreContext";
 import { discountPercent, formatINR } from "../data/products";
 import { categoryLabel, listCategories } from "../data/categories";
@@ -7,7 +7,7 @@ import { freebiesLabel } from "../data/freebies";
 import { isLowStock, isSoldOut } from "../data/inventory";
 import { STORE_HOURS } from "../data/stores";
 import { imageKitUrl, mediaUrl } from "../data/repo.js";
-import { whatsappChatLink, productEnquiryLink, WHATSAPP_DISPLAY } from "../config";
+import { whatsappChatLink, WHATSAPP_DISPLAY } from "../config";
 import { searchProducts } from "../api/client";
 
 /* ── Icon set (single stroke style, currentColor — inherits hover states) ── */
@@ -73,19 +73,10 @@ export function ProductCard({ p }) {
         <div className="card-actions">
           {soldOut ? (
             <button className="add" disabled>Sold Out</button>
-          ) : p.chainOption ? (
-            // The chain has to be picked before an order makes sense.
-            <Link className="add" to={`/product/${p.id}`} aria-label={`Choose a chain for ${p.name}`}>Buy Now</Link>
           ) : (
-            <a
-              className="add add-wa"
-              href={productEnquiryLink(p)}
-              target="_blank"
-              rel="noreferrer"
-              aria-label={`Buy ${p.name} on WhatsApp`}
-            >
-              <IconWhatsApp /> Buy Now
-            </a>
+            // Ordering needs the chain choice and the exact price, so the card
+            // takes the shopper to the piece instead of opening WhatsApp.
+            <Link className="add" to={`/product/${p.id}`} aria-label={`Buy ${p.name}`}>Buy Now</Link>
           )}
         </div>
       </div>
@@ -529,8 +520,6 @@ export function Header() {
 }
 
 export function Footer() {
-  const { products } = useStore();
-  const cats = useMemo(() => listCategories(products), [products]);
   return (
     <footer className="footer">
       <div className="container">
@@ -538,31 +527,21 @@ export function Footer() {
           <div>
             <img className="footer-logo" src="/nilaara-logo.png" alt="Nilaara Jewellers" />
             <p>Premium artificial jewellery — handcrafted in India. Skin-friendly, nickel-safe, made for weddings, festivals & everyday elegance.</p>
-            <p style={{ marginTop: 10 }}>© 2026 Nilaara Jewellers. All rights reserved.</p>
           </div>
           <div>
             <h4>Care</h4>
             <p><a href={whatsappChatLink()} target="_blank" rel="noreferrer">Chat on WhatsApp</a><br /><Link to="/stores">Our 2 Stores + Directions</Link><br /><Link to="/about#shipping">Shipping Policy</Link><br /><Link to="/about#care">Jewellery Care</Link><br /><Link to="/contact">Contact Us</Link></p>
           </div>
           <div>
-            <h4>Shop</h4>
-            <p>{cats.map((c, i) => (
-              <Fragment key={c.slug}>
-                {i > 0 && <br />}
-                <Link to={`/shop?cat=${c.slug}`}>{c.name}</Link>
-              </Fragment>
-            ))}</p>
-          </div>
-          <div>
             <h4>Order on WhatsApp</h4>
-            <p>Pick any piece, tap Buy Now and its name and product ID are filled into WhatsApp for you. We'll confirm availability and book it in chat.</p>
-            <a className="btn btn-gold news-cta" href={whatsappChatLink()} target="_blank" rel="noreferrer" style={{ marginTop: 4 }}>
+            <p>Open any piece and tap Buy Now — its name and product ID are filled into WhatsApp for you. We'll confirm availability and book it in chat.</p>
+            <a className="btn btn-gold news-cta" href={whatsappChatLink()} target="_blank" rel="noreferrer">
               <IconWhatsApp /> Chat with our team
             </a>
-            <p style={{ marginTop: 12 }}>WhatsApp: <a href={whatsappChatLink()} target="_blank" rel="noreferrer">{WHATSAPP_DISPLAY}</a><br />{STORE_HOURS}</p>
+            <p>WhatsApp: <a href={whatsappChatLink()} target="_blank" rel="noreferrer">{WHATSAPP_DISPLAY}</a> • {STORE_HOURS}</p>
           </div>
         </div>
-        <div className="copy"><span>Made with care in India • Order on WhatsApp</span><span>Every piece is hand-checked before dispatch • <Link to="/admin/">Staff login</Link></span></div>
+        <div className="copy"><span>© 2026 Nilaara Jewellers. All rights reserved.</span><span>Made with care in India • Every piece is hand-checked before dispatch • <Link to="/admin/">Staff login</Link></span></div>
       </div>
     </footer>
   );

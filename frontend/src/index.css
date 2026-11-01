@@ -347,11 +347,7 @@ h1,h2,h3,h4{color:var(--maroon)}
 .pr em{font-style:normal;font-size:9.5px;letter-spacing:.9px;text-transform:uppercase;color:#7A5B16;background:linear-gradient(135deg,#FBF0D4,#F2E1B9);padding:3px 8px;border-radius:999px;border:1px solid rgba(199,164,92,.35)}
 .off25{font-size:11.5px;letter-spacing:.2px;color:var(--green);margin-top:2px}
 .card-actions{margin-top:auto;padding-top:12px}
-.add{width:100%;border-radius:999px;padding:12px;border:1px solid rgba(199,164,92,.7);background:linear-gradient(180deg,#FFFDF8,#FBF3E3);color:var(--maroon);cursor:pointer;font-size:10.5px;letter-spacing:2px;text-transform:uppercase;font-weight:600;box-shadow:0 2px 8px rgba(74,1,6,.05);transition:background .25s,color .25s,border-color .25s,box-shadow .25s,transform .25s}
-/* WhatsApp buy button — same luxury palette as the rest of the store. */
-.add.add-wa{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:linear-gradient(135deg,var(--maroon),var(--maroon-deep));border-color:var(--maroon);color:var(--gold-bright);box-shadow:0 4px 14px rgba(101,1,8,.18);letter-spacing:1.4px}
-.add.add-wa:hover{background:linear-gradient(135deg,#EBD49A,#D5B064);border-color:#D5B064;color:var(--maroon-deep);transform:translateY(-1px);box-shadow:0 10px 20px rgba(101,1,8,.18)}
-.add.add-wa svg{width:15px;height:15px;flex-shrink:0}
+.add{width:100%;display:inline-flex;align-items:center;justify-content:center;gap:7px;border-radius:999px;padding:14px 12px;border:1px solid var(--maroon);background:linear-gradient(135deg,var(--maroon),var(--maroon-deep));color:var(--gold-bright);cursor:pointer;font-size:11.5px;letter-spacing:1.6px;text-transform:uppercase;font-weight:600;box-shadow:0 4px 14px rgba(101,1,8,.18);transition:background .25s,color .25s,border-color .25s,box-shadow .25s,transform .25s}
 .wa-hbtn:hover{border-color:var(--maroon);background:var(--maroon);color:var(--gold-bright)}
 .pd-id{font-size:12.5px;color:var(--muted);letter-spacing:.5px;margin:6px 0 0}
 .pd-id code{font-size:12px;background:var(--card);border:1px solid var(--line);border-radius:6px;padding:2px 7px;color:var(--maroon)}
@@ -390,20 +386,20 @@ h1,h2,h3,h4{color:var(--maroon)}
 .insta{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
 .insta img{border-radius:12px;aspect-ratio:1;object-fit:cover;width:100%}
 
-/* footer */
-.footer{margin-top:50px;background:var(--maroon-deep);color:#E6CFA2;border-top:1px solid var(--maroon)}
-.footer-grid{display:grid;grid-template-columns:1.3fr 1fr 1fr 1.2fr;gap:26px;padding:44px 0 26px}
-.footer-logo{width:170px;height:auto;display:block;border-radius:14px;border:1px solid rgba(250,223,132,.25);margin-bottom:14px}
-.footer h4{font-family:var(--serif);font-size:22px;margin:0 0 12px;color:var(--gold-bright);font-weight:600}
-.footer a,.footer p{font-size:14px;color:#E6CFA2;line-height:1.8}
+/* footer — one compact band */
+.footer{margin-top:38px;background:var(--maroon-deep);color:#E6CFA2;border-top:1px solid var(--maroon)}
+.footer-grid{display:grid;grid-template-columns:1.25fr 1fr 1.35fr;gap:22px;padding:22px 0 12px}
+.footer-logo{width:126px;height:auto;display:block;border-radius:10px;border:1px solid rgba(250,223,132,.25);margin-bottom:8px}
+.footer h4{font-family:var(--serif);font-size:15px;margin:0 0 5px;color:var(--gold-bright);font-weight:600;letter-spacing:.5px}
+.footer a,.footer p{font-size:12.5px;color:#E6CFA2;line-height:1.6}
 .footer a:hover{color:var(--gold-bright)}
 .news{display:flex;background:rgba(255,243,214,.08);border:1px solid rgba(250,223,132,.24);border-radius:999px;padding:5px;margin-top:12px}
 .news input{flex:1;background:transparent;border:0;outline:0;color:#FFF3D6;padding:10px 14px;font-family:inherit}
 .news input::placeholder{color:rgba(230,207,162,.7)}
 .news button{background:var(--gold-bright);border:0;border-radius:999px;padding:10px 18px;cursor:pointer;color:var(--maroon-deep);font-weight:600;font-size:12px;letter-spacing:1.4px;text-transform:uppercase}
-.footer .news-cta{margin-top:14px;padding:11px 20px;font-size:11px;letter-spacing:1.3px;gap:8px}
-.footer .news-cta svg{width:16px;height:16px;flex-shrink:0}
-.copy{border-top:1px solid rgba(250,223,132,.18);padding:16px 0;display:flex;justify-content:space-between;gap:12px;font-size:12.5px;color:rgba(230,207,162,.85);flex-wrap:wrap}
+.footer .news-cta{margin:6px 0;padding:7px 13px;font-size:10px;letter-spacing:1.1px;gap:6px;color:var(--maroon-deep)}
+.footer .news-cta svg{width:14px;height:14px;flex-shrink:0}
+.copy{border-top:1px solid rgba(250,223,132,.18);padding:10px 0;display:flex;justify-content:space-between;gap:12px;font-size:11.5px;color:rgba(230,207,162,.85);flex-wrap:wrap}
 
 /* drawer */
 .overlay{position:fixed;inset:0;background:rgba(28,8,9,.32);backdrop-filter:blur(1px);z-index:80}
@@ -702,14 +698,11 @@ select.status{border:1px solid var(--line);border-radius:999px;padding:7px 12px;
   /* Footer: brand and newsletter span the row, link groups sit side by side
      so the phone footer stays a screen-and-a-bit instead of three screens. */
   .footer{margin-top:30px}
-  .footer-grid{grid-template-columns:1fr 1fr;gap:18px 16px;padding:24px 0 14px}
+  .footer-grid{grid-template-columns:1fr 1fr;gap:18px 16px;padding:18px 0 10px}
   .footer-grid>div:first-child,.footer-grid>div:last-child{grid-column:1/-1}
   .footer-logo{width:96px;margin-bottom:9px;border-radius:10px}
-  .footer h4{font-size:15px;margin:0 0 7px}
-  .footer p,.footer a{font-size:12.6px;line-height:1.55}
   /* Keep the brand blurb to two lines on phones — the full text stays on desktop. */
   .footer-grid>div:first-child p:first-of-type{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-  .footer-grid>div:first-child p+p{font-size:11.5px;line-height:1.5}
   .news{margin-top:10px}
   .news button{padding:9px 14px;font-size:11px}
   .copy{font-size:11px;padding:10px 0;gap:2px;flex-direction:column;line-height:1.55}
@@ -748,7 +741,7 @@ select.status{border:1px solid var(--line);border-radius:999px;padding:7px 12px;
   .pr em{font-size:8px;padding:2px 6px;letter-spacing:.5px}
   .off25{display:none}
   .card-actions{padding-top:10px}
-  .add{padding:11px;font-size:9.5px;letter-spacing:1.5px}
+  .add{padding:12px 10px;font-size:10.5px;letter-spacing:1.4px}
   .badge{top:9px;left:9px;gap:4px;max-width:calc(100% - 48px)}
   .badge i{font-size:8.5px;padding:3.5px 7px;letter-spacing:.8px}
   .wish{top:9px;right:9px;width:32px;height:32px;font-size:14px}

@@ -103,13 +103,18 @@ Sort: Featured / Price low→high / Price high→low. Every filter is in the URL
 so links are shareable. Empty states distinguish "no match" from "coming soon".
 Cards: photo, a small line above the name with the category (left) and the product ID (right, faint),
 name, price, strikethrough MRP + % off, badges, sold-out overlay, wishlist heart,
-Buy Now (opens WhatsApp), Choose-a-chain link when the product has a chain option.
+Buy Now → the product page (WhatsApp ordering lives there, where the chain choice and the exact
+price are shown).
 Product page: gallery + thumbnails, badges, price/discount, stock states (in stock / "Hurry, only N
 left!" / out of stock), product ID, chain radio (Without / With +₹charge) which GATES Buy Now until
 chosen, WhatsApp Buy Now with name + product ID + chosen chain + total pre-filled, wishlist, details /
 shipping (dispatch 24 h, delivery 3–5 days) / care accordions, "You may also love".
 Stores page: two map iframes (9.5917471,76.5259062 and 9.617801,76.532909), 10:30 AM–9:00 PM daily,
 Get Directions, WhatsApp Store, "Can't visit? Shop online" box.
+Footer: one compact three-column band — logo + intro line, Care links (WhatsApp chat, stores,
+shipping policy, care guide, contact), and the Order-on-WhatsApp block (copy, chat button, number,
+store hours) with the copyright and staff login on the strip below. It deliberately does NOT repeat
+the category list: the top menu already carries every section.
 Global: announcement bar (marquee, rotating messages, or plain text; hidden when the owner turns it off),
 mobile menu, wishlist counter, back-to-top, scroll restore, reveal animations, cookieless page-view
 analytics (see section 2).
