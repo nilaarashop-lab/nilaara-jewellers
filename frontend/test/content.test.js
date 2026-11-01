@@ -95,6 +95,32 @@ test("an exact commit is used for instant admin updates", async () => {
   }
 });
 
+test("a commit that is not a SHA is refused without any network call", async () => {
+  const calls = [];
+  globalThis.fetch = async (url) => {
+    calls.push(url);
+    return jsonResponse({ products: [] });
+  };
+
+  for (const junk of ["", "../../etc/passwd", "main?foo=1", "xyz1234", "abcdef", "feed1234 ", "https://evil.example"]) {
+    const live = await loadCommitContent(junk);
+    assert.equal(live.products, null, junk);
+    assert.equal(live.settings, null, junk);
+  }
+  assert.equal(calls.length, 0);
+});
+
+test("picture paths built from a junk commit stay on the branch", () => {
+  assert.equal(
+    mediaUrl("/uploads/123-photo.webp", "../evil"),
+    `${RAW_ROOT}/frontend/public/uploads/123-photo.webp`
+  );
+  assert.match(
+    mediaUrl("/uploads/123-photo.webp", "896e647"),
+    /^https:\/\/raw\.githubusercontent\.com\/[^/]+\/[^/]+\/896e647\//
+  );
+});
+
 test("a failed snapshot request leaves that file on the bundled fallback", async () => {
   globalThis.fetch = async (url) => {
     if (String(url).includes("products.json")) throw new Error("offline");

@@ -3,7 +3,7 @@ import { useLocation } from "react-router-dom";
 import { PRODUCTS, normalizeProducts } from "../data/products";
 import { SITE_SETTINGS, normalizeSettings } from "../data/settings";
 import { loadBuildContent, loadCommitContent } from "../data/liveContent";
-import { CONTENT_EVENT, readContentUpdate } from "../data/repo";
+import { CONTENT_EVENT, isCommitSha, readContentUpdate } from "../data/repo";
 
 const StoreCtx = createContext(null);
 export const useStore = () => useContext(StoreCtx);
@@ -131,7 +131,7 @@ export function StoreProvider({ children }) {
         lastRefresh.current = Date.now();
         const targetCommit = pendingCommit.current;
         pendingCommit.current = "";
-        if (targetCommit) {
+        if (isCommitSha(targetCommit)) {
           // Remember which build was live when this save happened. That build
           // must not overwrite the commit; the next build should.
           const [commitLive, buildLive] = await Promise.all([

@@ -10,8 +10,12 @@ export const REPO = "nilaarashop-lab/nilaara-jewellers";
 export const BRANCH = "main";
 export const RAW_ROOT = `https://raw.githubusercontent.com/${REPO}/${BRANCH}`;
 
+/** GitHub's short or full SHA — the only thing allowed inside a raw URL. */
+const COMMIT_SHA = /^[0-9a-f]{7,40}$/i;
+export const isCommitSha = (commit) => COMMIT_SHA.test(String(commit || ""));
+
 export const commitRawRoot = (commit) =>
-  `https://raw.githubusercontent.com/${REPO}/${commit}`;
+  `https://raw.githubusercontent.com/${REPO}/${isCommitSha(commit) ? commit : BRANCH}`;
 
 /**
  * Same-browser tabs use this localStorage key as a tiny "content changed"

@@ -1,4 +1,4 @@
-import { commitRawRoot } from "./repo.js";
+import { commitRawRoot, isCommitSha } from "./repo.js";
 
 const BUILD_ROOT = "/content";
 const TIMEOUT_MS = 6000;
@@ -53,7 +53,7 @@ export function loadBuildContent() {
  * visible immediately, before Vercel finishes rebuilding.
  */
 export function loadCommitContent(commit) {
-  if (!commit) return Promise.resolve({ products: null, settings: null });
+  if (!isCommitSha(commit)) return Promise.resolve({ products: null, settings: null });
   const root = `${commitRawRoot(commit)}/frontend/src/content`;
   return loadPair(`${root}/products.json`, `${root}/settings.json`);
 }

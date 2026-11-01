@@ -2,6 +2,17 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <!--
+      Only the hosts this storefront really uses may load. Everything the page
+      fetches is listed here, so adding a new embed or photo host means adding it
+      too. The Maps embed nests its own frames under www.google.com, so both
+      google hosts stay in frame-src. frame-ancestors cannot be set from a meta
+      tag, so that one travels as a response header in vercel.json.
+    -->
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://ik.imagekit.io https://images.unsplash.com https://raw.githubusercontent.com; connect-src 'self' https://api.github.com https://raw.githubusercontent.com https://upload.imagekit.io; frame-src https://maps.google.com https://www.google.com; form-action 'self'; object-src 'none'; base-uri 'none'"
+    />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/Nilaara.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />

@@ -26,7 +26,10 @@ Last updated: 2026-11-01.
   on load, polls every 10 s, refreshes on tab focus, and after an admin save fetches the exact commit
   from raw.githubusercontent. A tab that applied an admin save ignores the build snapshot that was
   already live at save time, then accepts the next build even when rapid saves skipped past that exact
-  commit. Bundled JSON is the offline fallback.
+  commit. Bundled JSON is the offline fallback. The commit an admin save stores is only used when it
+  looks like a GitHub SHA (/^[0-9a-f]{7,40}$/ — isCommitSha in src/data/repo.js); anything else is
+  ignored and the tab keeps the build snapshot, so a tampered localStorage signal cannot make a
+  visitor's browser fetch an arbitrary raw.githubusercontent path. mediaUrl() guards it the same way.
 - Images: admin uploads go to ImageKit (folder /nilaara/products) once the Vercel env vars
   IMAGEKIT_PRIVATE_KEY + IMAGEKIT_PUBLIC_KEY (+ optional IMAGEKIT_URL_ENDPOINT) exist; the browser
   asks frontend/api/imagekit.js for a short-lived signature (private key stays server-side, request
@@ -55,6 +58,16 @@ Last updated: 2026-11-01.
 - Admin auth: GitHub OAuth popup via serverless functions frontend/api/auth.js + callback.js
   (state cookie, client secret stays server-side). Token lives in sessionStorage only.
   /admin is noindex; it also checks the token's repo push permission and refuses read-only accounts.
+- Security headers: a Content-Security-Policy <meta> in frontend/index.html whitelists only the hosts the
+  storefront really uses — scripts 'self' + Vercel analytics; Google fonts for style/font; images from
+  ik.imagekit.io, images.unsplash.com, raw.githubusercontent.com plus data:/blob: (CSS chevron, crop
+  previews); fetches to api.github.com, raw.githubusercontent.com and upload.imagekit.io; the store maps
+  embed under frame-src (maps.google.com nests its own frames on www.google.com, so both are listed).
+  Inline style attributes stay allowed because React uses them everywhere. Adding a new embed or photo
+  host means adding it here too. vercel.json carries what a meta tag cannot: CSP frame-ancestors 'none'
+  and X-Frame-Options DENY (nobody can frame the shop or the admin), nosniff, Referrer-Policy and a
+  Permissions-Policy that switches off camera/mic/payment/usb/midi/sensors. The header policy has no
+  script-src on purpose, so the /api/callback sign-in page's inline script still runs.
 
 3. ROUTES / PAGES
 /                Home: auto-rotating hero (admin slides or built-in festive hero), trust strip,
