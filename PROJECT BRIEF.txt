@@ -3,7 +3,7 @@ PROJECT BRIEF — Nilaara Jewellers website (nilaarashop-lab/nilaara-jewellers)
 LIVING PROMPT. This file describes the website as it is TODAY. Update it in the same change as any
 website edit — a new feature, changed wording, a new data field, a removed feature, a new rule.
 If this file and the code disagree, this file is wrong and must be fixed before the change is done.
-Last updated: 2026-10-31.
+Last updated: 2026-11-01.
 
 1. WHAT THE BUSINESS IS
 - Brand: Nilaara Jewellers. Artificial (imitation) jewellery, India. WhatsApp orders: +91 96331 36081.
@@ -190,11 +190,12 @@ I. Admin UI cannot be browser-verified without the owner's GitHub session. Test 
 J. UPDATE THIS FILE in the same commit as any change: sections 3–6 for behaviour and copy, section 8
    for state. If a feature is removed, delete its lines here — a stale brief is a defect.
 
-8. CURRENT STATE (2026-10-31)
+8. CURRENT STATE (2026-11-01)
 - Unless a bullet says otherwise, everything is on main and live via Vercel; /content/products.json
   "._commit" names the exact commit the live site is serving.
-- CATALOGUE, since this commit (2026-10-31): 102 published products, wh0001 … wh0050, ts0001 …
-  ts0024, ch0001 … ch0009, ln0001 … ln0007 and rn0001 … rn0012, in seven bulk imports at the owner's
+- CATALOGUE, since this commit (2026-11-01): 143 published products, wh0001 … wh0050, ts0001 …
+  ts0026, ch0001 … ch0009, ln0001 … ln0007, rn0001 … rn0012, dr0001 … dr0012, ea0001 … ea0012,
+  ba0001 … ba0006, br0001 … br0006 and ri0001 … ri0003, in thirteen bulk imports at the owner's
   request. White Stone and Temple Jewellery pieces have two photos each in pair order; the Chocker batch has three pairs and six
   single-photo pieces; the Long Necklace batch is seven single-photo pieces. The 50 White Stone pieces are named "White Stone Jeweller", category White
   Stone: batch 1 is wh0001 … wh0034 (68 photos, "WHITE STONE\Untitled Export"); batch 2 is wh0035 …
@@ -209,11 +210,19 @@ J. UPDATE THIS FILE in the same commit as any change: sections 3–6 for behavio
   is 12 Ring Necklace pieces, rn0001 … rn0012 (20 photos from "RING NECKLACE\Untitled Export"):
   rn0001 … rn0008 each have a second photo (source names RN-1 with RN-1.1, RN-2 with RN-2.2 and so
   on; pair 6's main arrived without its "RN-" prefix, as a bare "6.jpg", and was matched to RN-6.6 by
-  eye), rn0009 … rn0012 have one photo each. All seven batches use price ₹799 / MRP ₹1,499, stock 1 and are published. The
-  187 photos are WebP files in /uploads (wh0001.webp + wh0001-1.webp, max edge 1600, ~28 MB total:
-  white stone ~11 MB, temple jewellery ~9.5 MB, chocker ~4 MB, long + ring necklace ~2.9 MB); the JPG originals stay on the owner's
-  D: drive. IDs are stored lowercase because the admin normalises every ID to lowercase — search
-  "WH0001", "TS0001", "CH0001", "LN0001" or "RN0001" still matches it.
+  eye), rn0009 … rn0012 have one photo each. Batch 8 is 12 Diamond Replica pieces, dr0001 … dr0012
+  (15 photos from "DIAMOND REPLICA\Untitled Export"): dr0001 … dr0003 are pairs (DR-1 with DR-1.1 and
+  so on); the source numbers then jumped from 3 to 7 and the owner chose to close the gap, so DR-7 …
+  DR-15 became dr0004 … dr0012 — nine single-photo pieces. The five single-piece sections that
+  followed went in one import each: 12 Earrings ea0001 … ea0012 ("EARING\Untitled Export", E-1 … E-12),
+  6 Bangles ba0001 … ba0006 ("BANGLES", BA-1 … BA-6), 6 Bracelets br0001 … br0006 ("BRCELET", BR-1 …
+  BR-6), 3 Rings ri0001 … ri0003 ("RING", R-1 … R-3) and 2 more Temple Jewellery pairs ts0025 … ts0026
+  ("TEMPLE PENDING", TS-25 with TS-25.1, TS-26 with TS-26.1). Every one of those pieces carries a
+  single photo except the temple pairs and dr0001 … dr0003. All thirteen batches use price ₹799 / MRP ₹1,499, stock 1 and are published. The
+  233 photos are WebP files in /uploads (wh0001.webp + wh0001-1.webp, max edge 1600, ~32 MB total:
+  white stone ~11 MB, temple jewellery ~10 MB, chocker ~4 MB, long + ring necklace ~2.9 MB, diamond replica + earrings + bangles + bracelet + rings + temple pending ~4.3 MB); the JPG originals stay on the owner's
+  D: drive. Every menu section now has designs except Non-Idol Design. IDs are stored lowercase because the admin normalises every ID to lowercase — search
+  "WH0001", "TS0001", "CH0001", "LN0001", "RN0001", "DR0001", "EA0001", "BA0001", "BR0001" or "RI0001" still matches it.
   The four test products (w2000 test2, w2001
   test23, w2002 test7, w2003 test6) and their four repo photos are deleted permanently. Their
   ImageKit photos remain until the owner runs Photos → unused (photos younger than 24 h are skipped,
@@ -230,8 +239,8 @@ J. UPDATE THIS FILE in the same commit as any change: sections 3–6 for behavio
   frontend/api/imagekit.js to the nilaara/products folder, with the GitHub commit as automatic
   fallback. Keys are set in Vercel; the owner's test7 save proved it (only products.json changed,
   no upload commit). Photos uploaded before that stay in the repo (after the 2026-10-31 imports:
-  189 /uploads files, all in use). The 187 white-stone, temple-jewellery, choker, long-necklace and
-  ring-necklace photos went to
+  235 /uploads files, all in use). The 233 white-stone, temple-jewellery, choker, long-necklace,
+  ring-necklace, diamond-replica, earring, bangle, bracelet and ring photos went to
   the repo, not ImageKit, because those bulk imports ran from the owner's PC where the ImageKit keys
   are not available.
 - FASTER PHOTOS + ANALYTICS (in commit 00db9e8): ImageKit images now request a width fit for their
