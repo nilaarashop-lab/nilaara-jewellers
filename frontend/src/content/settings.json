@@ -27,17 +27,24 @@
       {
         "slug": "jewellery-sets",
         "image": "/uploads/1793361940649-fcxw-0002.webp",
-        "alt": ""
+        "alt": "",
+        "active": true
       },
       {
         "slug": "necklaces",
         "image": "/uploads/1793361963896-xy2i-dsc00185.webp",
-        "alt": ""
+        "alt": "",
+        "active": true
+      },
+      {
+        "slug": "non-idol-design",
+        "image": "",
+        "alt": "",
+        "active": false
       }
     ]
   },
   "shipping": {
-    "freeOver": 5000,
-    "fee": 79
+    "freeOver": 5000
   }
 }
