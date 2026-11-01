@@ -43,6 +43,10 @@ export const categoryLabel = (value) => {
  * The sections to show, built-in order first then alphabetically, each with a
  * picture: the admin's upload, else the first photo of a design in that section,
  * else the built-in art — so no tile is ever blank.
+ *
+ * Only this list reads the admin's tile settings, so turning a category off with
+ * `active: false` hides it on the home page while the menu, shop and admin keep
+ * showing it.
  */
 export const listCategories = (products = [], tiles = []) => {
   const tileBySlug = new Map((tiles || []).map((t) => [t.slug, t]));
@@ -58,6 +62,7 @@ export const listCategories = (products = [], tiles = []) => {
   }
   const extra = used.filter((slug) => !builtIn.has(slug));
   return [...BASE_CATEGORIES.map((c) => c.slug), ...extra]
+    .filter((slug) => tileBySlug.get(slug)?.active !== false)
     .map((slug) => {
       const known = builtIn.get(slug);
       const tile = tileBySlug.get(slug);

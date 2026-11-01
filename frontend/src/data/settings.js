@@ -37,9 +37,16 @@ export function normalizeSettings(raw, commit = "") {
       linkLabel: c.linkLabel || "Shop now",
     }));
 
+  // A tile entry can carry only a visibility flag, so a category switched off
+  // stays recorded even when it never had a picture of its own.
   const categoryTiles = list(source.home?.categoryTiles)
-    .filter((t) => t.slug && t.image)
-    .map((t) => ({ slug: t.slug, url: mediaUrl(t.image, commit), alt: t.alt || "" }));
+    .filter((t) => t.slug)
+    .map((t) => ({
+      slug: t.slug,
+      url: t.image ? mediaUrl(t.image, commit) : "",
+      alt: t.alt || "",
+      active: t.active !== false,
+    }));
 
   const festive = source.home?.festive;
 

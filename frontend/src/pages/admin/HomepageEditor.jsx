@@ -75,8 +75,13 @@ const normalize = (raw) => ({
     },
     categoryTiles: Array.isArray(raw?.home?.categoryTiles)
       ? raw.home.categoryTiles
-          .map((t) => ({ slug: t?.slug || "", image: imageUrl(t?.image), alt: t?.alt || "" }))
-          .filter((t) => t.slug && t.image)
+          .map((t) => ({
+            slug: t?.slug || "",
+            image: imageUrl(t?.image),
+            alt: t?.alt || "",
+            active: t?.active !== false,
+          }))
+          .filter((t) => t.slug)
       : [],
   },
   shipping: {
@@ -603,28 +608,50 @@ export default function HomepageEditor() {
 
       <section className="form hp-section">
         <div className="hp-head">
-          <h3 className="serif" style={{ margin: 0, fontSize: 22 }}>“Shop by Category” pictures</h3>
+          <h3 className="serif" style={{ margin: 0, fontSize: 22 }}>“Shop by Category” tiles</h3>
         </div>
-        <p className="co-note">One picture per category tile on the home page. Leave empty to keep the built-in image.</p>
+        <p className="co-note">
+          Turn a category off to drop its tile from the home page. The designs and the menu links stay
+          as they are — only the home page changes. One picture per tile; leave it empty to keep the
+          built-in image.
+        </p>
         <div className="hp-tiles">
           {cats.map((category) => {
             const tile = (doc.home.categoryTiles || []).find((t) => t.slug === category.slug);
+            const shown = tile?.active !== false;
+            const patchTile = (patch) =>
+              set(() => {
+                const tiles = [...(doc.home.categoryTiles || [])].filter((t) => t.slug !== category.slug);
+                const next = {
+                  slug: category.slug,
+                  image: tile?.image || "",
+                  alt: tile?.alt || "",
+                  active: true,
+                  ...patch,
+                };
+                // A tile with no picture and no need to hide it has nothing to store.
+                if (next.image || next.active === false) tiles.push(next);
+                setDoc({ ...doc, home: { ...doc.home, categoryTiles: tiles } });
+              });
             return (
-              <div key={category.slug} className="hp-tile">
+              <div key={category.slug} className={`hp-tile${shown ? "" : " hp-tile-off"}`}>
                 <ImageSlot
                   label={category.name}
                   value={tile?.image || ""}
                   busy={busy}
                   onBusy={onImageBusy}
                   onError={setImgErr}
-                  onChange={(image) =>
-                    set(() => {
-                      const tiles = [...(doc.home.categoryTiles || [])].filter((t) => t.slug !== category.slug);
-                      if (image) tiles.push({ slug: category.slug, image, alt: tile?.alt || "" });
-                      setDoc({ ...doc, home: { ...doc.home, categoryTiles: tiles } });
-                    })
-                  }
+                  onChange={(image) => patchTile({ image })}
                 />
+                <label className="hp-toggle" title={shown ? "Shown on the home page" : "Hidden from the home page"}>
+                  <input
+                    type="checkbox"
+                    checked={shown}
+                    disabled={busy}
+                    onChange={(e) => patchTile({ active: e.target.checked })}
+                  />
+                  Show
+                </label>
                 <small>{category.name}</small>
               </div>
             );

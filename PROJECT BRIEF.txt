@@ -79,8 +79,11 @@ featured, bestseller, newArrival, chainOption (true/false) + chainCharge, desc, 
 Removed for good in 2026-10: collection, plating, stones, badge, B1G1. Unknown legacy ?col= slugs
 are ignored (never a dead-end page).
 Settings: announcement {active,text,shortText,messages[]}, home.heroSlides[] (max 4),
-home.cards[] (max 4), home.festive banner, home.categoryTiles[] per category slug,
-shipping {freeOver (currently 5,000)}. freeOver drives every freebie mention in the site through
+home.cards[] (max 4), home.festive banner, home.categoryTiles[] per category slug
+{slug,image,alt,active}, shipping {freeOver (currently 5,000)}. active=false on a tile hides that
+category from the home page "Shop by Category" strip only — the menu, footer, shop filters and admin
+keep showing it. An entry with no picture still has to be stored, because it may be carrying the
+off switch. freeOver drives every freebie mention in the site through
 freebiesLabel(settings) in src/data/freebies.js; 0 hides the line everywhere. The old shipping fee
 field was removed — shipping is agreed on WhatsApp.
 Categories: 11 built-in sections (temple-jewellery, non-idol-design, white-stone, diamond-replica,
@@ -147,7 +150,9 @@ photo workflow —
     backup copy was saved; deleting a product also keeps a final snapshot of it.
 Homepage tab: announcement (on/off, rotating messages, desktop + mobile fallback text),
 hero slides (on/off, image, eyebrow, title, highlight, text), promo cards (image, eyebrow, title, text,
-link, label), festive banner, category tile pictures, freebie threshold (Freebies over ₹).
+link, label), festive banner, "Shop by Category" tiles (a Show tick per category plus its picture;
+unticked drops that tile from the home page only and greys the tile in the editor), freebie
+threshold (Freebies over ₹).
 Photos tab: "Check for unused photos" lists ImageKit photos in /nilaara/products that no product or
 homepage block mentions (hidden/inactive blocks still count as use; code-owned art counts as use;
 photos uploaded in the last 24 hours are skipped). Each row shows a thumbnail, size and upload date;

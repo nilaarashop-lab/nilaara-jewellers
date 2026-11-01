@@ -64,3 +64,25 @@ test("an uploaded tile picture wins over both the product photo and the shop art
   assert.equal(choker.img, "/uploads/choker-tile.webp");
   assert.equal(choker.alt, "Chokers on display");
 });
+
+test("a category switched off leaves only the home page", () => {
+  const products = [{ category: "choker", images: ["/uploads/c.webp"] }];
+  const tiles = [{ slug: "choker", url: "", alt: "", active: false }];
+  assert.ok(!listCategories(products, tiles).some((c) => c.slug === "choker"));
+  assert.ok(listCategories(products).some((c) => c.slug === "choker"));
+});
+
+test("switching it back on puts the tile in the same place", () => {
+  const off = listCategories([], [{ slug: "bangles", url: "", alt: "", active: false }]);
+  assert.deepEqual(
+    off.map((c) => c.slug),
+    SECTIONS.filter((slug) => slug !== "bangles")
+  );
+  const on = listCategories([], [{ slug: "bangles", url: "", alt: "", active: true }]);
+  assert.deepEqual(on.map((c) => c.slug), SECTIONS);
+});
+
+test("a tile saved before the switch existed stays visible", () => {
+  const list = listCategories([], [{ slug: "rings", url: "/uploads/r.webp", alt: "Rings" }]);
+  assert.equal(list.find((c) => c.slug === "rings").img, "/uploads/r.webp");
+});
