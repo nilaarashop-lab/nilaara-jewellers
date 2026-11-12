@@ -1,0 +1,33 @@
+{
+  "backedUpAt": "2026-11-12T10:50:08.311Z",
+  "reason": "updated",
+  "commit": "caf73bf8dcc4e3e0aef0fd7ae70c45add665ea4e",
+  "product": {
+    "id": "dr0010",
+    "slug": "dr0010",
+    "name": "Diamond Replica",
+    "category": "diamond-replica",
+    "metal": "",
+    "purity": "",
+    "size": "",
+    "price": 520,
+    "mrp": 0,
+    "makingCharges": 0,
+    "stock": 3,
+    "lowStockThreshold": 5,
+    "trackInventory": true,
+    "customTag": "",
+    "chainOption": false,
+    "chainCharge": 0,
+    "bestseller": false,
+    "newArrival": true,
+    "featured": false,
+    "rating": 0,
+    "reviews": 0,
+    "images": [
+      "/uploads/dr0010.webp"
+    ],
+    "desc": "520 FOR WITHOUT CHAIN -+200 FOR WITH CHAIN",
+    "status": "published"
+  }
+}
