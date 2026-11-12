@@ -3039,7 +3039,7 @@
       "price": 360,
       "mrp": 0,
       "makingCharges": 0,
-      "stock": 0,
+      "stock": 2,
       "lowStockThreshold": 5,
       "trackInventory": true,
       "customTag": "",
