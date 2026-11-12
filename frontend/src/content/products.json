@@ -3148,10 +3148,10 @@
       "metal": "",
       "purity": "",
       "size": "",
-      "price": 799,
-      "mrp": 1499,
+      "price": 530,
+      "mrp": 0,
       "makingCharges": 0,
-      "stock": 1,
+      "stock": 3,
       "lowStockThreshold": 5,
       "trackInventory": true,
       "customTag": "",
@@ -3165,7 +3165,7 @@
       "images": [
         "/uploads/dr0008.webp"
       ],
-      "desc": "",
+      "desc": "530 FOR WITHOUT CHAIN - +200 FOR WITH CHAIN",
       "status": "published"
     },
     {
