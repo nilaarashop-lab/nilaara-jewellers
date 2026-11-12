@@ -1,0 +1,34 @@
+{
+  "backedUpAt": "2026-11-12T10:37:24.416Z",
+  "reason": "updated",
+  "commit": "a505f38630ad5430622e5817bb1bfd0d767d5472",
+  "product": {
+    "id": "dr0002",
+    "slug": "dr0002",
+    "name": "Diamond Replica",
+    "category": "diamond-replica",
+    "metal": "",
+    "purity": "",
+    "size": "",
+    "price": 999,
+    "mrp": 1499,
+    "makingCharges": 0,
+    "stock": 1,
+    "lowStockThreshold": 5,
+    "trackInventory": true,
+    "customTag": "",
+    "chainOption": false,
+    "chainCharge": 0,
+    "bestseller": false,
+    "newArrival": true,
+    "featured": false,
+    "rating": 0,
+    "reviews": 0,
+    "images": [
+      "/uploads/dr0002.webp",
+      "/uploads/dr0002-1.webp"
+    ],
+    "desc": "",
+    "status": "published"
+  }
+}
