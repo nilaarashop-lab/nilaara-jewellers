@@ -2868,7 +2868,7 @@
       "price": 350,
       "mrp": 0,
       "makingCharges": 0,
-      "stock": 2,
+      "stock": 1,
       "lowStockThreshold": 5,
       "trackInventory": true,
       "customTag": "",
