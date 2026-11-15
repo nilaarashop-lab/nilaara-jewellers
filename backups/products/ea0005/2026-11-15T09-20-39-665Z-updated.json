@@ -1,0 +1,33 @@
+{
+  "backedUpAt": "2026-11-15T09:20:39.665Z",
+  "reason": "updated",
+  "commit": "defd05115f3199b21894a49bc75a934c0a5653ad",
+  "product": {
+    "id": "ea0005",
+    "slug": "ea0005",
+    "name": "Earrings",
+    "category": "earrings",
+    "metal": "",
+    "purity": "",
+    "size": "",
+    "price": 559,
+    "mrp": 0,
+    "makingCharges": 0,
+    "stock": 1,
+    "lowStockThreshold": 5,
+    "trackInventory": true,
+    "customTag": "",
+    "chainOption": false,
+    "chainCharge": 0,
+    "bestseller": false,
+    "newArrival": true,
+    "featured": false,
+    "rating": 0,
+    "reviews": 0,
+    "images": [
+      "/uploads/ea0005.webp"
+    ],
+    "desc": "",
+    "status": "published"
+  }
+}
