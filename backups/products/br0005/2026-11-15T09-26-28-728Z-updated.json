@@ -1,0 +1,33 @@
+{
+  "backedUpAt": "2026-11-15T09:26:28.728Z",
+  "reason": "updated",
+  "commit": "934535d2e2b50cf47f917e9608a5b2ce71465703",
+  "product": {
+    "id": "br0005",
+    "slug": "br0005",
+    "name": "Bracelet",
+    "category": "bracelet",
+    "metal": "",
+    "purity": "",
+    "size": "",
+    "price": 899,
+    "mrp": 0,
+    "makingCharges": 0,
+    "stock": 1,
+    "lowStockThreshold": 5,
+    "trackInventory": true,
+    "customTag": "",
+    "chainOption": false,
+    "chainCharge": 0,
+    "bestseller": false,
+    "newArrival": true,
+    "featured": false,
+    "rating": 0,
+    "reviews": 0,
+    "images": [
+      "/uploads/br0005.webp"
+    ],
+    "desc": "",
+    "status": "published"
+  }
+}
