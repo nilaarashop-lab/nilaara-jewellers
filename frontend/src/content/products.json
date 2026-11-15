@@ -2288,34 +2288,6 @@
       "status": "published"
     },
     {
-      "id": "ch0006",
-      "slug": "ch0006",
-      "name": "Choker",
-      "category": "choker",
-      "metal": "",
-      "purity": "",
-      "size": "",
-      "price": 650,
-      "mrp": 0,
-      "makingCharges": 0,
-      "stock": 1,
-      "lowStockThreshold": 5,
-      "trackInventory": true,
-      "customTag": "",
-      "chainOption": false,
-      "chainCharge": 0,
-      "bestseller": false,
-      "newArrival": true,
-      "featured": false,
-      "rating": 0,
-      "reviews": 0,
-      "images": [
-        "/uploads/ch0006.webp"
-      ],
-      "desc": "",
-      "status": "published"
-    },
-    {
       "id": "ch0007",
       "slug": "ch0007",
       "name": "Choker",
