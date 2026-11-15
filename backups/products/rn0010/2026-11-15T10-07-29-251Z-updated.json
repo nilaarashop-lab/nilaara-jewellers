@@ -1,0 +1,33 @@
+{
+  "backedUpAt": "2026-11-15T10:07:29.251Z",
+  "reason": "updated",
+  "commit": "ce7e9271ca1384bba04697a9f6ee3f9f29eac387",
+  "product": {
+    "id": "rn0010",
+    "slug": "rn0010",
+    "name": "Ring Necklace",
+    "category": "ring-necklace",
+    "metal": "",
+    "purity": "",
+    "size": "",
+    "price": 350,
+    "mrp": 0,
+    "makingCharges": 0,
+    "stock": 2,
+    "lowStockThreshold": 5,
+    "trackInventory": true,
+    "customTag": "",
+    "chainOption": false,
+    "chainCharge": 0,
+    "bestseller": false,
+    "newArrival": true,
+    "featured": false,
+    "rating": 0,
+    "reviews": 0,
+    "images": [
+      "/uploads/rn0010.webp"
+    ],
+    "desc": "",
+    "status": "published"
+  }
+}
