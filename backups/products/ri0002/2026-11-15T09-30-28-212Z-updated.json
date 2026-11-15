@@ -1,0 +1,33 @@
+{
+  "backedUpAt": "2026-11-15T09:30:28.212Z",
+  "reason": "updated",
+  "commit": "d366d945ef452b75ef9263f3c85803497be4931b",
+  "product": {
+    "id": "ri0002",
+    "slug": "ri0002",
+    "name": "Rings",
+    "category": "rings",
+    "metal": "",
+    "purity": "",
+    "size": "",
+    "price": 350,
+    "mrp": 0,
+    "makingCharges": 0,
+    "stock": 1,
+    "lowStockThreshold": 5,
+    "trackInventory": true,
+    "customTag": "",
+    "chainOption": false,
+    "chainCharge": 0,
+    "bestseller": false,
+    "newArrival": true,
+    "featured": false,
+    "rating": 0,
+    "reviews": 0,
+    "images": [
+      "/uploads/ri0002.webp"
+    ],
+    "desc": "",
+    "status": "published"
+  }
+}
