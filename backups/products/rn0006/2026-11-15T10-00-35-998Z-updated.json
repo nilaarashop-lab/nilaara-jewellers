@@ -1,0 +1,34 @@
+{
+  "backedUpAt": "2026-11-15T10:00:35.998Z",
+  "reason": "updated",
+  "commit": "2e9fba070c80a5260bdf652906370e895bd17f6a",
+  "product": {
+    "id": "rn0006",
+    "slug": "rn0006",
+    "name": "Ring Necklace",
+    "category": "ring-necklace",
+    "metal": "",
+    "purity": "",
+    "size": "",
+    "price": 1750,
+    "mrp": 0,
+    "makingCharges": 0,
+    "stock": 1,
+    "lowStockThreshold": 5,
+    "trackInventory": true,
+    "customTag": "",
+    "chainOption": false,
+    "chainCharge": 0,
+    "bestseller": false,
+    "newArrival": true,
+    "featured": false,
+    "rating": 0,
+    "reviews": 0,
+    "images": [
+      "/uploads/rn0006.webp",
+      "/uploads/rn0006-1.webp"
+    ],
+    "desc": "",
+    "status": "published"
+  }
+}
