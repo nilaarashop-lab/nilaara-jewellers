@@ -1,0 +1,33 @@
+{
+  "backedUpAt": "2026-11-15T09:29:07.661Z",
+  "reason": "updated",
+  "commit": "570196dc10982cfc41f6f0d71ea82a5d6608407d",
+  "product": {
+    "id": "br0003",
+    "slug": "br0003",
+    "name": "Bracelet",
+    "category": "bracelet",
+    "metal": "",
+    "purity": "",
+    "size": "",
+    "price": 499,
+    "mrp": 0,
+    "makingCharges": 0,
+    "stock": 1,
+    "lowStockThreshold": 5,
+    "trackInventory": true,
+    "customTag": "",
+    "chainOption": false,
+    "chainCharge": 0,
+    "bestseller": false,
+    "newArrival": true,
+    "featured": false,
+    "rating": 0,
+    "reviews": 0,
+    "images": [
+      "/uploads/br0003.webp"
+    ],
+    "desc": "",
+    "status": "published"
+  }
+}
