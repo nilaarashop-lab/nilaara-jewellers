@@ -1,0 +1,34 @@
+{
+  "backedUpAt": "2026-11-15T09:41:34.809Z",
+  "reason": "updated",
+  "commit": "1ad313de49d498e0d0b03da38ae3fd70c143d425",
+  "product": {
+    "id": "ts0006",
+    "slug": "ts0006",
+    "name": "Temple Jewellery",
+    "category": "temple-jewellery",
+    "metal": "",
+    "purity": "",
+    "size": "",
+    "price": 1250,
+    "mrp": 0,
+    "makingCharges": 0,
+    "stock": 1,
+    "lowStockThreshold": 5,
+    "trackInventory": true,
+    "customTag": "",
+    "chainOption": false,
+    "chainCharge": 0,
+    "bestseller": false,
+    "newArrival": true,
+    "featured": false,
+    "rating": 0,
+    "reviews": 0,
+    "images": [
+      "/uploads/ts0006.webp",
+      "/uploads/ts0006-1.webp"
+    ],
+    "desc": "",
+    "status": "published"
+  }
+}
