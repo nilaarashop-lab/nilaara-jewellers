@@ -1,0 +1,33 @@
+{
+  "backedUpAt": "2026-11-15T09:24:54.152Z",
+  "reason": "updated",
+  "commit": "b9026fecfc9cb56feb849a22471c4662b942c558",
+  "product": {
+    "id": "ea0011",
+    "slug": "ea0011",
+    "name": "Earrings",
+    "category": "earrings",
+    "metal": "",
+    "purity": "",
+    "size": "",
+    "price": 660,
+    "mrp": 0,
+    "makingCharges": 0,
+    "stock": 1,
+    "lowStockThreshold": 5,
+    "trackInventory": true,
+    "customTag": "",
+    "chainOption": false,
+    "chainCharge": 0,
+    "bestseller": false,
+    "newArrival": true,
+    "featured": false,
+    "rating": 0,
+    "reviews": 0,
+    "images": [
+      "/uploads/ea0011.webp"
+    ],
+    "desc": "",
+    "status": "published"
+  }
+}
