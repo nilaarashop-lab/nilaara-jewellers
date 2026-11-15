@@ -1,0 +1,33 @@
+{
+  "backedUpAt": "2026-11-15T09:26:52.309Z",
+  "reason": "updated",
+  "commit": "58f31ce15ad54aae29f3bef1bfee3b80f43d02a9",
+  "product": {
+    "id": "br0006",
+    "slug": "br0006",
+    "name": "Bracelet",
+    "category": "bracelet",
+    "metal": "",
+    "purity": "",
+    "size": "",
+    "price": 499,
+    "mrp": 0,
+    "makingCharges": 0,
+    "stock": 1,
+    "lowStockThreshold": 5,
+    "trackInventory": true,
+    "customTag": "",
+    "chainOption": false,
+    "chainCharge": 0,
+    "bestseller": false,
+    "newArrival": true,
+    "featured": false,
+    "rating": 0,
+    "reviews": 0,
+    "images": [
+      "/uploads/br0006.webp"
+    ],
+    "desc": "",
+    "status": "published"
+  }
+}
