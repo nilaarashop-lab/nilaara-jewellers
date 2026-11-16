@@ -1,0 +1,33 @@
+{
+  "backedUpAt": "2026-11-16T10:14:32.056Z",
+  "reason": "updated",
+  "commit": "560ad4a92c967f9c4a0a531601cb6c455b5b8d47",
+  "product": {
+    "id": "ln0007",
+    "slug": "ln0007",
+    "name": "Long Necklace",
+    "category": "long-necklace",
+    "metal": "",
+    "purity": "",
+    "size": "",
+    "price": 380,
+    "mrp": 0,
+    "makingCharges": 0,
+    "stock": 1,
+    "lowStockThreshold": 5,
+    "trackInventory": true,
+    "customTag": "",
+    "chainOption": false,
+    "chainCharge": 0,
+    "bestseller": false,
+    "newArrival": true,
+    "featured": false,
+    "rating": 0,
+    "reviews": 0,
+    "images": [
+      "/uploads/ln0007.webp"
+    ],
+    "desc": "",
+    "status": "published"
+  }
+}
