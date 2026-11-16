@@ -1,0 +1,34 @@
+{
+  "backedUpAt": "2026-11-16T09:38:00.891Z",
+  "reason": "updated",
+  "commit": "e0c4e3c03311e55ca130a48e01b55022a0add5f8",
+  "product": {
+    "id": "wh0026",
+    "slug": "wh0026",
+    "name": "White Stone Jeweller",
+    "category": "white-stone",
+    "metal": "",
+    "purity": "",
+    "size": "",
+    "price": 850,
+    "mrp": 0,
+    "makingCharges": 0,
+    "stock": 2,
+    "lowStockThreshold": 5,
+    "trackInventory": true,
+    "customTag": "",
+    "chainOption": false,
+    "chainCharge": 0,
+    "bestseller": false,
+    "newArrival": true,
+    "featured": false,
+    "rating": 0,
+    "reviews": 0,
+    "images": [
+      "/uploads/wh0026.webp",
+      "/uploads/wh0026-1.webp"
+    ],
+    "desc": "",
+    "status": "published"
+  }
+}
