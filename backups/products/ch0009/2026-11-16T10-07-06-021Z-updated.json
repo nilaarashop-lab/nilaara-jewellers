@@ -1,0 +1,33 @@
+{
+  "backedUpAt": "2026-11-16T10:07:06.021Z",
+  "reason": "updated",
+  "commit": "e82e8bcbe18e9674abb68d5fbf0d61fd7329fd60",
+  "product": {
+    "id": "ch0009",
+    "slug": "ch0009",
+    "name": "Choker",
+    "category": "choker",
+    "metal": "",
+    "purity": "",
+    "size": "",
+    "price": 700,
+    "mrp": 0,
+    "makingCharges": 0,
+    "stock": 1,
+    "lowStockThreshold": 5,
+    "trackInventory": true,
+    "customTag": "",
+    "chainOption": false,
+    "chainCharge": 0,
+    "bestseller": false,
+    "newArrival": true,
+    "featured": false,
+    "rating": 0,
+    "reviews": 0,
+    "images": [
+      "/uploads/ch0009.webp"
+    ],
+    "desc": "",
+    "status": "published"
+  }
+}
