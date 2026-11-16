@@ -1,0 +1,34 @@
+{
+  "backedUpAt": "2026-11-16T09:49:32.691Z",
+  "reason": "updated",
+  "commit": "1d66eb78e082aec4de286df5c698ba26d20b1ff8",
+  "product": {
+    "id": "wh0043",
+    "slug": "wh0043",
+    "name": "White Stone Jeweller",
+    "category": "white-stone",
+    "metal": "",
+    "purity": "",
+    "size": "",
+    "price": 499,
+    "mrp": 0,
+    "makingCharges": 0,
+    "stock": 2,
+    "lowStockThreshold": 5,
+    "trackInventory": true,
+    "customTag": "",
+    "chainOption": false,
+    "chainCharge": 0,
+    "bestseller": false,
+    "newArrival": true,
+    "featured": false,
+    "rating": 0,
+    "reviews": 0,
+    "images": [
+      "/uploads/wh0043.webp",
+      "/uploads/wh0043-1.webp"
+    ],
+    "desc": "",
+    "status": "published"
+  }
+}
