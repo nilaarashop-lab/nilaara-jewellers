@@ -1,0 +1,33 @@
+{
+  "backedUpAt": "2026-11-16T10:23:35.063Z",
+  "reason": "updated",
+  "commit": "c7ee345fb4190443ca11f819f98db190099fcc50",
+  "product": {
+    "id": "ba0006",
+    "slug": "ba0006",
+    "name": "Bangles",
+    "category": "bangles",
+    "metal": "",
+    "purity": "",
+    "size": "",
+    "price": 1799,
+    "mrp": 0,
+    "makingCharges": 0,
+    "stock": 9,
+    "lowStockThreshold": 5,
+    "trackInventory": true,
+    "customTag": "",
+    "chainOption": false,
+    "chainCharge": 0,
+    "bestseller": false,
+    "newArrival": true,
+    "featured": false,
+    "rating": 0,
+    "reviews": 0,
+    "images": [
+      "/uploads/ba0006.webp"
+    ],
+    "desc": "",
+    "status": "published"
+  }
+}
