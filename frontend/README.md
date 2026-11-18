@@ -55,8 +55,8 @@ one file:
 
 ```
 src/config.js
-  WHATSAPP_NUMBER   # digits only, country code first — 919633136081
-  WHATSAPP_DISPLAY  # what visitors see — +91 96331 36081
+  WHATSAPP_NUMBER   # digits only, country code first — 919539308245
+  WHATSAPP_DISPLAY  # what visitors see — +91 9539308245
 ```
 
 `productEnquiryMessage(product)` builds the pre-filled text: greeting + product

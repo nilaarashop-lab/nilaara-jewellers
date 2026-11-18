@@ -1,12 +1,12 @@
 /**
  * Storefront-wide settings.
  *
- * WhatsApp Business number: +91 96331 36081.
+ * WhatsApp Business number: +91 9539308245.
  * Every "Buy Now", header, footer and contact link reads from this one constant,
  * so this is the only place to change if the number changes.
  */
-export const WHATSAPP_NUMBER = "919633136081"; // Nilaara WhatsApp Business number
-export const WHATSAPP_DISPLAY = "+91 96331 36081";
+export const WHATSAPP_NUMBER = "919539308245"; // Nilaara WhatsApp Business number
+export const WHATSAPP_DISPLAY = "+91 9539308245";
 
 /** A wa.me deep link with the message pre-filled for the customer. */
 export const whatsappLink = (message) =>

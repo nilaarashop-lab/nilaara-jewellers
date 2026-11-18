@@ -21,7 +21,7 @@ Each product card and product page has a **Buy Now** button that opens WhatsApp
 with a short message containing the product name and **product ID**. The
 WhatsApp Business auto-reply handles price, availability, payment, and shipping.
 
-- WhatsApp number: `frontend/src/config.js` → `+91 96331 36081`.
+- WhatsApp number: `frontend/src/config.js` → `+91 9539308245`.
 - Wishlist: local browser storage, no account.
 - Orders are not stored by this website. There is no customer data in the repo.
 
